@@ -8,7 +8,7 @@
     "supabase_project_id": "ifkazhqwjbtxkmppsedi",
     "kakao_login": false,
     "locale": "ko",
-    "icon_source": null,
+    "icon_source": "assets/icon-source.png",
     "declarations": "docs/store-declarations.yaml",
     "app_name": "부모님을 소개합니다",
     "spec_source": "prd.md"

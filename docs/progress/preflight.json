@@ -77,9 +77,9 @@
       "manual_action": "출시 전 docs/store-declarations.yaml의 TODO(user) 항목 기입"
     },
     {
-      "item": "T2_ICON",
-      "reason": "assets/icon-source.* 없음 — /setup-icons 스킵됨",
-      "manual_action": "1024x1024 아이콘을 assets/icon-source.png 로 두고 /setup-icons 실행 (선택)"
+      "item": "REPO_PATH_NON_ASCII",
+      "reason": "프로젝트 경로에 한글이 있어 Android 네이티브 빌드(:app CMake/prefab)가 실패한다",
+      "manual_action": "세션 밖에서 저장소를 C:\\proj\\parents-matching 으로 이동 + 바탕화면에 정션 생성. docs/progress/windows-setup-notes.md 2절 참조"
     }
   ],
   "notes": [
