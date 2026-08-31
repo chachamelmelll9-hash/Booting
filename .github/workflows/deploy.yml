@@ -1,0 +1,118 @@
+name: Deploy Server to Oracle Cloud
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/server/**'
+      - 'packages/supabase/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy.yml'
+      - '.dockerignore'
+      - 'infra/oracle/**'
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck, lint, test (server + deps)
+        run: pnpm turbo run typecheck lint test --filter=@product-engineer-community-service/server...
+
+  build-and-deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Check required secrets
+        env:
+          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
+          ORACLE_SSH_USER: ${{ secrets.ORACLE_SSH_USER }}
+          ORACLE_SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+        run: |
+          MISSING=""
+          [ -z "$ORACLE_HOST" ] && MISSING="$MISSING ORACLE_HOST"
+          [ -z "$ORACLE_SSH_USER" ] && MISSING="$MISSING ORACLE_SSH_USER"
+          [ -z "$ORACLE_SSH_KEY" ] && MISSING="$MISSING ORACLE_SSH_KEY"
+          if [ -n "$MISSING" ]; then
+            echo "::warning::Deploy skipped — missing GitHub Secrets:$MISSING"
+            echo "::notice::To enable server deployment, add the following secrets in Settings → Secrets and variables → Actions:"
+            echo "::notice::  ORACLE_HOST — Oracle Cloud VM public IP"
+            echo "::notice::  ORACLE_SSH_USER — SSH username (e.g. ubuntu)"
+            echo "::notice::  ORACLE_SSH_KEY — SSH private key for the VM"
+            echo "::notice::Run ./scripts/provision-oracle.sh to set up Oracle Cloud infrastructure"
+            exit 0
+          fi
+          echo "SECRETS_OK=true" >> "$GITHUB_ENV"
+
+      - name: Checkout repository
+        if: env.SECRETS_OK == 'true'
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        if: env.SECRETS_OK == 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to GHCR
+        if: env.SECRETS_OK == 'true'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push (AMD64)
+        if: env.SECRETS_OK == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: apps/server/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/myapp-server:latest
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Oracle Cloud
+        if: env.SECRETS_OK == 'true'
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_SSH_USER }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          envs: GITHUB_TOKEN,SERVER_IMAGE
+          script: |
+            echo "$GITHUB_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            cd "$HOME/app"
+            export SERVER_IMAGE
+            docker compose pull
+            docker compose up -d --force-recreate
+            docker image prune -f
+            echo "Waiting for server health check (/api/health)..."
+            if curl -sf --retry 12 --retry-delay 5 --retry-all-errors http://127.0.0.1:3000/api/health >/dev/null; then
+              echo "Health check passed: /api/health responded 2xx"
+            else
+              echo "::error::Health check failed — server did not respond on /api/health"
+              docker compose logs --tail=50 server
+              exit 1
+            fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/myapp-server:latest

@@ -1,0 +1,8 @@
+appId: ${APP_ID}
+name: App launch smoke
+tags:
+  - smoke
+---
+- clearState
+- launchApp
+- takeScreenshot: launch-smoke

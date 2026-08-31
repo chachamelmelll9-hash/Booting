@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/mobile"
+    },
+{
+      "path": "./apps/server"
+    },
+    {
+      "path": "./apps/webview"
+    },
+    {
+      "path": "./packages/supabase"
+    },
+    {
+      "path": "./packages/webview-bridge"
+    },
+    {
+      "path": "./packages/i18n"
+    }
+  ]
+}

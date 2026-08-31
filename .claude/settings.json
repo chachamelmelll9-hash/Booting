@@ -1,0 +1,54 @@
+{
+  "hooks": {
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "command": "bd prime",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bd prime",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && if ! git diff --quiet HEAD 2>/dev/null || [ -n \"$(git ls-files --others --exclude-standard)\" ]; then git add -A && git commit -m \"auto: apply changes\n\nCo-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>\" 2>&1 || echo '[auto-commit] Pre-commit hook blocked — fix issues and commit manually'; else echo '[auto-commit] No changes to commit'; fi",
+            "type": "command"
+          },
+          {
+            "command": "/usr/bin/env python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop_pipeline_router.py\"",
+            "type": "command",
+            "timeout": 30
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/env python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre_tool_rate_gate.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

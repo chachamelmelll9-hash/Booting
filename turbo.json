@@ -1,0 +1,39 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".expo/**"],
+      "inputs": ["src/**", "tsconfig*.json", "package.json"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "passThroughEnv": ["ANDROID_HOME", "ANDROID_SDK_ROOT"]
+    },
+    "serve": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": ["test-output/**", "coverage/**"]
+    },
+    "e2e": {
+      "dependsOn": ["^build"],
+      "outputs": ["test-results/**"]
+    }
+  }
+}

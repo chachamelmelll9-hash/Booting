@@ -1,0 +1,22 @@
+{
+  "language_settings": "Language Settings",
+  "language_settings_subtitle": "Select your preferred language for the app",
+  "current_language": "Current Language",
+  "select_language": "Select Language",
+  "preferences": "Preferences",
+  "settings": "Settings",
+  "profile": "Profile",
+  "notifications": "Notifications",
+  "help": "Help",
+  "about": "About",
+  "contact": "Contact",
+  "privacy": "Privacy Policy",
+  "terms": "Terms of Service",
+  "version": "Version",
+  "name": "Name",
+  "phone": "Phone",
+  "address": "Address",
+  "city": "City",
+  "country": "Country",
+  "postal_code": "Postal Code"
+}

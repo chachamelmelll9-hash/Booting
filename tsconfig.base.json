@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@product-engineer-community-service/i18n": ["packages/i18n/src/index.ts"],
+      "@product-engineer-community-service/i18n/config/mobile": ["packages/i18n/src/config/mobile.ts"],
+      "@product-engineer-community-service/i18n/config/web": ["packages/i18n/src/config/web.ts"],
+      "@product-engineer-community-service/i18n/config/languages": ["packages/i18n/src/config/languages.ts"],
+      "@product-engineer-community-service/supabase": ["packages/supabase/src/index.ts"],
+      "@product-engineer-community-service/webview-bridge": ["packages/webview-bridge/src/index.ts"]
+    },
+    "allowJs": true,
+    "composite": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "esModuleInterop": true,
+    "importHelpers": true,
+    "isolatedModules": true,
+    "lib": ["es2022"],
+    "module": "esnext",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "noEmitOnError": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "es2022",
+    "customConditions": ["@product-engineer-community-service/source"]
+  }
+}

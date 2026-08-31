@@ -1,0 +1,22 @@
+appId: ${APP_ID}
+name: Tab navigation smoke
+tags:
+  - smoke
+  - tabs
+  - dev
+---
+# 03-auth 플로우에서 로그인된 세션을 전제로 실행 순서(04)가 고정되어 있다
+- launchApp
+- waitForAnimationToEnd
+
+# Home tab (default)
+- tapOn: "Home"
+- takeScreenshot: tab-home
+
+# Notifications tab
+- tapOn: "Notifications"
+- takeScreenshot: tab-notifications
+
+# Profile tab
+- tapOn: "Profile"
+- takeScreenshot: tab-profile

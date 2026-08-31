@@ -1,0 +1,9 @@
+packages:
+  - 'apps/*'
+  - 'packages'
+  - 'packages/*'
+
+autoInstallPeers: true
+
+patchedDependencies:
+  react-native-reanimated@4.1.6: patches/react-native-reanimated@4.1.6.patch

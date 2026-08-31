@@ -1,0 +1,90 @@
+name: Deploy WebView to Cloudflare Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/webview/**'
+      - 'packages/i18n/**'
+      - 'packages/supabase/**'
+      - 'packages/webview-bridge/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy-webview.yml'
+
+concurrency:
+  group: deploy-webview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required secrets
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PAGES_PROJECT_NAME: ${{ vars.CF_PAGES_PROJECT_NAME }}
+          DEPLOY_ENABLED: ${{ vars.DEPLOY_ENABLED }}
+        run: |
+          MISSING=""
+          [ -z "$CF_API_TOKEN" ] && MISSING="$MISSING CLOUDFLARE_API_TOKEN"
+          [ -z "$CF_ACCOUNT_ID" ] && MISSING="$MISSING CLOUDFLARE_ACCOUNT_ID"
+          [ -z "$CF_PAGES_PROJECT_NAME" ] && MISSING="$MISSING vars.CF_PAGES_PROJECT_NAME"
+          if [ -n "$MISSING" ]; then
+            if [ "$DEPLOY_ENABLED" = "true" ]; then
+              echo "::error::Deploy is enabled (vars.DEPLOY_ENABLED=true) but configuration is missing:$MISSING"
+              exit 1
+            fi
+            echo "## WebView deploy skipped" >> "$GITHUB_STEP_SUMMARY"
+            echo "Missing configuration:$MISSING" >> "$GITHUB_STEP_SUMMARY"
+            echo "Set vars.DEPLOY_ENABLED=true after provisioning to make this a hard failure." >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::Deploy skipped — missing GitHub configuration:$MISSING"
+            echo "::notice::To enable WebView deployment, add the following in Settings → Secrets and variables → Actions:"
+            echo "::notice::  CLOUDFLARE_API_TOKEN — Cloudflare API token with Pages edit permission"
+            echo "::notice::  CLOUDFLARE_ACCOUNT_ID — Cloudflare account ID"
+            echo "::notice::  vars.CF_PAGES_PROJECT_NAME — Cloudflare Pages project name (repository variable)"
+            echo "::notice::  VITE_SUPABASE_URL, VITE_SUPABASE_KEY, VITE_SERVER_URL — app environment variables"
+            echo "::notice::  vars.DEPLOY_ENABLED=true — marks provisioning complete; missing secrets then fail the run"
+            echo "::notice::Run ./scripts/provision-cloudflare.sh to set up Cloudflare infrastructure"
+            exit 0
+          fi
+          echo "SECRETS_OK=true" >> "$GITHUB_ENV"
+
+      - name: Checkout repository
+        if: env.SECRETS_OK == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        if: env.SECRETS_OK == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        if: env.SECRETS_OK == 'true'
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        if: env.SECRETS_OK == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck, lint, test (webview + deps)
+        if: env.SECRETS_OK == 'true'
+        run: pnpm turbo run typecheck lint test --filter=@product-engineer-community-service/webview...
+
+      - name: Build WebView
+        if: env.SECRETS_OK == 'true'
+        run: pnpm build:webview
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_KEY }}
+          VITE_SERVER_URL: ${{ secrets.VITE_SERVER_URL }}
+
+      - name: Deploy to Cloudflare Pages
+        if: env.SECRETS_OK == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/webview/dist --project-name=${{ vars.CF_PAGES_PROJECT_NAME }}

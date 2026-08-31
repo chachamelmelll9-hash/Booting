@@ -1,0 +1,24 @@
+appId: ${APP_ID}
+name: Auth screen smoke
+tags:
+  - smoke
+  - auth
+  - dev
+---
+- clearState
+- launchApp:
+    arguments:
+      url: "http://10.0.2.2:8081"
+- waitForAnimationToEnd
+
+# 로그인 화면이 정상 렌더링되는지 확인
+- assertVisible: "카카오 로그인"
+- assertVisible: "또는"
+- assertVisible:
+    id: "login-email-input"
+- assertVisible:
+    id: "login-password-input"
+- assertVisible:
+    id: "login-submit-button"
+- assertVisible:
+    id: "login-signup-link"

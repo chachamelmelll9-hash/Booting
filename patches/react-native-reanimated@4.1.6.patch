@@ -1,0 +1,24 @@
+diff --git a/android/CMakeLists.txt b/android/CMakeLists.txt
+index c4e4df92cc30961d75d06fcd7e0209140e7391ca..0da79cd95f634b4dd956b9724dff1d17852aaf57 100644
+--- a/android/CMakeLists.txt
++++ b/android/CMakeLists.txt
+@@ -75,8 +75,10 @@ set_target_properties(reanimated PROPERTIES LINKER_LANGUAGE CXX)
+ 
+ if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+   set(BUILD_TYPE "debug")
++  set(WORKLETS_TASK_BUILD_TYPE "Debug")
+ else()
+   set(BUILD_TYPE "release")
++  set(WORKLETS_TASK_BUILD_TYPE "Release")
+ endif()
+ 
+ add_library(worklets SHARED IMPORTED)
+@@ -85,7 +87,7 @@ set_target_properties(
+   worklets
+   PROPERTIES
+     IMPORTED_LOCATION
+-    "${REACT_NATIVE_WORKLETS_DIR}/android/build/intermediates/cmake/${BUILD_TYPE}/obj/${ANDROID_ABI}/libworklets.so"
++    "${REACT_NATIVE_WORKLETS_DIR}/android/build/intermediates/library_jni/${BUILD_TYPE}/copy${WORKLETS_TASK_BUILD_TYPE}JniLibsProjectOnly/jni/${ANDROID_ABI}/libworklets.so"
+ )
+ 
+ set_target_properties(reanimated PROPERTIES LINKER_LANGUAGE CXX)

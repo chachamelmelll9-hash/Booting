@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "productName": "Shippen",
+  "repoName": "__SHIPPEN_REPO_NAME__",
+  "repoUrl": "__SHIPPEN_REPO_URL__",
+  "licenseType": "commercial-template-restricted",
+  "licenseId": "__SHIPPEN_LICENSE_ID__",
+  "licensedTo": "__SHIPPEN_LICENSED_TO__",
+  "githubUsername": "__SHIPPEN_GITHUB_USERNAME__",
+  "generatedAt": "__SHIPPEN_GENERATED_AT__",
+  "redistributionAllowed": false,
+  "resaleAllowed": false
+}

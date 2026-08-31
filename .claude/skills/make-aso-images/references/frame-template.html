@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: {{FRAME_WIDTH}}px;
+    height: {{FRAME_HEIGHT}}px;
+    background: {{BG_COLOR}};
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
+    font-family: -apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  }
+
+  .headline {
+    color: {{TEXT_COLOR}};
+    font-size: {{FONT_SIZE}}px;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.3;
+    padding: {{TOP_PADDING}}px 60px 0;
+    /* 텍스트와 스크린샷 사이 간격 최소화 */
+    margin-bottom: {{GAP}}px;
+  }
+
+  .screenshot-container {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .screenshot {
+    width: {{SCREENSHOT_WIDTH}}px;
+    height: auto;
+    max-height: 100%;
+    border-radius: {{BORDER_RADIUS}}px;
+    box-shadow: 0 {{SHADOW_Y}}px {{SHADOW_BLUR}}px rgba(0,0,0,0.15);
+    object-fit: contain;
+  }
+</style>
+</head>
+<body>
+  <h1 class="headline">{{HEADLINE}}</h1>
+  <div class="screenshot-container">
+    <img class="screenshot" src="{{SCREENSHOT_PATH}}" />
+  </div>
+</body>
+</html>

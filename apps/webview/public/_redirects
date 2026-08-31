@@ -1,0 +1,9 @@
+# Cloudflare Pages SPA fallback.
+#
+# Without this, deep links that the stores actually open — /privacy, /terms,
+# /support — can 404 because no matching static asset exists. The store-submitted
+# privacy policy URL MUST resolve, so this is a submission-blocking detail.
+#
+# 200 (rewrite, not redirect) keeps the requested path in the address bar so
+# react-router renders the right page.
+/*  /index.html  200

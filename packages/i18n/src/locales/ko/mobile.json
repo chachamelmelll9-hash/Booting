@@ -1,0 +1,69 @@
+{
+  "device_entry": {
+    "title": "기기 연결",
+    "not_connected": "기기가 연결되지 않았습니다",
+    "not_connected_description": "도그렛과 함께하려면 기기를 등록해주세요",
+    "connect_button": "기기 연결하기",
+    "connected": "연결됨",
+    "default_name": "내 도그렛",
+    "start_cleaning": "청소 시작",
+    "stop_cleaning": "청소 중지",
+    "live_stream": "실시간 영상보기"
+  },
+  "device_register": {
+    "title": "기기 등록",
+    "progress_title": "진행 상황",
+    "select_device": "기기 선택",
+    "scanning_devices": "기기 검색 중...",
+    "no_devices_found": "발견된 기기가 없습니다",
+    "check_device_nearby": "MyApp 기기가 켜져 있고 가까이 있는지 확인해주세요",
+    "device_selected": "기기 선택됨",
+    "connecting": "기기 연결 중...",
+    "connected": "기기 연결 완료",
+    "connection_failed": "기기 연결 실패"
+  },
+  "wifi_setup": {
+    "title": "WiFi 설정",
+    "description": "MyApp이 연결할 WiFi 네트워크 정보를 입력해주세요",
+    "ssid_label": "네트워크 이름 (SSID)",
+    "ssid_placeholder": "WiFi 이름을 입력하세요",
+    "password_label": "비밀번호",
+    "password_placeholder": "비밀번호를 입력하세요 (선택)",
+    "show_password": "보기",
+    "hide_password": "숨기기",
+    "submit_button": "연결",
+    "wifi_input": "WiFi 정보 입력",
+    "wifi_config_sending": "WiFi 설정 전송",
+    "wifi_connecting": "WiFi 연결 중...",
+    "wifi_connected": "WiFi 연결 완료",
+    "wifi_failed": "WiFi 연결 실패"
+  },
+  "provisioning": {
+    "server_connecting": "서버 연결 중...",
+    "server_connected": "서버 연결 완료",
+    "server_failed": "서버 등록 실패",
+    "mqtt_connecting": "실시간 연결 중...",
+    "mqtt_connected": "실시간 연결 완료",
+    "mqtt_failed": "실시간 연결 실패",
+    "complete": "등록 완료!",
+    "complete_message": "MyApp이 성공적으로 등록되었습니다.\\n잠시 후 홈 화면으로 이동합니다.",
+    "failed": "프로비저닝 실패",
+    "retry": "다시 시도",
+    "error_occurred": "오류가 발생했습니다"
+  },
+  "permissions": {
+    "title": "권한이 필요합니다",
+    "bluetooth_message": "MyApp 기기를 연결하려면\\nBluetooth 권한이 필요합니다.",
+    "location_message": "Bluetooth를 사용하려면\\n위치 권한이 필요합니다.",
+    "open_settings": "설정으로 이동",
+    "retry": "다시 시도"
+  },
+  "notifications": {
+    "title": "알림",
+    "placeholder": "알림 카테고리를 선택하세요",
+    "go_to_records": "기록 보기"
+  },
+  "webview": {
+    "load_failed": "페이지를 불러오지 못했습니다"
+  }
+}

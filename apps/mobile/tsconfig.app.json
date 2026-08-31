@@ -1,0 +1,56 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "types": ["node"],
+    "jsx": "react-native",
+    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
+    "customConditions": ["react-native"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@features/*": ["./src/features/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@product-engineer-community-service/i18n": ["../../packages/i18n/src/index.ts"],
+      "@product-engineer-community-service/i18n/config/mobile": ["../../packages/i18n/src/config/mobile.ts"],
+      "@product-engineer-community-service/i18n/config/web": ["../../packages/i18n/src/config/web.ts"],
+      "@product-engineer-community-service/supabase": ["../../packages/supabase/src/index.ts"],
+      "@product-engineer-community-service/webview-bridge": ["../../packages/webview-bridge/src/index.ts"]
+    }
+  },
+  "exclude": [
+    "out-tsc",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.test.tsx",
+    "**/*.spec.tsx",
+    "jest.config.ts",
+    "jest.config.js",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "jest.resolver.js",
+    "eslint.config.js",
+    "eslint.config.cjs",
+    "eslint.config.mjs"
+  ],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
+  "references": [
+    {
+      "path": "../../packages/i18n/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/webview-bridge/tsconfig.lib.json"
+    },
+    {
+      "path": "../../packages/supabase/tsconfig.lib.json"
+    }
+  ]
+}

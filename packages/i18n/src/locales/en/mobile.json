@@ -1,0 +1,69 @@
+{
+  "device_entry": {
+    "title": "Connect Device",
+    "not_connected": "No device connected",
+    "not_connected_description": "Register your device to start using Doglet",
+    "connect_button": "Connect Device",
+    "connected": "Connected",
+    "default_name": "My Doglet",
+    "start_cleaning": "Start Cleaning",
+    "stop_cleaning": "Stop Cleaning",
+    "live_stream": "Live Stream"
+  },
+  "device_register": {
+    "title": "Device Registration",
+    "progress_title": "Progress",
+    "select_device": "Select Device",
+    "scanning_devices": "Scanning for devices...",
+    "no_devices_found": "No devices found",
+    "check_device_nearby": "Please make sure your MyApp device is powered on and nearby",
+    "device_selected": "Device Selected",
+    "connecting": "Connecting to device...",
+    "connected": "Device Connected",
+    "connection_failed": "Connection Failed"
+  },
+  "wifi_setup": {
+    "title": "WiFi Setup",
+    "description": "Enter the WiFi network information for MyApp to connect",
+    "ssid_label": "Network Name (SSID)",
+    "ssid_placeholder": "Enter WiFi name",
+    "password_label": "Password",
+    "password_placeholder": "Enter password (optional)",
+    "show_password": "Show",
+    "hide_password": "Hide",
+    "submit_button": "Connect",
+    "wifi_input": "WiFi Information",
+    "wifi_config_sending": "Sending WiFi Configuration",
+    "wifi_connecting": "Connecting to WiFi...",
+    "wifi_connected": "WiFi Connected",
+    "wifi_failed": "WiFi Connection Failed"
+  },
+  "provisioning": {
+    "server_connecting": "Connecting to server...",
+    "server_connected": "Server Connected",
+    "server_failed": "Server Registration Failed",
+    "mqtt_connecting": "Establishing real-time connection...",
+    "mqtt_connected": "Real-time Connection Established",
+    "mqtt_failed": "Real-time Connection Failed",
+    "complete": "Registration Complete!",
+    "complete_message": "MyApp has been successfully registered.\\nReturning to home screen...",
+    "failed": "Provisioning Failed",
+    "retry": "Retry",
+    "error_occurred": "An Error Occurred"
+  },
+  "permissions": {
+    "title": "Permissions Required",
+    "bluetooth_message": "Bluetooth permission is required\\nto connect to your MyApp device.",
+    "location_message": "Location permission is required\\nto use Bluetooth.",
+    "open_settings": "Open Settings",
+    "retry": "Retry"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "placeholder": "Select a notification category",
+    "go_to_records": "Go to Records"
+  },
+  "webview": {
+    "load_failed": "Failed to load the page"
+  }
+}

@@ -1,0 +1,34 @@
+appId: ${APP_ID}
+name: Kakao Login Flow
+tags:
+  - auth
+  - kakao
+  - dev
+---
+- stopApp
+- launchApp:
+    arguments:
+      url: "http://10.0.2.2:8081"
+- waitForAnimationToEnd
+
+# 로그인 화면에서 카카오 버튼 확인
+- assertVisible: "카카오 로그인"
+
+# 카카오 로그인 버튼 탭
+- tapOn:
+    id: "login-kakao-button"
+
+# 카카오 OAuth 화면 대기 (WebView 또는 카카오앱으로 전환)
+- extendedWaitUntil:
+    visible: ".*동의.*|.*로그인.*|홈"
+    timeout: 15000
+
+# 동의 화면이 나오면 동의 버튼 탭 (조건부 화면이므로 optional 유지)
+- tapOn:
+    text: ".*동의.*계속.*|.*확인.*|.*허용.*"
+    optional: true
+
+# 홈 탭 진입 확인 (최대 15초 대기 - OAuth 리다이렉트 포함)
+- extendedWaitUntil:
+    visible: "홈"
+    timeout: 15000

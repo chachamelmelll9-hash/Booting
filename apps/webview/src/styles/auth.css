@@ -1,0 +1,53 @@
+.auth-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: var(--bg-primary, #0f172a);
+  color: var(--text-primary, #e2e8f0);
+}
+
+.auth-loading .spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color, #334155);
+  border-top-color: var(--accent-color, #2e78b7);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.auth-loading p {
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background-color: var(--bg-primary, #0f172a);
+  color: var(--text-primary, #e2e8f0);
+  text-align: center;
+  padding: 20px;
+}
+
+.auth-error h2 {
+  color: var(--error-color, #ef4444);
+  margin-bottom: 16px;
+  font-size: 20px;
+}
+
+.auth-error p {
+  color: var(--text-secondary, #94a3b8);
+  margin: 8px 0;
+  font-size: 14px;
+}

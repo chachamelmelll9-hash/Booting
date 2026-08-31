@@ -1,0 +1,67 @@
+{
+  "skill_name": "mobile-ux-ui-design",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "건강 관리 앱의 홈 대시보드 화면을 만들어줘. 오늘의 걸음수, 수면 시간, 칼로리 같은 핵심 지표를 보여주고, 하단에 주간 트렌드 그래프가 있었으면 좋겠어. React Native로 구현해줘.",
+      "expected_output": "프리미엄 디자인 규칙이 적용된 React Native 대시보드 컴포넌트. AI 기본 패턴(보라색 그라디언트, 균등 3열 카드, Inter 폰트)이 아닌, 의도적인 타이포그래피/컬러/스페이싱 시스템이 적용되어야 함.",
+      "files": [],
+      "expectations": [
+        "StyleSheet.create를 사용하고 인라인 스타일 객체가 없음",
+        "시맨틱 컬러 토큰(primary, surface, text 등)이 하드코딩 hex 대신 사용됨",
+        "터치 타겟이 44pt 이상이거나 hitSlop이 적용됨",
+        "4/8dp 스페이싱 시스템이 적용됨 (4, 8, 16, 24, 32 배수)",
+        "보라색/파란색 AI 그라디언트가 사용되지 않음",
+        "Inter/Roboto가 Display 폰트로 사용되지 않음",
+        "Loading/Empty/Error 상태 중 최소 하나가 구현됨",
+        "스프링 또는 적절한 이징이 사용됨 (linear 아님)",
+        "accessibilityLabel이 인터랙티브 요소에 포함됨"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "우리 앱에 설정 화면을 추가하고 싶은데, 프로필 편집, 알림 설정, 다크모드 토글, 로그아웃이 있어야 해. 지금은 좀 밋밋하게 나오거든. 좀 더 고급스럽고 프로페셔널하게 만들어줘. apps/mobile/src/features/settings/ 경로에 구현해줘.",
+      "expected_output": "프리미엄 설정 화면. 섹션 그룹핑, 적절한 아이콘, 토글/네비게이션 등 인터랙션 요소가 포함되고, 파괴적 액션(로그아웃)이 일반 설정과 시각적으로 분리되어야 함.",
+      "files": [],
+      "expectations": [
+        "로그아웃 버튼이 일반 설정 항목과 시각적으로 분리됨 (색상 또는 공간)",
+        "다크모드 토글이 즉각적 피드백을 제공함",
+        "설정 항목이 논리적 섹션으로 그룹화됨",
+        "safe area가 적절히 처리됨 (useSafeAreaInsets 또는 SafeAreaView)",
+        "벡터 아이콘이 사용됨 (이모지 아님)",
+        "Pressable 또는 TouchableOpacity에 press 피드백이 있음",
+        "라이트/다크 모드 모두를 고려한 테마 토큰이 사용됨"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "음식 배달 앱의 레스토랑 목록 화면을 만들어줘. 각 레스토랑 카드에는 음식 사진, 이름, 평점, 배달 시간, 가격대가 보여야 해. 스크롤 시 부드러운 애니메이션도 넣어줘. 50개 이상의 레스토랑이 있을 수 있어.",
+      "expected_output": "FlatList 기반의 가상화된 레스토랑 목록. 각 카드에 press 피드백, 스태거 진입 애니메이션, 이미지 최적화가 적용됨. AI 기본 패턴이 아닌 프리미엄 카드 디자인.",
+      "files": [],
+      "expectations": [
+        "FlatList 또는 FlashList가 사용됨 (ScrollView + map 아님)",
+        "keyExtractor가 index가 아닌 고유 ID를 사용함",
+        "카드에 press 피드백 애니메이션이 있음 (scale 또는 opacity)",
+        "스태거 진입 애니메이션이 구현됨 (delay 패턴)",
+        "이미지에 expo-image 또는 Image 컴포넌트가 적절히 사용됨",
+        "모든 카드가 동일한 borderRadius: 16이 아님 (의도적 radius 시스템)",
+        "숫자(평점, 가격)에 일관된 포맷팅이 적용됨",
+        "React.memo 또는 리렌더 최적화가 적용됨"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "지금 apps/mobile/src/features/auth/ui/ 에 있는 로그인 화면 코드를 리뷰해줘. UX 관점에서 개선할 점이 있는지 확인하고, 이 스킬의 체크리스트 기준으로 평가해줘.",
+      "expected_output": "pre-delivery checklist 기준으로 체계적인 UI 리뷰 결과. 접근성, 터치 타겟, 상태 처리, 에러 피드백, 다크모드 대비 등 구체적인 개선 사항 목록.",
+      "files": [],
+      "expectations": [
+        "접근성 관련 이슈가 언급됨 (accessibilityLabel, 대비 등)",
+        "터치 타겟 크기가 검토됨",
+        "에러 상태 처리가 검토됨",
+        "폼 입력 관련 UX가 검토됨 (키보드 타입, 라벨, 검증)",
+        "다크모드 호환성이 언급됨",
+        "구체적인 코드 개선 제안이 포함됨"
+      ]
+    }
+  ]
+}

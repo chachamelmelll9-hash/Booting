@@ -1,0 +1,58 @@
+Shippen Commercial Template License
+
+Copyright (c) Shippen. All rights reserved.
+
+This repository, including its source code, scripts, documentation, assets, and
+configuration, is proprietary. It is licensed, not sold.
+
+Licensed Copy Watermark
+- License ID: __SHIPPEN_LICENSE_ID__
+- Licensed To: __SHIPPEN_LICENSED_TO__
+- GitHub Username: __SHIPPEN_GITHUB_USERNAME__
+- Generated At: __SHIPPEN_GENERATED_AT__
+
+The machine-readable record for this licensed copy should be kept in
+`shippen-license.json`.
+
+1. Grant of License
+
+Subject to payment, delivery, and compliance with this license, the named
+licensee receives a non-exclusive, non-transferable, revocable license to use
+this template to develop, customize, and operate end products for the licensee
+or the licensee's direct clients.
+
+2. Permitted Use
+
+You may:
+- modify the template for your own projects;
+- deploy compiled applications or hosted services built from it; and
+- deliver end products to your customers, provided the reusable template source
+  itself is not redistributed.
+
+3. Prohibited Use
+
+You may not, and may not permit others to:
+- redistribute, resell, sublicense, lease, share, or transfer this template or
+  any substantially similar derivative as a template, starter, boilerplate, kit,
+  or source-code product;
+- publish the repository or source files for public reuse, whether free or paid;
+- remove, falsify, or obscure the buyer watermark information in this license,
+  the README, or `shippen-license.json`; or
+- allow access to the template source by anyone other than the licensed buyer
+  and the buyer's authorized collaborators working on the buyer's behalf.
+
+4. Ownership
+
+All intellectual property rights, title, and interest in Shippen remain
+with the licensor. No rights are granted except those expressly stated here.
+
+5. Termination
+
+This license terminates automatically if you violate these terms. Upon
+termination, you must stop using and distributing the template source and delete
+all copies under your control, except where retention is required by law.
+
+6. Disclaimer
+
+The template is provided "as is" without warranties or conditions of any kind,
+to the maximum extent permitted by law.

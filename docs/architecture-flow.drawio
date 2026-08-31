@@ -1,0 +1,473 @@
+<mxfile host="65bd71144e">
+    <diagram id="pipeline-overview" name="Full Pipeline Overview">
+        <mxGraphModel dx="847" dy="650" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="3300" pageHeight="4600" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="&lt;b&gt;Claude Code Agent/Skill Pipeline&lt;/b&gt;&lt;br&gt;기획 → 구현 → 배포 → 출시 전체 흐름도" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=20;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="20" width="500" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase1-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f4ff;strokeColor=#4a6fa5;strokeWidth=2;dashed=1;verticalAlign=top;fontSize=14;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="100" width="1900" height="460" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase1-label" value="&lt;b&gt;PHASE 1: 기획 &amp; 설계 (Planning &amp; Design)&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;fontColor=#4a6fa5;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="110" width="360" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="user-input" value="&lt;b&gt;사용자&lt;/b&gt;&lt;br&gt;기능 아이디어" style="shape=actor;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="240" width="80" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="skill-clarify" value="&lt;b&gt;/clarify-core-feature&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• 기능 아이디어 → UX 스펙&lt;br&gt;• 8~15개 다중선택 질문&lt;br&gt;• User Journey 정의&lt;br&gt;• State Matrix 생성&lt;br&gt;• Data Model 도출&lt;br&gt;• i18n 키 정의" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="180" width="220" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="doc-feature" value="📄 {name}.md&lt;br&gt;&lt;font size=&quot;1&quot;&gt;UX Specification&lt;/font&gt;" style="shape=document;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;size=0.15;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="360" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="skill-pages" value="&lt;b&gt;/define-pages&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• 페이지/스크린 목록 정의&lt;br&gt;• Expo Router 라우팅 구조&lt;br&gt;• WebView 페이지 식별&lt;br&gt;• 네비게이션 플로우 정의" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="180" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="doc-pages" value="📄 {name}-pages.md&lt;br&gt;&lt;font size=&quot;1&quot;&gt;Pages Specification&lt;/font&gt;" style="shape=document;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;size=0.15;" parent="1" vertex="1">
+                    <mxGeometry x="700" y="360" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="skill-wireframes" value="&lt;b&gt;/design-wireframes&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• ASCII 와이어프레임 설계&lt;br&gt;• Loading/Empty/Error/Success&lt;br&gt;• 공유 컴포넌트 식별&lt;br&gt;• UX 원칙 적용" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="180" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="doc-wireframes" value="📄 {name}-wireframes.md&lt;br&gt;&lt;font size=&quot;1&quot;&gt;Wireframes&lt;/font&gt;" style="shape=document;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;size=0.15;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="360" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="skill-arch" value="&lt;b&gt;/design-architecture&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• Mobile FSD 구조 설계&lt;br&gt;• Server Clean Arch 설계&lt;br&gt;• API Contract 정의&lt;br&gt;• DB Schema 설계&lt;br&gt;• 구현 순서 결정" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1200" y="180" width="200" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="doc-arch" value="📄 {name}-architecture.md&lt;br&gt;&lt;font size=&quot;1&quot;&gt;Architecture&lt;/font&gt;" style="shape=document;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;size=0.15;" parent="1" vertex="1">
+                    <mxGeometry x="1220" y="360" width="160" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="skill-tests" value="&lt;b&gt;/write-test-scenarios&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• Gherkin 시나리오 작성&lt;br&gt;• Server E2E 체크리스트&lt;br&gt;• ADB 체크리스트&lt;br&gt;• ADB Smoke 체크리스트" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="180" width="210" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="doc-tests" value="📄 {name}-test-scenarios.md&lt;br&gt;&lt;font size=&quot;1&quot;&gt;Test Scenarios&lt;/font&gt;" style="shape=document;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;size=0.15;" parent="1" vertex="1">
+                    <mxGeometry x="1480" y="360" width="170" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="spec-summary" value="&lt;b&gt;5개 스펙 문서 (docs/features/)&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#9673a6;fontStyle=2;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="440" width="220" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-user-clarify" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;exitX=1;exitY=0.5;entryX=0;entryY=0.3;fontStyle=0" parent="1" source="user-input" target="skill-clarify" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-clarify-doc" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="skill-clarify" target="doc-feature" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-clarify-pages" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="skill-clarify" target="skill-pages" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-pages-doc" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="skill-pages" target="doc-pages" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-pages-wireframes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="skill-pages" target="skill-wireframes" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-wireframes-doc" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="skill-wireframes" target="doc-wireframes" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-wireframes-arch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="skill-wireframes" target="skill-arch" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-arch-doc" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="skill-arch" target="doc-arch" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-arch-tests" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="skill-arch" target="skill-tests" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-tests-doc" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="skill-tests" target="doc-tests" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase2-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fff0;strokeColor=#56a556;strokeWidth=2;dashed=1;verticalAlign=top;fontSize=14;arcSize=5;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="600" width="1900" height="560" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase2-label" value="&lt;b&gt;PHASE 2: 구현 (Implementation) — /implement-feature&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;fontColor=#56a556;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="610" width="450" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-plan-impl" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=3;strokeColor=#4a6fa5;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="phase1-group" target="phase2-group" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-plan-impl-label" value="5개 스펙 문서 전달" style="edgeLabel;html=1;align=center;verticalAlign=middle;fontSize=11;fontColor=#4a6fa5;fontStyle=1;" parent="e-plan-impl" vertex="1" connectable="0">
+                    <mxGeometry x="-0.2" relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="impl-init" value="&lt;b&gt;Phase 0: Initialize&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• 5개 스펙 문서 읽기&lt;br&gt;• features.jsonl 초기화&lt;br&gt;• Worker 상태 테이블 초기화" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="280" y="660" width="220" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="impl-phase1-label" value="&lt;b&gt;Phase 1: Implementation Loop&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;fontColor=#56a556;" parent="1" vertex="1">
+                    <mxGeometry x="560" y="650" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="agent-db" value="&lt;b&gt;db-implement&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• Supabase 스키마 생성&lt;br&gt;• RLS 정책 설정&lt;br&gt;• 인덱스 생성&lt;br&gt;• Seed 데이터" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="580" y="700" width="180" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="db-seq-label" value="&lt;font color=&quot;#cc0000&quot;&gt;&lt;b&gt;순차 실행&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="610" y="680" width="80" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="parallel-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1;dashed=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="670" width="600" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="parallel-label" value="&lt;font color=&quot;#0066cc&quot;&gt;&lt;b&gt;병렬 실행 (Parallel)&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1020" y="675" width="150" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="agent-server" value="&lt;b&gt;server-implement&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• NestJS 모듈 생성&lt;br&gt;• Controller/Service/DTO&lt;br&gt;• app.module 등록" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="700" width="170" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="agent-mobile" value="&lt;b&gt;mobile-implement&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• FSD 구조 생성&lt;br&gt;• UI/Model/API/Lib&lt;br&gt;• Expo Router 연동&lt;br&gt;• i18n 적용" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1030" y="700" width="170" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="agent-webview" value="&lt;b&gt;webview-implement&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• React 페이지 생성&lt;br&gt;• CSS 스타일링&lt;br&gt;• routes.tsx 등록&lt;br&gt;• Bridge 타입 (선택)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1220" y="700" width="180" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="build-verify" value="&lt;b&gt;Build Verify&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;pnpm lint&lt;br&gt;pnpm build&lt;br&gt;tsc -p tsconfig.app.json --noEmit" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=center;verticalAlign=middle;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1490" y="690" width="200" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="build-pass" value="&lt;font color=&quot;#009900&quot;&gt;&lt;b&gt;PASS&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1700" y="745" width="50" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="build-fail" value="&lt;font color=&quot;#cc0000&quot;&gt;&lt;b&gt;FAIL → 재시도 (max 3)&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1500" y="840" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-init-db" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="impl-init" target="agent-db" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-db-parallel" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="agent-db" target="parallel-box" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-parallel-build" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="parallel-box" target="build-verify" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-build-fail-loop" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#cc0000;dashed=1;exitX=0.5;exitY=1;entryX=0.5;entryY=1;fontStyle=0" parent="1" source="build-verify" target="parallel-box" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1590" y="870"/>
+                            <mxPoint x="1120" y="870"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="impl-env" value="&lt;b&gt;Phase 1.5: Environment Prep&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• Dev 서버 기동 (port 3000, 8081)&lt;br&gt;• Android APK 빌드 (eas build --local)&lt;br&gt;• Emulator에 APK 설치&lt;br&gt;• 앱 기동 확인 (Screenshot)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="280" y="920" width="260" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="verify-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;strokeWidth=1;dashed=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="900" width="440" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="verify-label" value="&lt;b&gt;Phase 2: Verification Loop (병렬)&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#d79b00;" parent="1" vertex="1">
+                    <mxGeometry x="700" y="905" width="240" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="agent-e2e" value="&lt;b&gt;e2e-verify&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• Server E2E 테스트&lt;br&gt;• Jest + curl smoke&lt;br&gt;• API Contract 검증" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="940" width="180" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="agent-adb-verify" value="&lt;b&gt;adb-verify&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• ADB 테스트 스크립트 생성&lt;br&gt;• Emulator E2E 실행&lt;br&gt;• Screenshot 수집" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="940" width="180" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="verify-decision" value="ALL&lt;br&gt;PASS?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="940" width="100" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="verify-fail-label" value="&lt;font color=&quot;#cc0000&quot;&gt;&lt;b&gt;FAIL → 재구현 → 재빌드 → 재검증 (max 3)&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1090" y="1060" width="260" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="review-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f2ff;strokeColor=#6c8ebf;strokeWidth=1;dashed=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="1280" y="900" width="480" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="review-label" value="&lt;b&gt;Phase 3: Review Loop&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#6c8ebf;" parent="1" vertex="1">
+                    <mxGeometry x="1430" y="905" width="160" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="review-arch" value="&lt;b&gt;architect&lt;/b&gt;&lt;br&gt;(read-only)&lt;br&gt;아키텍처 리뷰" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1300" y="940" width="130" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="review-code" value="&lt;b&gt;code-reviewer&lt;/b&gt;&lt;br&gt;(read-only)&lt;br&gt;코드 리뷰" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1450" y="940" width="130" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="review-regression" value="&lt;b&gt;Final Regression&lt;/b&gt;&lt;br&gt;전체 시나리오 재실행" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1600" y="940" width="140" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="impl-complete" value="&lt;b&gt;Phase 4: Completion&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• features.jsonl 최종 갱신&lt;br&gt;• Dev 서버 종료&lt;br&gt;• 완료 리포트 생성" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1780" y="900" width="230" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-build-env" style="edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=1;exitY=0.5;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="build-pass" target="impl-env" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1760" y="760"/>
+                            <mxPoint x="1760" y="860"/>
+                            <mxPoint x="410" y="860"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e-env-verify" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="impl-env" target="verify-box" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-verify-decision" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="verify-box" target="verify-decision" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-decision-review" value="PASS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontColor=#009900;fontStyle=0;fontSize=11;" parent="1" source="verify-decision" target="review-box" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-review-complete" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="review-box" target="impl-complete" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-verify-fail-loop" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#cc0000;dashed=1;exitX=0.5;exitY=1;entryX=0.5;entryY=1;fontStyle=0" parent="1" source="verify-decision" target="parallel-box" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1150" y="1100"/>
+                            <mxPoint x="1120" y="1100"/>
+                            <mxPoint x="1120" y="870"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="orch-label" value="🔄 orchestrator (Agent)" style="text;html=1;align=right;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#56a556;fontStyle=3;" parent="1" vertex="1">
+                    <mxGeometry x="1830" y="610" width="170" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase3-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff5f0;strokeColor=#cc6633;strokeWidth=2;dashed=1;verticalAlign=top;fontSize=14;arcSize=5;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="1234.29" width="1900" height="560" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase3-label" value="&lt;b&gt;PHASE 3: 배포 (Deployment) — /deploy {initial|feature-name}&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;fontColor=#cc6633;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="1244.29" width="500" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-impl-deploy" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=3;strokeColor=#56a556;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="phase2-group" target="phase3-group" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-impl-deploy-label" value="구현 완료 코드" style="edgeLabel;html=1;align=center;verticalAlign=middle;fontSize=11;fontColor=#56a556;fontStyle=1;" parent="e-impl-deploy" vertex="1" connectable="0">
+                    <mxGeometry x="-0.2" relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-prereq" value="&lt;b&gt;Phase 0: Prerequisites&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• CLI 도구 확인 (ssh, docker, eas, wrangler, adb)&lt;br&gt;• 계정 로그인 확인 (EAS, CF)&lt;br&gt;• 인프라 확인 (Oracle VM, EAS Project, CF Pages)&lt;br&gt;• 키/시크릿 확인 (google-service-account.json)&lt;br&gt;• 환경변수 확인 (Server, Mobile, WebView)&lt;br&gt;• .npmrc 확인 / 보안 플래그 검증" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0cc;strokeColor=#cc6633;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="1294.29" width="340" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-precheck" value="&lt;b&gt;Phase 1: Pre-deploy Check&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• pnpm lint &amp; build&lt;br&gt;• TypeScript 체크&lt;br&gt;• Server E2E 사전 실행&lt;br&gt;• Branch / Working tree 확인&lt;br&gt;• Change Analysis (증분 감지)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0cc;strokeColor=#cc6633;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="1294.29" width="240" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-phase2-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0cc;strokeColor=#cc6633;strokeWidth=1;dashed=0;arcSize=5;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="1504.29" width="860" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-phase2-label" value="&lt;b&gt;Phase 2: Deploy (순서대로)&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;fontColor=#cc6633;" parent="1" vertex="1">
+                    <mxGeometry x="260" y="1514.29" width="210" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-db" value="&lt;b&gt;1. DB Migration&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;Supabase MCP&lt;br&gt;또는 CLI" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=top;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="1554.29" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-server" value="&lt;b&gt;2. Server Deploy&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;&lt;font size=&quot;1&quot;&gt;Primary:&lt;/font&gt; GitHub Actions&lt;br&gt;&lt;font size=&quot;1&quot;&gt;Fallback:&lt;/font&gt; SSH deploy&lt;br&gt;→ Oracle Cloud" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=top;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="440" y="1554.29" width="150" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-webview" value="&lt;b&gt;3. WebView Deploy&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;&lt;font size=&quot;1&quot;&gt;Primary:&lt;/font&gt; GitHub Actions&lt;br&gt;&lt;font size=&quot;1&quot;&gt;Fallback:&lt;/font&gt; wrangler deploy&lt;br&gt;→ Cloudflare Pages" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=top;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="1554.29" width="170" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-mobile" value="&lt;b&gt;4. Mobile Deploy&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;&lt;font size=&quot;1&quot;&gt;Primary:&lt;/font&gt; GitHub Actions&lt;br&gt;&lt;font size=&quot;1&quot;&gt;Fallback:&lt;/font&gt; eas build/update&lt;br&gt;Android + iOS&lt;br&gt;&lt;font size=&quot;1&quot;&gt;(Native변경→build, JS→update)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=top;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="1554.29" width="200" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-ddb-dserver" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#cc6633;fontStyle=0" parent="1" source="deploy-db" target="deploy-server" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-dserver-dwebview" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#cc6633;fontStyle=0" parent="1" source="deploy-server" target="deploy-webview" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-dwebview-dmobile" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#cc6633;fontStyle=0" parent="1" source="deploy-webview" target="deploy-mobile" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="infra-fly" value="☁️ Oracle Cloud" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e6e6e6;strokeColor=#999999;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="460" y="1664.29" width="90" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="infra-cf" value="☁️ Cloudflare" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e6e6e6;strokeColor=#999999;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="640" y="1664.29" width="110" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="infra-eas" value="☁️ EAS Build" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e6e6e6;strokeColor=#999999;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="870" y="1674.29" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-server-fly" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;strokeColor=#999999;fontStyle=0" parent="1" source="deploy-server" target="infra-fly" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-wv-cf" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;strokeColor=#999999;fontStyle=0" parent="1" source="deploy-webview" target="infra-cf" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-mob-eas" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;strokeColor=#999999;fontStyle=0" parent="1" source="deploy-mobile" target="infra-eas" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-dp0-dp1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#cc6633;fontStyle=0" parent="1" source="deploy-prereq" target="deploy-precheck" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-dp1-dp2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#cc6633;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="deploy-precheck" target="deploy-phase2-box" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-verify-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0cc;strokeColor=#cc6633;strokeWidth=1;dashed=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="1160" y="1294.29" width="560" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-verify-label" value="&lt;b&gt;Phase 3: Post-deploy Verification (병렬)&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;fontColor=#cc6633;" parent="1" vertex="1">
+                    <mxGeometry x="1270" y="1304.29" width="300" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-e2e" value="&lt;b&gt;e2e-verify&lt;/b&gt;&lt;br&gt;(environment=deployed)&lt;br&gt;Server E2E" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1180" y="1344.29" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-adb-verify" value="&lt;b&gt;adb-verify&lt;/b&gt;&lt;br&gt;(environment=deployed)&lt;br&gt;Mobile E2E" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1360" y="1344.29" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-adb" value="&lt;b&gt;adb-smoke&lt;/b&gt;&lt;br&gt;(필수)&lt;br&gt;실기기 Smoke" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1540" y="1344.29" width="150" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-verify-result" value="ALL&lt;br&gt;PASS?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="1380" y="1434.29" width="100" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-verify-fail" value="&lt;font color=&quot;#cc0000&quot;&gt;&lt;b&gt;FAIL → Fix &amp; Redeploy (max 3)&lt;/b&gt;&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1500" y="1459.29" width="210" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-complete" value="&lt;b&gt;Phase 4: Completion&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• 배포 리포트 생성&lt;br&gt;• Component / Status / URL 테이블&lt;br&gt;• E2E / ADB 결과" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe0cc;strokeColor=#cc6633;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1160" y="1564.29" width="260" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-dp2-dp3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#cc6633;exitX=1;exitY=0.3;entryX=0;entryY=0.5;fontStyle=0" parent="1" source="deploy-phase2-box" target="deploy-verify-box" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-dverify-result" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontStyle=0" parent="1" source="deploy-e2e" target="deploy-verify-result" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-dverify-complete" value="PASS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;fontColor=#009900;fontStyle=0;fontSize=11;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="deploy-verify-result" target="deploy-complete" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="deploy-orch-label" value="🔄 deploy-orchestrator (Agent)" style="text;html=1;align=right;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#cc6633;fontStyle=3;" parent="1" vertex="1">
+                    <mxGeometry x="1830" y="1244.29" width="230" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase4-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff0f5;strokeColor=#993366;strokeWidth=2;dashed=1;verticalAlign=top;fontSize=14;arcSize=5;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="1850" width="1900" height="680" as="geometry"/>
+                </mxCell>
+                <mxCell id="phase4-label" value="&lt;b&gt;PHASE 4: 출시 (Launch) — /launch {initial|update}&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=16;fontColor=#993366;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="1860" width="440" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-deploy-launch" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=3;strokeColor=#cc6633;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="phase3-group" target="phase4-group" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-deploy-launch-label" value="배포된 앱 (Server + WebView + Mobile)" style="edgeLabel;html=1;align=center;verticalAlign=middle;fontSize=11;fontColor=#cc6633;fontStyle=1;" parent="e-deploy-launch" vertex="1" connectable="0">
+                    <mxGeometry x="-0.2" relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-prep" value="&lt;b&gt;Phase 0: Preparation&lt;/b&gt;&lt;br&gt;(initial 전용)&lt;hr size=&quot;1&quot;&gt;• 앱 정보 추출 (app.json)&lt;br&gt;• Store 계정 확인&lt;br&gt;&amp;nbsp; - Apple Developer + App ID&lt;br&gt;&amp;nbsp; - Google Play Console&lt;br&gt;• eas.json 설정 완성&lt;br&gt;• Cleartext 보안 플래그 변환&lt;br&gt;&amp;nbsp; (app.json → app.config.ts)&lt;br&gt;• Legal Document URL 확인" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e0f0;strokeColor=#993366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="1910" width="250" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-listing" value="&lt;b&gt;Phase 1: Store Listing Prep&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• 앱 설명 자동 생성 (features/ 스캔)&lt;br&gt;• Release Notes 작성&lt;br&gt;• 스크린샷 캡처&lt;br&gt;&amp;nbsp; - Android: ADB uiautomator&lt;br&gt;&amp;nbsp; - iOS: xcrun simctl&lt;br&gt;&amp;nbsp; - 4~10장 (ko/en)&lt;br&gt;• Pre-launch ADB Smoke Test" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e0f0;strokeColor=#993366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="1910" width="250" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-docs" value="📄 store-listing.md&lt;br&gt;📄 release-notes.md&lt;br&gt;📁 assets/screenshots/" style="shape=document;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;size=0.12;" parent="1" vertex="1">
+                    <mxGeometry x="560" y="2110" width="190" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-listing-docs" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;strokeColor=#9673a6;fontStyle=0" parent="1" source="launch-listing" target="launch-docs" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-legal" value="&lt;b&gt;Phase 2: Legal Documents&lt;/b&gt;&lt;br&gt;(initial 전용)&lt;hr size=&quot;1&quot;&gt;• 개인정보처리방침 자동 생성&lt;br&gt;&amp;nbsp; (features 스캔 + 외부서비스 분석)&lt;br&gt;• 이용약관 자동 생성&lt;br&gt;• 회사 정보 입력&lt;br&gt;• WebView 재배포&lt;br&gt;• URL 접근 검증" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e0f0;strokeColor=#993366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="1910" width="240" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-submit-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e0f0;strokeColor=#993366;strokeWidth=1;dashed=0;arcSize=5;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="2230" width="840" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-submit-label" value="&lt;b&gt;Phase 3: Store Submission&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;fontColor=#993366;" parent="1" vertex="1">
+                    <mxGeometry x="260" y="2240" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-build" value="&lt;b&gt;1. Production Build&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;eas build --profile production&lt;br&gt;--platform all&lt;br&gt;(iOS + Android)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=top;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="270" y="2280" width="200" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-ios" value="&lt;b&gt;2. App Store Submit&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;eas submit --platform ios&lt;br&gt;&lt;br&gt;+ agent-browser:&lt;br&gt;스크린샷/설명/카테고리&lt;br&gt;개인정보URL/등급 설정" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=top;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="2280" width="200" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-android" value="&lt;b&gt;3. Play Store Submit&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;eas submit --platform android&lt;br&gt;&lt;br&gt;+ play-store.mjs CLI:&lt;br&gt;listing / release-notes&lt;br&gt;&lt;br&gt;+ agent-browser:&lt;br&gt;스크린샷/Data Safety" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;align=center;verticalAlign=top;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="730" y="2280" width="200" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lbuild-ios" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#993366;fontStyle=0" parent="1" source="launch-build" target="launch-ios" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lbuild-android" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#993366;fontStyle=0" parent="1" source="launch-build" target="launch-android" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="480" y="2325"/>
+                            <mxPoint x="480" y="2325"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="store-apple" value="🍎 App Store" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e6e6e6;strokeColor=#999999;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="2420" width="110" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="store-google" value="▶️ Play Store" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e6e6e6;strokeColor=#999999;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="760" y="2440" width="110" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-ios-store" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;strokeColor=#999999;fontStyle=0" parent="1" source="launch-ios" target="store-apple" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-android-store" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;strokeColor=#999999;fontStyle=0" parent="1" source="launch-android" target="store-google" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lp0-lp1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#993366;fontStyle=0" parent="1" source="launch-prep" target="launch-listing" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lp1-lp2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#993366;fontStyle=0" parent="1" source="launch-listing" target="launch-legal" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lp2-lp3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#993366;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="launch-legal" target="launch-submit-box" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-review" value="&lt;b&gt;Phase 4: Review Monitoring&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• 심사 상태 모니터링&lt;br&gt;&amp;nbsp; - iOS: agent-browser&lt;br&gt;&amp;nbsp; - Android: play-store.mjs status&lt;br&gt;• 리젝 시: 수정 → 재빌드 → 재제출 (max 3)&lt;br&gt;• 승인 후: Release 실행&lt;br&gt;&amp;nbsp; - iOS: agent-browser &quot;Release&quot;&lt;br&gt;&amp;nbsp; - Android: promote / rollout&lt;br&gt;• Live 검증 (스토어 페이지 확인)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e0f0;strokeColor=#993366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="1910" width="280" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-landing" value="&lt;b&gt;Phase 5: Landing Page&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• /setup-landing 스킬 호출&lt;br&gt;• 마케팅 랜딩 페이지 생성&lt;br&gt;• App Store / Play Store 버튼&lt;br&gt;• Cloudflare Pages 배포&lt;br&gt;• 반응형 디자인 검증" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e0f0;strokeColor=#993366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1480" y="1910" width="230" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="skill-landing" value="&lt;b&gt;/setup-landing&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1510" y="2090" width="160" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-landing-skill" style="rounded=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;dashed=1;strokeColor=#6c8ebf;fontStyle=0" parent="1" source="launch-landing" target="skill-landing" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-complete" value="&lt;b&gt;Phase 6: Completion Report&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;• Store 상태 테이블 (iOS/Android + 링크)&lt;br&gt;• 생성 자산 목록&lt;br&gt;• Legal Document URL&lt;br&gt;• Landing Page URL&lt;br&gt;• 심사 이력&lt;br&gt;• Next Steps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5e0f0;strokeColor=#993366;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1140" y="2230" width="260" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lp3-lp4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#993366;exitX=1;exitY=0.3;entryX=0;entryY=0.3;fontStyle=0" parent="1" source="launch-submit-box" target="launch-review" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lp4-lp5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#993366;fontStyle=0" parent="1" source="launch-review" target="launch-landing" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lp4-lp6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#993366;exitX=0.5;exitY=1;entryX=0.5;entryY=0;fontStyle=0" parent="1" source="launch-review" target="launch-complete" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e-lp5-lp6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#993366;exitX=0.5;exitY=1;entryX=1;entryY=0.3;fontStyle=0" parent="1" source="launch-landing" target="launch-complete" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="launch-orch-label" value="🔄 launch-orchestrator (Agent)" style="text;html=1;align=right;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=11;fontColor=#993366;fontStyle=3;" parent="1" vertex="1">
+                    <mxGeometry x="1830" y="1860" width="230" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="util-group" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;strokeWidth=1;dashed=1;verticalAlign=top;fontSize=14;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="2590" width="600" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="util-label" value="&lt;b&gt;Utility Skills (독립 실행 가능)&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;fontColor=#999999;" parent="1" vertex="1">
+                    <mxGeometry x="240" y="2600" width="230" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="skill-icons" value="&lt;b&gt;/setup-icons&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;소스 이미지 → 앱 아이콘 일괄 생성&lt;br&gt;(iOS/Android/Web/Splash)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="2640" width="240" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="skill-landing-util" value="&lt;b&gt;/setup-landing&lt;/b&gt;&lt;hr size=&quot;1&quot;&gt;마케팅 랜딩 페이지 자동 생성&lt;br&gt;→ Cloudflare Pages 배포" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="530" y="2640" width="250" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fafafa;strokeColor=#cccccc;strokeWidth=1;arcSize=8;" parent="1" vertex="1">
+                    <mxGeometry x="920" y="2590" width="500" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-title" value="&lt;b&gt;Legend&lt;/b&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="2595" width="60" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-skill" value="Skill (사용자 호출)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="2625" width="130" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-agent" value="Worker Agent (자동 생성)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="2665" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-verify" value="Verify Agent (검증)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="940" y="2705" width="130" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-doc" value="📄 산출물 문서" style="shape=document;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;size=0.15;" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="2625" width="120" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-infra" value="☁️ 인프라/서비스" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e6e6e6;strokeColor=#999999;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="2670" width="120" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-decision" value="판단 분기" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1270" y="2625" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend-fail" value="&lt;font color=&quot;#cc0000&quot;&gt;— — FAIL 재시도 경로&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1260" y="2680" width="140" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="end-node" value="&lt;b&gt;앱 출시 완료&lt;/b&gt;&lt;br&gt;App Store + Play Store LIVE&lt;br&gt;Landing Page LIVE" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;" parent="1" vertex="1">
+                    <mxGeometry x="1510" y="2590" width="220" height="80" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

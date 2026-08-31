@@ -1,0 +1,96 @@
+{
+  "unauthorized": {
+    "title": "Access Denied",
+    "message": "You need to login in the app to access this page",
+    "go_home": "Go to Home"
+  },
+  "session": {
+    "checking": "Checking authentication...",
+    "expired": "Session expired",
+    "required": "Login required",
+    "login_required_message": "Please login in the app and try again"
+  },
+  "navigation": {
+    "back": "← Back"
+  },
+  "home": {
+    "title": "Home",
+    "description": "Select a section to navigate:",
+    "section_profile": "Profile",
+    "help_center": "Help Center",
+    "app_info": "App Info"
+  },
+  "not_found": {
+    "title": "404 - Not Found",
+    "message": "The page you're looking for doesn't exist.",
+    "back_home": "← Back to Home"
+  },
+  "help": {
+    "notice_title": "Announcements",
+    "notice_description": "Latest announcements and updates from the service.",
+    "guide_title": "Guides & Tutorials",
+    "guide_description": "Step-by-step guides to help you get the most from the service.",
+    "faq_title": "FAQ",
+    "faq_description": "Frequently asked questions about the service.",
+    "policy_link": "Terms & Privacy",
+    "back_to_notice": "← Announcements"
+  },
+  "app_info": {
+    "company_title": "Company Profile",
+    "company_description": "About the company and our mission.",
+    "agreement_link": "User Agreement",
+    "back_to_agreement": "← User Agreement"
+  },
+  "legal": {
+    "privacy_title": "Privacy Policy",
+    "terms_title": "Terms of Service",
+    "footer_privacy": "Privacy Policy",
+    "footer_terms": "Terms of Service",
+    "effective_date": "Effective Date: {{date}}",
+    "privacy": {
+      "intro": "This Privacy Policy describes how the Company (\"we\", \"us\", or \"our\") collects, uses, and protects information when you use our mobile application and related services (the \"Service\").",
+      "section1_title": "1. Information We Collect",
+      "section1_content": "We collect information to provide and improve the Service:\n\n• Account Information: Email address, password (excluded for social login), display name\n• Usage Data: Service usage records, feature interaction logs\n• Automatically Collected: Device information (OS version, device model), app version, access logs",
+      "section2_title": "2. How We Use Your Information",
+      "section2_content": "We use the collected information for the following purposes:\n\n• Account Management: Verify identity, manage membership, prevent unauthorized use\n• Service Delivery: Provide content, personalized features, and service improvements\n• Analytics: Usage statistics and service quality improvement",
+      "section3_title": "3. Data Retention",
+      "section3_content": "We retain your information only as long as necessary for the purposes described in this policy:\n\n• Account Information: Until account deletion (deleted immediately upon request)\n• Usage Records: Up to 3 years (as required by applicable consumer protection laws)\n• Access Logs: Up to 3 months (as required by applicable telecommunications laws)",
+      "section4_title": "4. Sharing of Information",
+      "section4_content": "We do not share your personal information with third parties except in the following cases:\n\n• With your prior consent\n• When required by law or legal process\n• When requested by law enforcement authorities in accordance with applicable laws",
+      "section5_title": "5. Data Deletion",
+      "section5_content": "When personal information is no longer necessary, we promptly destroy it:\n\n• Electronic files: Permanently deleted using methods that prevent recovery\n• Physical documents: Shredded or incinerated",
+      "section6_title": "6. Your Rights",
+      "section6_content": "You have the right to:\n\n• Access your personal information\n• Request correction of inaccurate information\n• Request deletion of your information\n• Request suspension of processing\n\nYou may exercise these rights through the app settings or by contacting our support team.",
+      "section7_title": "7. Contact",
+      "section7_content": "For any questions or concerns regarding this Privacy Policy, please contact us through the in-app support feature."
+    },
+    "terms": {
+      "intro": "These Terms of Service (\"Terms\") govern your use of our mobile application and related services (the \"Service\") provided by the Company (\"we\", \"us\", or \"our\"). By using the Service, you agree to these Terms.",
+      "section1_title": "1. Purpose",
+      "section1_content": "These Terms define the conditions of use, rights, obligations, and responsibilities between us and you regarding the Service.",
+      "section2_title": "2. Definitions",
+      "section2_content": "• \"Service\" means the mobile application and all related services provided by us.\n• \"User\" means any person who uses the Service in accordance with these Terms.\n• \"Member\" means a User who has registered an account with the Service.",
+      "section3_title": "3. Modifications to Terms",
+      "section3_content": "• These Terms become effective when posted on the Service or otherwise notified to Users.\n• We may modify these Terms within the scope permitted by applicable laws. Changes will be announced with the effective date and reason for the change.",
+      "section4_title": "4. Provision and Modification of Service",
+      "section4_content": "• We provide the Service to Users as described.\n• We may modify or discontinue parts of the Service with prior notice.\n• For free services, we may modify, suspend, or discontinue them as needed without separate compensation.",
+      "section5_title": "5. User Obligations",
+      "section5_content": "Users shall not:\n\n• Use another person's information without authorization\n• Interfere with the operation of the Service\n• Harm the reputation of others or cause disadvantage to them\n• Infringe upon intellectual property rights including copyrights\n• Violate applicable laws and regulations",
+      "section6_title": "6. Our Obligations",
+      "section6_content": "• We comply with applicable laws and these Terms, and strive to provide the Service continuously and reliably.\n• We establish and adhere to a Privacy Policy to protect Users' personal information.",
+      "section7_title": "7. Disclaimer",
+      "section7_content": "• We are not liable for service interruptions caused by force majeure events such as natural disasters, wars, or telecommunications service disruptions.\n• We are not responsible for service issues caused by the User's own actions.\n• We are not liable for free services except as specifically provided by applicable law.",
+      "section8_title": "8. Dispute Resolution",
+      "section8_content": "• Disputes regarding these Terms shall be governed by the laws of the Republic of Korea.\n• In case of disputes between us and Users regarding the Service, both parties shall negotiate in good faith to resolve the matter."
+    }
+  },
+  "support": {
+    "title": "Support",
+    "intro": "If something is not working or you have a question, contact us below. We reply in order of arrival.",
+    "contact_title": "Contact",
+    "contact_missing": "No contact address is configured yet. See the company information screen in App Info.",
+    "report_title": "Bug reports & feature requests",
+    "report_content": "Including the following helps us reproduce the issue much faster.\n\n• Device and OS version\n• App version\n• The screen where it happened and the steps to reproduce\n• A screenshot, if possible",
+    "faq_link": "Frequently asked questions"
+  }
+}

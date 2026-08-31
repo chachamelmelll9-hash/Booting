@@ -1,0 +1,43 @@
+appId: ${APP_ID}
+name: Email Login Flow
+tags:
+  - auth
+  - email
+  - dev
+env:
+  TEST_EMAIL: "test@test.com"
+  TEST_PASSWORD: "qwer1234"
+---
+# signup 후 로그인 상태이므로 세션 초기화 후 재시작
+- clearState
+- launchApp:
+    arguments:
+      url: "http://10.0.2.2:8081"
+- waitForAnimationToEnd
+
+# 로그인 화면 확인
+- assertVisible: "또는"
+
+# 이메일 입력
+- tapOn:
+    id: "login-email-input"
+- setClipboard: "${TEST_EMAIL}"
+- pasteText
+
+# 비밀번호 입력
+- tapOn:
+    id: "login-password-input"
+- setClipboard: "${TEST_PASSWORD}"
+- pasteText
+
+# 키보드 닫기
+- hideKeyboard
+
+# 로그인 버튼 탭
+- tapOn:
+    id: "login-submit-button"
+
+# 성공 시 홈 탭으로 이동 확인 (최대 10초 대기)
+- extendedWaitUntil:
+    visible: "홈"
+    timeout: 10000

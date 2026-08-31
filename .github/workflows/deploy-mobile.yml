@@ -1,0 +1,305 @@
+name: Build & Submit Mobile App
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/i18n/**'
+      - 'packages/supabase/**'
+      - 'packages/webview-bridge/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy-mobile.yml'
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - ios
+          - android
+      submit:
+        description: 'Submit to stores after build'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: deploy-mobile-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check-secrets:
+    runs-on: ubuntu-latest
+    outputs:
+      android-ready: ${{ steps.check.outputs.android-ready }}
+      ios-ready: ${{ steps.check.outputs.ios-ready }}
+    steps:
+      - name: Check required secrets
+        id: check
+        env:
+          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          PRODUCTION_SERVER_URL: ${{ secrets.PRODUCTION_SERVER_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          WEBVIEW_URL: ${{ secrets.WEBVIEW_URL }}
+        run: |
+          ENV_MISSING=""
+          [ -z "$PRODUCTION_SERVER_URL" ] && ENV_MISSING="$ENV_MISSING PRODUCTION_SERVER_URL"
+          [ -z "$SUPABASE_URL" ] && ENV_MISSING="$ENV_MISSING SUPABASE_URL"
+          [ -z "$SUPABASE_ANON_KEY" ] && ENV_MISSING="$ENV_MISSING SUPABASE_ANON_KEY"
+          [ -z "$WEBVIEW_URL" ] && ENV_MISSING="$ENV_MISSING WEBVIEW_URL"
+          if [ -n "$ENV_MISSING" ]; then
+            echo "env-ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Mobile builds skipped — missing runtime env GitHub Secrets:$ENV_MISSING"
+            echo "::notice::A binary built without these produces a broken app. Add them in Settings → Secrets and variables → Actions:"
+            echo "::notice::  PRODUCTION_SERVER_URL — production API base URL"
+            echo "::notice::  SUPABASE_URL, SUPABASE_ANON_KEY — Supabase project credentials"
+            echo "::notice::  WEBVIEW_URL — deployed WebView URL"
+          else
+            echo "env-ready=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Runtime env secrets configured"
+          fi
+          if [ -n "$ANDROID_KEYSTORE" ] && [ -z "$ENV_MISSING" ]; then
+            echo "android-ready=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Android secrets configured"
+          else
+            echo "android-ready=false" >> "$GITHUB_OUTPUT"
+            if [ -z "$ANDROID_KEYSTORE" ]; then
+              echo "::warning::Android build skipped — missing GitHub Secrets: ANDROID_KEYSTORE_BASE64"
+              echo "::notice::To enable Android builds, add these secrets in Settings → Secrets and variables → Actions:"
+              echo "::notice::  ANDROID_KEYSTORE_BASE64 — base64-encoded release keystore"
+              echo "::notice::  ANDROID_KEYSTORE_PASSWORD — keystore password"
+              echo "::notice::  ANDROID_KEY_ALIAS — key alias"
+              echo "::notice::  ANDROID_KEY_PASSWORD — key password"
+            fi
+          fi
+          if [ -n "$ASC_KEY_ID" ] && [ -n "$ASC_API_KEY_P8" ] && [ -z "$ENV_MISSING" ]; then
+            echo "ios-ready=true" >> "$GITHUB_OUTPUT"
+            echo "✅ iOS secrets configured"
+          else
+            echo "ios-ready=false" >> "$GITHUB_OUTPUT"
+            if [ -z "$ASC_KEY_ID" ] || [ -z "$ASC_API_KEY_P8" ]; then
+              echo "::warning::iOS build skipped — missing GitHub Secrets: ASC_KEY_ID, ASC_API_KEY_P8"
+              echo "::notice::To enable iOS builds, add these secrets in Settings → Secrets and variables → Actions:"
+              echo "::notice::  ASC_KEY_ID — App Store Connect API key ID"
+              echo "::notice::  ASC_ISSUER_ID — App Store Connect issuer ID"
+              echo "::notice::  ASC_API_KEY_P8 — App Store Connect .p8 private key"
+              echo "::notice::  APPLE_TEAM_ID — Apple Developer Team ID"
+            fi
+          fi
+
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck, lint, test (mobile + deps)
+        run: pnpm turbo run typecheck lint test --filter=@product-engineer-community-service/mobile...
+
+  build-android:
+    needs: [check-secrets, ci]
+    if: |
+      needs.check-secrets.outputs.android-ready == 'true' &&
+      (github.event_name == 'push' || inputs.platform == 'all' || inputs.platform == 'android')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Decode keystore
+        run: |
+          mkdir -p apps/mobile/android
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > apps/mobile/release.jks
+          cat > apps/mobile/keystore.properties << EOF
+          storeFile=../../release.jks
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+          cp apps/mobile/keystore.properties apps/mobile/android/keystore.properties
+
+      - name: Create .env.production
+        run: |
+          cat > apps/mobile/.env.production << EOF
+          EXPO_PUBLIC_SERVER_URL=${{ secrets.PRODUCTION_SERVER_URL }}
+          EXPO_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_WEBVIEW_URL=${{ secrets.WEBVIEW_URL }}
+          EXPO_PUBLIC_POSTHOG_KEY=${{ secrets.POSTHOG_KEY }}
+          EXPO_PUBLIC_POSTHOG_HOST=${{ secrets.POSTHOG_HOST }}
+          EXPO_PUBLIC_ADMOB_ANDROID_APP_ID=${{ secrets.ADMOB_ANDROID_APP_ID }}
+          EXPO_PUBLIC_ADMOB_IOS_APP_ID=${{ secrets.ADMOB_IOS_APP_ID }}
+          EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID=${{ secrets.ADMOB_ANDROID_BANNER_ID }}
+          EXPO_PUBLIC_ADMOB_IOS_BANNER_ID=${{ secrets.ADMOB_IOS_BANNER_ID }}
+          EXPO_PUBLIC_ADMOB_ANDROID_NATIVE_ID=${{ secrets.ADMOB_ANDROID_NATIVE_ID }}
+          EXPO_PUBLIC_ADMOB_IOS_NATIVE_ID=${{ secrets.ADMOB_IOS_NATIVE_ID }}
+          EOF
+
+      - name: Build Android AAB
+        run: bash scripts/build-android.sh
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: apps/mobile/build-*.aab
+
+  build-ios:
+    needs: [check-secrets, ci]
+    if: |
+      needs.check-secrets.outputs.ios-ready == 'true' &&
+      (github.event_name == 'push' || inputs.platform == 'all' || inputs.platform == 'ios')
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup App Store Connect API key
+        run: |
+          mkdir -p ~/.appstoreconnect
+          echo "${{ secrets.ASC_API_KEY_P8 }}" > ~/.appstoreconnect/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
+
+      - name: Create .env.production
+        run: |
+          cat > apps/mobile/.env.production << EOF
+          EXPO_PUBLIC_SERVER_URL=${{ secrets.PRODUCTION_SERVER_URL }}
+          EXPO_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_WEBVIEW_URL=${{ secrets.WEBVIEW_URL }}
+          EXPO_PUBLIC_POSTHOG_KEY=${{ secrets.POSTHOG_KEY }}
+          EXPO_PUBLIC_POSTHOG_HOST=${{ secrets.POSTHOG_HOST }}
+          EXPO_PUBLIC_ADMOB_ANDROID_APP_ID=${{ secrets.ADMOB_ANDROID_APP_ID }}
+          EXPO_PUBLIC_ADMOB_IOS_APP_ID=${{ secrets.ADMOB_IOS_APP_ID }}
+          EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID=${{ secrets.ADMOB_ANDROID_BANNER_ID }}
+          EXPO_PUBLIC_ADMOB_IOS_BANNER_ID=${{ secrets.ADMOB_IOS_BANNER_ID }}
+          EXPO_PUBLIC_ADMOB_ANDROID_NATIVE_ID=${{ secrets.ADMOB_ANDROID_NATIVE_ID }}
+          EXPO_PUBLIC_ADMOB_IOS_NATIVE_ID=${{ secrets.ADMOB_IOS_NATIVE_ID }}
+          EOF
+
+      - name: Create .appstoreconnect.env
+        run: |
+          cat > .appstoreconnect.env << EOF
+          ASC_KEY_ID=${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID=${{ secrets.ASC_ISSUER_ID }}
+          TEAM_ID=${{ secrets.APPLE_TEAM_ID }}
+          EOF
+
+      - name: Build iOS IPA
+        run: bash scripts/build-ios.sh
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: apps/mobile/build/ipa/*.ipa
+
+  submit-android:
+    if: ${{ inputs.submit == true && (inputs.platform == 'all' || inputs.platform == 'android') }}
+    needs: build-android
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download AAB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-aab
+          path: apps/mobile/
+
+      - name: Setup service account
+        run: echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > google-service-account.json
+
+      - name: Submit to Play Store
+        run: |
+          AAB_FILE=$(ls -t apps/mobile/build-*.aab | head -1)
+          node scripts/play-store.mjs upload "$AAB_FILE" production
+
+  submit-ios:
+    if: ${{ inputs.submit == true && (inputs.platform == 'all' || inputs.platform == 'ios') }}
+    needs: build-ios
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup App Store Connect API key
+        run: |
+          mkdir -p ~/.appstoreconnect
+          echo "${{ secrets.ASC_API_KEY_P8 }}" > ~/.appstoreconnect/AuthKey_${{ secrets.ASC_KEY_ID }}.p8
+
+      - name: Create .appstoreconnect.env
+        run: |
+          cat > .appstoreconnect.env << EOF
+          ASC_KEY_ID=${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID=${{ secrets.ASC_ISSUER_ID }}
+          TEAM_ID=${{ secrets.APPLE_TEAM_ID }}
+          EOF
+
+      - name: Download IPA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-ipa
+          path: apps/mobile/build/ipa/
+
+      - name: Submit to App Store
+        run: |
+          IPA_FILE=$(ls -t apps/mobile/build/ipa/*.ipa | head -1)
+          bash scripts/submit-ios.sh "$IPA_FILE"

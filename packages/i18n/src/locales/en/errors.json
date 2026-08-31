@@ -1,0 +1,24 @@
+{
+  "default_error": "An error occurred. Please try again",
+  "network_error": "Network error occurred",
+  "timeout_error": "Request timed out",
+  "server_error": "Server error occurred",
+  "rate_limit": "Too many requests. Please try again later",
+  "email_rate_limit": "Email sending limit exceeded. Please try again later",
+  "required_field": "This field is required",
+  "invalid_format": "Invalid format",
+  "auth": {
+    "invalid_credentials": "Invalid email or password",
+    "email_exists": "Email already exists",
+    "user_already_exists": "Email already exists",
+    "weak_password": "Password is too weak",
+    "password_mismatch": "Passwords do not match",
+    "user_not_found": "Email not registered",
+    "invalid_email": "Invalid email format",
+    "email_not_confirmed": "Email confirmation required",
+    "token_expired": "Session expired. Please login again",
+    "token_invalid": "We could not verify your session. Please login again",
+    "token_revoked": "Session expired. Please login again",
+    "unauthorized": "Access denied"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "@product-engineer-community-service/i18n",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit",
+    "test": "node scripts/check-locales.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./locales/*": "./src/locales/*",
+    "./config/languages": {
+      "types": "./dist/config/languages.d.ts",
+      "import": "./dist/config/languages.js"
+    },
+    "./config/mobile": {
+      "types": "./dist/config/mobile.d.ts",
+      "import": "./dist/config/mobile.js"
+    },
+    "./config/web": {
+      "types": "./dist/config/web.d.ts",
+      "import": "./dist/config/web.js"
+    }
+  },
+  "dependencies": {
+    "i18next": "^23.0.0",
+    "react-i18next": "^15.0.0",
+    "tslib": "*"
+  },
+  "peerDependencies": {
+    "expo-localization": ">=15.0.0"
+  }
+}

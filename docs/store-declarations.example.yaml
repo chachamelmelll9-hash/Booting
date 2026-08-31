@@ -1,0 +1,85 @@
+# 스토어 선언 데이터 (declarations-as-data)
+#
+# 이 파일을 `docs/store-declarations.yaml`로 복사해 채운다. `/preflight`가 대화형으로
+# 만들어주기도 한다.
+#
+# 왜 파일로 두는가:
+#   연령 등급(IARC)·데이터 안전·타겟층·수출 규정은 **사용자가 진실이라고 선언**하는
+#   항목이다. 틀리면 리젝이 아니라 계정 정지로 이어질 수 있다. 따라서 AI는 이 값을
+#   **절대 생성·추론하지 않고** 이 파일에서만 읽는다. 값이 없으면 해당 단계를
+#   `phase_blocked`로 멈춘다.
+#
+# 소비자: /launch (launch-orchestrator Phase 1~3), /setup-landing, /deploy(가격·광고 정합성)
+
+# 제출 승인 정책 — C안
+#   first-app-manual : 콘솔 폼까지 자동으로 채우고 "제출" 직전에만 사람이 1회 확인
+#   auto             : 제출까지 완전 자동 (이 파일이 검증된 2번째 앱 이후 권장)
+submit_policy: first-app-manual
+
+business:
+  name: "" # 사업자/개발자 표시명 (스토어에 공개됨)
+  representative: "" # 대표자명
+  address: "" # Play는 공개 연락처 주소가 필수
+  phone: ""
+  email: "" # 지원 문의 이메일 (스토어 공개)
+  privacy_officer: # 개인정보 보호책임자 (한국 개인정보처리방침 필수 항목)
+    name: ""
+    email: ""
+
+listing:
+  category_ios: "" # 예: "Health & Fitness"
+  category_android: "" # 예: "건강/피트니스"
+  copyright: "" # 예: "2026 홍길동"
+  support_url: "" # 비우면 https://{PAGES_PROJECT}.pages.dev/support
+  marketing_url: "" # 비우면 https://{PAGES_PROJECT}.pages.dev
+
+pricing:
+  model: free # free | paid
+  price_tier: "0"
+
+countries: all # all | ["KR", "US", ...]
+
+# 연령 등급 설문 답변 원본 (IARC + App Store 공통)
+age_rating:
+  violence: none # none | infrequent | frequent
+  sexual_content: none
+  profanity: none
+  drugs_alcohol_tobacco: none
+  gambling_simulated: none
+  horror_fear: none
+  user_generated_content: false
+  unrestricted_web_access: false
+  ios_override: not_applicable # ASC 마지막 override 단계
+
+target_audience:
+  age_groups: ["18+"] # Play 타겟층. 13세 미만 포함 시 아동 정책 하위 단계가 늘어난다
+  appeals_to_children: false
+
+# Play 데이터 안전 + iOS App Privacy 공통 소스
+data_safety:
+  collects: [] # email | name | user_id | photos | location | usage_data | user_content
+  shared_with_third_parties: []
+  encrypted_in_transit: true
+  deletion_request_supported: true
+  purposes: [app_functionality] # app_functionality | analytics | ads | personalization
+
+ads:
+  contains_ads: false # AdMob 사용 시 true — app.config.ts의 AD_ID 권한 선언과 반드시 일치
+  ad_id_used: false
+
+app_access:
+  login_required: true
+  demo_account: # 로그인 있는 앱은 심사에 데모 계정 필수
+    seed: true # true면 launch가 Supabase에 계정+샘플 데이터를 시딩
+    email: "" # 비우면 review@{slug}.app
+    password_file: .launch-demo-account # 비밀번호는 이 로컬 파일에만 기록 (gitignore)
+
+declarations:
+  government_app: false
+  financial_features: false
+  health_features: none # none | fitness | medical
+  export_compliance_uses_encryption: false # HTTPS만 쓰면 보통 면제 대상
+
+landing:
+  tagline: ""
+  target_audience: ""

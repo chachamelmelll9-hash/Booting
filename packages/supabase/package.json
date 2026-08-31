@@ -1,0 +1,27 @@
+{
+  "name": "@product-engineer-community-service/supabase",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "typecheck": "tsc -p tsconfig.lib.json --noEmit"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@product-engineer-community-service/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "*",
+    "tslib": "*",
+    "zod": "*"
+  }
+}

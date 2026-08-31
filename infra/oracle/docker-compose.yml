@@ -1,0 +1,18 @@
+# SERVER_IMAGE is injected by .github/workflows/deploy.yml (ghcr.io/<repo-owner>/<app>-server:latest)
+# and written to /home/ubuntu/app/.env by scripts/setup-deploy.sh for manual runs.
+# The fallback placeholder is replaced by scripts/initial-setup.sh (org) and scripts/branding.sh (app name).
+services:
+  server:
+    image: ${SERVER_IMAGE:-ghcr.io/myorg/myapp-server:latest}
+    container_name: myapp-server
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/api/health', res => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

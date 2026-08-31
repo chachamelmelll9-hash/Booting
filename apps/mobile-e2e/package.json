@@ -1,0 +1,13 @@
+{
+  "name": "@product-engineer-community-service/mobile-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "maestro": "bash scripts/run-maestro.sh maestro/",
+    "maestro:auth": "bash scripts/run-maestro.sh maestro/03-auth/",
+    "maestro:smoke": "bash scripts/run-maestro.sh maestro/02-auth-smoke.yaml",
+    "e2e": "bash scripts/run-adb-tests.sh",
+    "e2e:smoke": "bash adb-tests/smoke.sh",
+    "e2e:debug": "DEBUG=1 bash scripts/run-adb-tests.sh"
+  }
+}
