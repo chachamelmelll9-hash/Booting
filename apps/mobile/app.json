@@ -46,6 +46,7 @@
       "./plugins/withAndroidInstallReferrer",
       "./plugins/withKakaoMaven",
       "./plugins/withAndroidPathCheckOverride",
+      "./plugins/withAndroidCmakeObjectPathMax",
       [
         "@react-native-kakao/core",
         {

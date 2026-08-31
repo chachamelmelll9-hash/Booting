@@ -21,7 +21,8 @@
     "java_home": "C:\\proj\\jdk17\\jdk-17.0.20.1+1",
     "gradle_user_home": "C:\\proj\\gradle-home",
     "temp_for_gradle": "C:\\proj\\gtmp",
-    "repo_path": "C:\\proj\\Booting — 2026-08-31 이동 완료. 비ASCII 경로 blocker 해소. node_modules 는 C:\\proj\\pm\\node_modules 정션 유지",
+    "repo_path": "C:\\proj\\Booting — 2026-08-31 이동 완료. 비ASCII 경로 blocker 해소. node_modules 정션은 제거하고 저장소 안 실디렉터리로 이동했다 (Metro 엔트리 해석 실패 원인)",
+    "native_build_dir": "C:\\cxx\\booting — MAX_PATH 260 회피용 .cxx 출력 위치. plugins/withAndroidCmakeObjectPathMax.js 가 win32 에서만 주입한다",
     "port_4200_conflict": "Desktop\\shippen 의 vite 가 4200 을 점유 중 — 종료해야 앱 웹뷰가 올바른 대상을 가리킨다",
     "stop_hook_router": "disabled — .claude/settings.json 이 /usr/bin/env python3 를 호출하는데 Windows 에 그 경로가 없다. 따라서 phase 재개는 스킬 내 체이닝(1차 메커니즘)에만 의존하고, 턴마다 자동 커밋도 되지 않는다",
     "ios": "불가 — Xcode 없음. build/launch 의 iOS 경로는 macOS 머신이 필요하다"
