@@ -45,6 +45,7 @@
       "expo-localization",
       "./plugins/withAndroidInstallReferrer",
       "./plugins/withKakaoMaven",
+      "./plugins/withAndroidPathCheckOverride",
       [
         "@react-native-kakao/core",
         {

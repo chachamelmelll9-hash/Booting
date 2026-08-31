@@ -3,7 +3,7 @@
 # The fallback placeholder is replaced by scripts/initial-setup.sh (org) and scripts/branding.sh (app name).
 services:
   server:
-    image: ${SERVER_IMAGE:-ghcr.io/myorg/myapp-server:latest}
+    image: ${SERVER_IMAGE:-ghcr.io/chachamelmelll9-hash/myapp-server:latest}
     container_name: myapp-server
     restart: unless-stopped
     env_file:

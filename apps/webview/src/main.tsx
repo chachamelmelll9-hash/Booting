@@ -1,7 +1,7 @@
 import './styles/global.css';
 import './styles/auth.css';
 
-import { initI18nWeb } from '@product-engineer-community-service/i18n';
+import { initI18nWeb } from '@chachamelmelll9-hash-service/i18n';
 import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';

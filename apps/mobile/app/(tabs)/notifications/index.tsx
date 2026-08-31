@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View, FlatList, StyleSheet, Pressable } from 'react-native';
-import { useTranslation } from '@product-engineer-community-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 
 import { screenStyles } from '@shared/config/styles';
 

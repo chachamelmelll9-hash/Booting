@@ -2,12 +2,12 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@product-engineer-community-service/i18n": ["packages/i18n/src/index.ts"],
-      "@product-engineer-community-service/i18n/config/mobile": ["packages/i18n/src/config/mobile.ts"],
-      "@product-engineer-community-service/i18n/config/web": ["packages/i18n/src/config/web.ts"],
-      "@product-engineer-community-service/i18n/config/languages": ["packages/i18n/src/config/languages.ts"],
-      "@product-engineer-community-service/supabase": ["packages/supabase/src/index.ts"],
-      "@product-engineer-community-service/webview-bridge": ["packages/webview-bridge/src/index.ts"]
+      "@chachamelmelll9-hash-service/i18n": ["packages/i18n/src/index.ts"],
+      "@chachamelmelll9-hash-service/i18n/config/mobile": ["packages/i18n/src/config/mobile.ts"],
+      "@chachamelmelll9-hash-service/i18n/config/web": ["packages/i18n/src/config/web.ts"],
+      "@chachamelmelll9-hash-service/i18n/config/languages": ["packages/i18n/src/config/languages.ts"],
+      "@chachamelmelll9-hash-service/supabase": ["packages/supabase/src/index.ts"],
+      "@chachamelmelll9-hash-service/webview-bridge": ["packages/webview-bridge/src/index.ts"]
     },
     "allowJs": true,
     "composite": true,
@@ -28,6 +28,6 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["@product-engineer-community-service/source"]
+    "customConditions": ["@chachamelmelll9-hash-service/source"]
   }
 }

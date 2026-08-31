@@ -28,7 +28,7 @@ export default defineConfig(() => ({
     },
   },
   test: {
-    name: '@product-engineer-community-service/webview',
+    name: '@chachamelmelll9-hash-service/webview',
     watch: false,
     globals: true,
     passWithNoTests: true,

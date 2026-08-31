@@ -71,7 +71,7 @@ jobs:
 
       - name: Typecheck, lint, test (webview + deps)
         if: env.SECRETS_OK == 'true'
-        run: pnpm turbo run typecheck lint test --filter=@product-engineer-community-service/webview...
+        run: pnpm turbo run typecheck lint test --filter=@chachamelmelll9-hash-service/webview...
 
       - name: Build WebView
         if: env.SECRETS_OK == 'true'

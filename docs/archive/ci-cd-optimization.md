@@ -44,10 +44,10 @@ SSM runs a shell script that:
 
 ### Why pnpm prune alone failed
 
-The workspace package `@product-engineer-community-service/supabase` depends on `@supabase/supabase-js`.
+The workspace package `@chachamelmelll9-hash-service/supabase` depends on `@supabase/supabase-js`.
 When using pruned lockfile + workspace_modules, pnpm placed that dependency under:
 
-`/app/workspace_modules/@product-engineer-community-service/supabase/node_modules`
+`/app/workspace_modules/@chachamelmelll9-hash-service/supabase/node_modules`
 
 But the runtime module resolution for the server expects that package to be
 resolvable from the root `node_modules` chain. This caused:

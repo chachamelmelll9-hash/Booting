@@ -259,7 +259,7 @@ echo '{"ts":"'"$(date +%Y-%m-%dT%H:%M:%S%z)"'","iter":"initial","feature":"{name
 - 기존 shared 컴포넌트 재사용 우선, 없으면 새로 생성
 - **API 호출은 반드시 `serverFetch<T>()`** 사용 (`@/shared/api`에서 import)
 - **i18n**: UI에 표시되는 모든 문자열은 `packages/i18n`의 번역 키를 사용한다
-  - `import { useTranslation } from '@myorg-service/i18n';`
+  - `import { useTranslation } from '@chachamelmelll9-hash-service/i18n';`
   - `const { t } = useTranslation();`
   - `t('feature.screen.label')` 형태로 사용
   - 새 번역 키는 `packages/i18n/src/locales/ko/{feature}.json`과 `en/{feature}.json`에 추가

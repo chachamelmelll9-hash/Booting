@@ -4,7 +4,7 @@
  * 기다린 뒤 원 요청을 1회 자동 재시도 (LOGOUT/타임아웃 시 reject)
  */
 
-import type { AuthErrorCode } from '@product-engineer-community-service/webview-bridge';
+import type { AuthErrorCode } from '@chachamelmelll9-hash-service/webview-bridge';
 
 import { useBridgeStore } from '../../features/session/lib/bridge';
 import { useSessionStore } from '../../features/session/model/useSessionStore';

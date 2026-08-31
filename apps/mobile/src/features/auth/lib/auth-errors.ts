@@ -1,4 +1,4 @@
-import { i18n } from '@product-engineer-community-service/i18n';
+import { i18n } from '@chachamelmelll9-hash-service/i18n';
 
 export function getAuthErrorMessage(errorCode: string | undefined): string {
   if (!errorCode) return i18n.t('errors:default_error');

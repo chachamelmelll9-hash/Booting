@@ -4,9 +4,9 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug @product-engineer-community-service/server with Nx",
+      "name": "Debug @chachamelmelll9-hash-service/server with Nx",
       "runtimeExecutable": "pnpm exec",
-      "runtimeArgs": ["nx", "serve", "@product-engineer-community-service/server"],
+      "runtimeArgs": ["nx", "serve", "@chachamelmelll9-hash-service/server"],
       "env": {
         "NODE_OPTIONS": "--inspect=9229"
       },
@@ -22,9 +22,9 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug @product-engineer-community-service/server with Nx",
+      "name": "Debug @chachamelmelll9-hash-service/server with Nx",
       "runtimeExecutable": "pnpm exec",
-      "runtimeArgs": ["nx", "serve", "@product-engineer-community-service/server"],
+      "runtimeArgs": ["nx", "serve", "@chachamelmelll9-hash-service/server"],
       "env": {
         "NODE_OPTIONS": "--inspect=9230"
       },

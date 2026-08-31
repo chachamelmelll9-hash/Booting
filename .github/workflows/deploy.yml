@@ -35,7 +35,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck, lint, test (server + deps)
-        run: pnpm turbo run typecheck lint test --filter=@product-engineer-community-service/server...
+        run: pnpm turbo run typecheck lint test --filter=@chachamelmelll9-hash-service/server...
 
   build-and-deploy:
     needs: ci

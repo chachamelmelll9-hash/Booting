@@ -1,5 +1,5 @@
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { AuthStyles } from '@features/auth';
-import { useTranslation } from '@product-engineer-community-service/i18n';
 import { AuthColors } from '@shared/config/colors';
 import React, { useState } from 'react';
 import { type Control, Controller, type FieldValues, type Path } from 'react-hook-form';

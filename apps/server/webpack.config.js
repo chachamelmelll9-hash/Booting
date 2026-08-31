@@ -19,13 +19,13 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js'],
     alias: {
-      '@product-engineer-community-service/supabase': resolve(__dirname, '../../packages/supabase/src/index.ts'),
+      '@chachamelmelll9-hash-service/supabase': resolve(__dirname, '../../packages/supabase/src/index.ts'),
     },
   },
   externals: [
     nodeExternals({
       modulesDir: resolve(__dirname, '../../node_modules'),
-      allowlist: [/^@product-engineer-community-service\//],
+      allowlist: [/^@chachamelmelll9-hash-service\//],
     }),
     '@nestjs/microservices',
     '@nestjs/microservices/microservices-module',

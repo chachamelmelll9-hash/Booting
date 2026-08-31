@@ -1,6 +1,6 @@
 import { useAuthStore } from '@features/auth';
 import { deleteAccountApi,logoutApi } from '@features/auth/api';
-import { useTranslation } from '@product-engineer-community-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { screenStyles } from '@shared/config/styles';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';

@@ -2,11 +2,11 @@ import { AuthStyles } from '@features/auth';
 import { resetPasswordApi } from '@features/auth/api';
 import { parseAuthError } from '@features/auth/lib/auth-errors';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslation } from '@product-engineer-community-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import {
   type ForgotPasswordFormData,
   forgotPasswordSchema,
-} from '@product-engineer-community-service/supabase';
+} from '@chachamelmelll9-hash-service/supabase';
 import { ControlledInput, FormButton } from '@shared/ui';
 import { useMutation } from '@tanstack/react-query';
 import * as Linking from 'expo-linking';

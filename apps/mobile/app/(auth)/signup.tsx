@@ -3,8 +3,8 @@ import { signUpApi } from '@features/auth/api';
 import { parseAuthError } from '@features/auth/lib/auth-errors';
 import { saveTokens, saveUser } from '@features/auth/lib/tokenStorage';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslation } from '@product-engineer-community-service/i18n';
-import { type SignupFormData,signupSchema } from '@product-engineer-community-service/supabase';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+import { type SignupFormData,signupSchema } from '@chachamelmelll9-hash-service/supabase';
 import {
   ControlledInput,
   ControlledPasswordInput,

@@ -1,23 +1,23 @@
 {
-  "name": "@product-engineer-community-service/server",
+  "name": "@chachamelmelll9-hash-service/server",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "NODE_ENV=production webpack-cli build",
-    "build:dev": "NODE_ENV=development webpack-cli build",
+    "build": "cross-env NODE_ENV=production webpack-cli build",
+    "build:dev": "cross-env NODE_ENV=development webpack-cli build",
     "serve": "node dist/main.js",
-    "dev": "NODE_ENV=development webpack-cli build && node dist/main.js",
+    "dev": "cross-env NODE_ENV=development webpack-cli build && node dist/main.js",
     "lint": "eslint src",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "test": "jest"
   },
   "dependencies": {
+    "@chachamelmelll9-hash-service/supabase": "workspace:*",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.0",
     "@nestjs/platform-express": "^11.0.0",
     "@nestjs/throttler": "^6.4.0",
-    "@product-engineer-community-service/supabase": "workspace:*",
     "@supabase/supabase-js": "^2.89.0",
     "@swc/helpers": "~0.5.11",
     "class-transformer": "^0.5.1",
@@ -29,6 +29,7 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@nestjs/testing": "^11.0.0"
+    "@nestjs/testing": "^11.0.0",
+    "cross-env": "^10.1.0"
   }
 }

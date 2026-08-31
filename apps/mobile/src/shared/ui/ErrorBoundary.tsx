@@ -1,4 +1,4 @@
-import { useTranslation } from '@product-engineer-community-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { AuthColors } from '@shared/config/colors';
 import { reportError } from '@shared/lib/sentry';
 import type { ErrorBoundaryProps } from 'expo-router';

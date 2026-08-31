@@ -8,6 +8,6 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   coverageDirectory: '<rootDir>/coverage',
   moduleNameMapper: {
-    '@product-engineer-community-service/(.*)': path.resolve(__dirname, 'packages/$1/src'),
+    '@chachamelmelll9-hash-service/(.*)': path.resolve(__dirname, 'packages/$1/src'),
   },
 };

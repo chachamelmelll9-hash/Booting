@@ -52,7 +52,7 @@ COPY apps/server ./apps/server
 COPY packages/supabase ./packages/supabase
 
 # Build packages using Turborepo
-RUN pnpm turbo run build --filter=@product-engineer-community-service/server && \
+RUN pnpm turbo run build --filter=@chachamelmelll9-hash-service/server && \
     find apps/server/dist -type f \( -name "*.map" -o -name "*.tsbuildinfo" \) -delete 2>/dev/null || true
 
 # -----------------------------------------------------------------------------

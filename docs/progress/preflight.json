@@ -1,0 +1,92 @@
+{
+  "checked_at": "2026-08-31T10:25:00+0900",
+  "tier1_ok": true,
+  "skills_ok": true,
+  "release_ready": false,
+  "generated": [
+    "supabase-project",
+    "env-files",
+    "keystore",
+    "store-declarations",
+    "demo-account-password"
+  ],
+  "tier1": {
+    "T1_REPO": "OK",
+    "T1_NODE": "OK",
+    "T1_PNPM": "OK",
+    "T1_DEVICE": "OK (emulator-5554)",
+    "T1_AVD": "OK (shippen_api35)",
+    "T1_AVDMGR": "OK",
+    "T1_SKILLS": "OK",
+    "T1_MCP": "OK (user-scope; project .mcp.json absent by design)",
+    "T1_SUPA_ENV": "OK"
+  },
+  "supabase": {
+    "mode": "cloud",
+    "project_id": "ifkazhqwjbtxkmppsedi",
+    "url": "https://ifkazhqwjbtxkmppsedi.supabase.co",
+    "region": "ap-northeast-2",
+    "status": "ACTIVE_HEALTHY",
+    "keys_source": "supabase CLI (SUPABASE_ACCESS_TOKEN in env)"
+  },
+  "decisions": {
+    "app_name": "부모님을 소개합니다",
+    "pricing": "free, no ads",
+    "todo_01": "부모님을 소개합니다",
+    "todo_02": "만 50세 이상",
+    "todo_03": "강력 권장 + 미동행 시 확인 절차",
+    "todo_04": "자녀 단말 대면 동의 + 기록",
+    "todo_05": "인증 플로우만 구현, 심사는 자동 승인 (MVP 한정)",
+    "todo_06": "10/30/50km/전국, 기본 30km",
+    "todo_07": "부모님 프로필 1명",
+    "todo_10": "전면 무료, 광고 없음",
+    "todo_11": "미활동 60일 후 자동 비공개",
+    "todo_12": "최종 매칭 후 채팅방 90일 유지",
+    "todo_14": "미동행 사유 입력 + 안전수칙 재확인",
+    "developer_type": "개인 개발자"
+  },
+  "blockers": [
+    {
+      "item": "T2_ORACLE",
+      "reason": "Oracle Cloud 서버 미프로비저닝",
+      "manual_action": "./scripts/setup-deploy.sh 로 Oracle 계정 연결 (deploy phase에서만 필요)"
+    },
+    {
+      "item": "T2_PAGES",
+      "reason": "Cloudflare Pages 프로젝트 미생성 / wrangler 미인증",
+      "manual_action": "wrangler login 후 ./scripts/provision-cloudflare.sh"
+    },
+    {
+      "item": "T2_PLAY_SA",
+      "reason": "google-service-account.json 없음 + Play Console 앱 미등록",
+      "manual_action": "Play Console에서 앱 생성 → 서비스계정 발급 및 앱별 권한 부여 → google-service-account.json 배치"
+    },
+    {
+      "item": "T2_ASC",
+      "reason": "App Store Connect 자격증명(.appstoreconnect.env, AuthKey_*.p8) 없음",
+      "manual_action": "App Store Connect에서 API 키 발급"
+    },
+    {
+      "item": "T2_XCODE",
+      "reason": "Windows 환경 — Xcode 사용 불가. iOS 빌드/제출은 이 머신에서 원리적으로 불가능",
+      "manual_action": "macOS 머신에서 scripts/build-ios.sh 실행. Android 단독 출시로 진행하려면 launch 단계에서 iOS를 제외"
+    },
+    {
+      "item": "T2_DECL_BUSINESS",
+      "reason": "docs/store-declarations.yaml의 business.name/address/phone 미기입 (사용자 실제 신원 정보)",
+      "manual_action": "출시 전 docs/store-declarations.yaml의 TODO(user) 항목 기입"
+    },
+    {
+      "item": "T2_ICON",
+      "reason": "assets/icon-source.* 없음 — /setup-icons 스킵됨",
+      "manual_action": "1024x1024 아이콘을 assets/icon-source.png 로 두고 /setup-icons 실행 (선택)"
+    }
+  ],
+  "notes": [
+    "플랫폼이 Windows(win32)라 파이프라인의 bash 스크립트는 Git Bash(C:\\Users\\한화손해보험\\AppData\\Local\\Programs\\Git\\bin\\bash.exe)로 실행한다. lsof 등 일부 macOS 전용 명령은 PowerShell 등가물로 대체한다.",
+    "Docker 미설치 — 로컬 Supabase 폴백은 불가하나 클라우드 프로비저닝이 성공했으므로 영향 없다.",
+    "java는 PATH에 없고 Android Studio JBR(C:\\Program Files\\Android\\Android Studio\\jbr)을 사용한다. Gradle 실행 시 JAVA_HOME 설정이 필요하다.",
+    "Supabase MCP는 프로젝트 .mcp.json이 아니라 사용자 스코프에 설정되어 있으며 정상 동작한다. 중복 등록을 피하려고 .mcp.json을 새로 만들지 않았다.",
+    "TODO-05가 '심사 자동 승인'이므로 실사용자 대상 출시 전에 실제 본인인증 연동이 선행되어야 한다."
+  ]
+}

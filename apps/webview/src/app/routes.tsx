@@ -1,4 +1,4 @@
-import { useTranslation } from '@product-engineer-community-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { lazy, Suspense } from 'react';
 import { Link,Route, Routes } from 'react-router-dom';
 

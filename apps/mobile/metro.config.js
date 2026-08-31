@@ -33,15 +33,15 @@ const customConfig = {
     ],
     // Resolve workspace packages
     extraNodeModules: {
-      '@product-engineer-community-service/i18n': path.resolve(workspaceRoot, 'packages/i18n/src'),
-      '@product-engineer-community-service/supabase': path.resolve(workspaceRoot, 'packages/supabase/src'),
-      '@product-engineer-community-service/webview-bridge': path.resolve(workspaceRoot, 'packages/webview-bridge/src'),
+      '@chachamelmelll9-hash-service/i18n': path.resolve(workspaceRoot, 'packages/i18n/src'),
+      '@chachamelmelll9-hash-service/supabase': path.resolve(workspaceRoot, 'packages/supabase/src'),
+      '@chachamelmelll9-hash-service/webview-bridge': path.resolve(workspaceRoot, 'packages/webview-bridge/src'),
     },
     // Custom resolver for monorepo
     resolveRequest: (context, moduleName, platform) => {
-      // Handle @product-engineer-community-service/source condition for workspace packages
-      if (moduleName.startsWith('@product-engineer-community-service/')) {
-        const packagePath = moduleName.replace('@product-engineer-community-service/', '');
+      // Handle @chachamelmelll9-hash-service/source condition for workspace packages
+      if (moduleName.startsWith('@chachamelmelll9-hash-service/')) {
+        const packagePath = moduleName.replace('@chachamelmelll9-hash-service/', '');
         const [packageName, ...subPaths] = packagePath.split('/');
 
         if (['i18n', 'supabase', 'webview-bridge'].includes(packageName)) {

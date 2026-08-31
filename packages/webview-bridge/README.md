@@ -48,5 +48,5 @@ Mobile 앱은 OTA/스토어 배포, WebView는 웹 배포로 **서로 다른 시
 ## Building
 
 ```bash
-pnpm turbo build --filter=@product-engineer-community-service/webview-bridge
+pnpm turbo build --filter=@chachamelmelll9-hash-service/webview-bridge
 ```

@@ -1,9 +1,9 @@
-import { i18n } from '@product-engineer-community-service/i18n';
+import { i18n } from '@chachamelmelll9-hash-service/i18n';
 import {
   BRIDGE_PROTOCOL_VERSION,
   isMobileToWebViewMessage,
   type WebViewToMobileMessage,
-} from '@product-engineer-community-service/webview-bridge';
+} from '@chachamelmelll9-hash-service/webview-bridge';
 import { create } from 'zustand';
 
 import { useSessionStore } from '../model/useSessionStore';

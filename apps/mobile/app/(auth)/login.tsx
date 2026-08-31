@@ -6,8 +6,8 @@ import { signInWithKakao } from '@features/auth/lib/kakaoAuth';
 import { saveLastLoginMethod } from '@features/auth/lib/lastLoginMethod';
 import { saveTokens, saveUser } from '@features/auth/lib/tokenStorage';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslation } from '@product-engineer-community-service/i18n';
-import { type LoginFormData,loginSchema } from '@product-engineer-community-service/supabase';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+import { type LoginFormData,loginSchema } from '@chachamelmelll9-hash-service/supabase';
 import {
   ControlledInput,
   ControlledPasswordInput,

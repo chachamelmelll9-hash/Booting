@@ -10,7 +10,7 @@ const swcJestConfig = JSON.parse(
 swcJestConfig.swcrc = false;
 
 module.exports = {
-  displayName: '@product-engineer-community-service/server',
+  displayName: '@chachamelmelll9-hash-service/server',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
   transform: {

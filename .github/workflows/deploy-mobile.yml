@@ -112,7 +112,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck, lint, test (mobile + deps)
-        run: pnpm turbo run typecheck lint test --filter=@product-engineer-community-service/mobile...
+        run: pnpm turbo run typecheck lint test --filter=@chachamelmelll9-hash-service/mobile...
 
   build-android:
     needs: [check-secrets, ci]

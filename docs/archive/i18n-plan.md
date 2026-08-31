@@ -80,7 +80,7 @@ packages/i18n/
 **기본 패턴**:
 
 ```typescript
-import { useTranslation } from '@product-engineer-community-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 
 export default function LoginScreen() {
   const { t } = useTranslation('auth');  // namespace 지정
@@ -168,7 +168,7 @@ useEffect(() => {
 **파일**: `apps/mobile/app/(tabs)/profile/preferences/language.tsx`
 
 ```typescript
-import { useTranslation } from '@product-engineer-community-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { useLanguageStore } from '@features/settings';
 
 const LANGUAGES = [
@@ -204,7 +204,7 @@ export default function LanguageScreen() {
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { SupportedLanguage } from '@product-engineer-community-service/i18n';
+import type { SupportedLanguage } from '@chachamelmelll9-hash-service/i18n';
 
 export const useLanguageStore = create<LanguageState>()(
   persist(
@@ -274,7 +274,7 @@ declare module 'i18next' {
 
 3. **i18n 패키지 빌드**:
    ```bash
-   pnpm nx build @product-engineer-community-service/i18n
+   pnpm nx build @chachamelmelll9-hash-service/i18n
    ```
 
 4. **코드에서 사용**:
@@ -337,7 +337,7 @@ grep -r "[가-힣]" apps/mobile/src --include="*.tsx" --include="*.ts"
 2. Layout 초기화:
    ```typescript
    // apps/mall/src/app/layout.tsx
-   import { initI18nNext } from '@product-engineer-community-service/i18n';
+   import { initI18nNext } from '@chachamelmelll9-hash-service/i18n';
 
    useEffect(() => {
      initI18nNext().then(() => setI18nReady(true));

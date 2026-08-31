@@ -30,7 +30,7 @@ description: Server E2E agent with two modes — write mode generates failing (R
   test -f apps/server-e2e/package.json || echo "MISSING: server-e2e package"
   ```
 - **MISSING인 경우 즉시 스캐폴딩** (진행 전 필수 — 없으면 테스트가 아예 실행되지 않는다):
-  1. `apps/server-e2e/`에 다음 파일 생성: `package.json`(name: `@product-engineer-community-service/server-e2e`, scripts: `"e2e": "jest --config jest.config.js"`), `jest.config.js`, `.spec.swcrc`, `tsconfig.json`, `eslint.config.mjs`, `src/support/test-setup.ts`(API_BASE_URL env 우선, HOST/PORT fallback), `src/support/global-setup.ts`(서버 대기), `src/support/global-teardown.ts`
+  1. `apps/server-e2e/`에 다음 파일 생성: `package.json`(name: `@chachamelmelll9-hash-service/server-e2e`, scripts: `"e2e": "jest --config jest.config.js"`), `jest.config.js`, `.spec.swcrc`, `tsconfig.json`, `eslint.config.mjs`, `src/support/test-setup.ts`(API_BASE_URL env 우선, HOST/PORT fallback), `src/support/global-setup.ts`(서버 대기), `src/support/global-teardown.ts`
   2. 기존 구조는 git 히스토리 참고: `git show 49367ea^:apps/server-e2e/package.json` 등
   3. 생성 후 `pnpm install` 실행 (workspace 등록: `pnpm-workspace.yaml`의 `apps/*`에 자동 포함)
 - dev 모드에서는 서버 실행 상태 확인

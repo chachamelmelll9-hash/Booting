@@ -1,5 +1,5 @@
 {
-  "name": "@product-engineer-community-service/supabase",
+  "name": "@chachamelmelll9-hash-service/supabase",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "@product-engineer-community-service/source": "./src/index.ts",
+      "@chachamelmelll9-hash-service/source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"

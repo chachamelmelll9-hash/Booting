@@ -1,7 +1,7 @@
 /// <reference types="jest" />
 /// <reference types="node" />
 module.exports = {
-  displayName: '@product-engineer-community-service/mobile',
+  displayName: '@chachamelmelll9-hash-service/mobile',
   resolver: require.resolve('./jest.resolver.js'),
   preset: 'jest-expo',
   moduleFileExtensions: ['ts', 'js', 'html', 'tsx', 'jsx'],

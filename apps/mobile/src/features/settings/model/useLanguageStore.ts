@@ -1,4 +1,4 @@
-import type { SupportedLanguage } from '@product-engineer-community-service/i18n';
+import type { SupportedLanguage } from '@chachamelmelll9-hash-service/i18n';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage,persist } from 'zustand/middleware';

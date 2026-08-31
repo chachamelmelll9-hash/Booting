@@ -1,0 +1,29 @@
+{
+  "enabled": true,
+  "problem": "이혼하거나 사별한 부모님의 새로운 인연을, 부모님을 가장 잘 아는 성인 자녀가 대신 소개하는 자녀 주도형 황혼 매칭 서비스. 자녀가 본인인증과 가족관계 인증을 마친 뒤 부모님 동의를 받아 프로필을 등록하고, 조건 기반 추천에서 하트를 보낸다. 양측 자녀의 상호 하트는 '대화 연결'이며, 부모님이 실제로 만나 양측이 확인해야 '최종 매칭 성공'이 된다. 기준 문서는 prd.md.",
+  "release_ready": false,
+  "preferences": {
+    "use_supabase": true,
+    "supabase_mode": "cloud",
+    "supabase_project_id": "ifkazhqwjbtxkmppsedi",
+    "kakao_login": false,
+    "locale": "ko",
+    "icon_source": null,
+    "declarations": "docs/store-declarations.yaml",
+    "app_name": "부모님을 소개합니다",
+    "spec_source": "prd.md"
+  },
+  "platform_notes": {
+    "os": "windows",
+    "details": "docs/progress/windows-setup-notes.md 를 먼저 읽을 것",
+    "shell_for_scripts": "C:\\Users\\한화손해보험\\AppData\\Local\\Programs\\Git\\bin\\bash.exe",
+    "android_home_posix": "/c/Android/Sdk",
+    "java_home": "C:\\proj\\jdk17\\jdk-17.0.20.1+1",
+    "gradle_user_home": "C:\\proj\\gradle-home",
+    "temp_for_gradle": "C:\\proj\\gtmp",
+    "pending_move": "저장소를 C:\\proj\\parents-matching 으로 옮겨야 Android 네이티브 빌드가 된다 (비ASCII 경로). 세션 밖에서 수행 — windows-setup-notes.md 2절",
+    "port_4200_conflict": "Desktop\\shippen 의 vite 가 4200 을 점유 중 — 종료해야 앱 웹뷰가 올바른 대상을 가리킨다",
+    "stop_hook_router": "disabled — .claude/settings.json 이 /usr/bin/env python3 를 호출하는데 Windows 에 그 경로가 없다. 따라서 phase 재개는 스킬 내 체이닝(1차 메커니즘)에만 의존하고, 턴마다 자동 커밋도 되지 않는다",
+    "ios": "불가 — Xcode 없음. build/launch 의 iOS 경로는 macOS 머신이 필요하다"
+  }
+}

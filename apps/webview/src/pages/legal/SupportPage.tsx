@@ -1,4 +1,4 @@
-import { useTranslation } from '@product-engineer-community-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { Link } from 'react-router-dom';
 
 import { PageLayout } from '../../app/PageLayout';
