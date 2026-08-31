@@ -16,7 +16,7 @@
     "select_device": "Select Device",
     "scanning_devices": "Scanning for devices...",
     "no_devices_found": "No devices found",
-    "check_device_nearby": "Please make sure your MyApp device is powered on and nearby",
+    "check_device_nearby": "Please make sure your Booting device is powered on and nearby",
     "device_selected": "Device Selected",
     "connecting": "Connecting to device...",
     "connected": "Device Connected",
@@ -24,7 +24,7 @@
   },
   "wifi_setup": {
     "title": "WiFi Setup",
-    "description": "Enter the WiFi network information for MyApp to connect",
+    "description": "Enter the WiFi network information for Booting to connect",
     "ssid_label": "Network Name (SSID)",
     "ssid_placeholder": "Enter WiFi name",
     "password_label": "Password",
@@ -46,14 +46,14 @@
     "mqtt_connected": "Real-time Connection Established",
     "mqtt_failed": "Real-time Connection Failed",
     "complete": "Registration Complete!",
-    "complete_message": "MyApp has been successfully registered.\\nReturning to home screen...",
+    "complete_message": "Booting has been successfully registered.\\nReturning to home screen...",
     "failed": "Provisioning Failed",
     "retry": "Retry",
     "error_occurred": "An Error Occurred"
   },
   "permissions": {
     "title": "Permissions Required",
-    "bluetooth_message": "Bluetooth permission is required\\nto connect to your MyApp device.",
+    "bluetooth_message": "Bluetooth permission is required\\nto connect to your Booting device.",
     "location_message": "Location permission is required\\nto use Bluetooth.",
     "open_settings": "Open Settings",
     "retry": "Retry"

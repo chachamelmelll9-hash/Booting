@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "MyApp",
-    "slug": "myapp-mobile",
+    "name": "부팅",
+    "slug": "booting-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp-mobile",
+    "scheme": "booting-mobile",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.myorg.myapp",
+      "bundleIdentifier": "com.booting.app",
       "buildNumber": "1",
       "usesAppleSignIn": true
     },
@@ -20,7 +20,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.myorg.myapp",
+      "package": "com.booting.app",
       "versionCode": 1,
       "permissions": []
     },

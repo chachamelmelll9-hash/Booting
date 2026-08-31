@@ -9,7 +9,7 @@ export default function AboutScreen() {
     <View style={screenStyles.paddedContainer}>
       <Text style={screenStyles.title}>About App</Text>
       <Text style={screenStyles.body}>
-        MyApp Service v1.0.0{'\n'}
+        Booting Service v1.0.0{'\n'}
         Intelligent pet care companion.
       </Text>
 

@@ -26,7 +26,9 @@ $env:TEMP = "C:\proj\gtmp"; $env:TMP = "C:\proj\gtmp"
 | Docker | 미설치 | 로컬 Supabase 폴백 불가. 클라우드 프로젝트를 쓰므로 영향 없다 |
 | Xcode | 없음 (Windows) | iOS 빌드·제출은 이 머신에서 불가능 |
 
-## 2. 저장소 경로 — 미해결 blocker
+## 2. 저장소 경로 — 해소됨 (2026-08-31 이동 완료)
+
+**현재 저장소 위치: `C:\proj\Booting`** — 앞으로 Claude Code 는 이 경로에서 연다.
 
 Android Gradle Plugin 이 **비ASCII 프로젝트 경로**를 거부한다:
 
@@ -35,27 +37,38 @@ Your project path contains non-ASCII characters. This will most likely cause the
 ```
 
 `android.overridePathCheck=true` (config plugin `plugins/withAndroidPathCheckOverride.js` 로 영속화) 로
-검사 자체는 넘겼고, Gradle 홈·TEMP 를 ASCII 로 옮겨 `node_modules` 하위 CMake 타깃은 전부 성공했다.
-그러나 `:app` 모듈이 쓰는 아래 경로가 배치 파일 안에서 깨져 여전히 실패한다:
+검사 자체는 넘겼지만, `:app` 모듈이 쓰는 `...\apps\mobile\android\app\build\intermediates\cxx\refs\...`
+경로가 배치 파일 안에서 깨져 계속 실패했다. **해결책은 저장소를 ASCII 경로로 옮기는 것**이었고 실제로 옮겼다.
+
+### 이동을 막던 것 — 최상위 디렉터리 핸들
+
+`Move-Item` 이 "used by another process" 로 실패할 때 범인은 Claude Code 가 아니었다. 하위 디렉터리는 전부
+자유롭고 **최상위 디렉터리에만** 핸들이 걸려 있었다. 실제 보유자:
+
+| 보유자 | 정체 |
+|---|---|
+| `Code.exe` (main + utility) | 그 폴더를 연 VS Code 창 — 파일 워처가 폴더 핸들을 잡는다 |
+| `OpenConsole.exe` ×2 | 부모가 이미 죽은 고아 콘솔 — CWD 가 그 폴더였다 |
+
+범인 특정은 `NtQuerySystemInformation(SystemExtendedHandleInformation)` + `GetFinalPathNameByHandle` 로
+핸들을 열거해서 했다 (Restart Manager 는 디렉터리에 대해 `RmGetList` 가 error 5 로 실패한다).
+
+프로세스를 종료할 수 없는 상황이면 **최상위 디렉터리를 rename 하지 말고 하위 항목을 전부 새 폴더로 옮긴다** —
+하위 항목에는 핸들이 없으므로 동일 볼륨 rename 으로 즉시 이동하고, 빈 껍데기 폴더만 남는다.
+
+### 현재 구성
 
 ```
-C:\Users\한화손해보험\Desktop\parents-_matching\apps\mobile\android\app\build\intermediates\cxx\refs\...
+C:\proj\Booting                 # 저장소 본체 (ASCII 경로)
+C:\proj\Booting\node_modules    # → C:\proj\pm\node_modules 정션 (5.2GB, .cxx 네이티브 캐시 보존)
 ```
 
-**해결책 = 저장소를 ASCII 경로로 옮기는 것.** 세션 안에서는 Claude Code 가 프로젝트 디렉터리를 CWD 로
-잡고 있어 `Move-Item` 이 "used by another process" 로 실패한다. 세션 밖에서 실행해야 한다:
+`node_modules` 는 정션을 그대로 유지했다. 이미 ASCII 경로이고, 옮기면 `.cxx` CMake 캐시가 절대경로 기준으로
+무효화되기 때문이다.
 
-```powershell
-# Claude Code 를 완전히 종료한 뒤, 프로젝트 밖 경로에서
-Move-Item 'C:\Users\한화손해보험\Desktop\parents-_matching' 'C:\proj\parents-matching'
-New-Item -ItemType Junction -Path 'C:\Users\한화손해보험\Desktop\parents-_matching' -Target 'C:\proj\parents-matching'
-```
-
-정션을 남기므로 바탕화면에서 여는 방식은 그대로 유지된다. 이후 **`C:\proj\parents-matching` 에서**
-Claude Code 를 열고 `/continue` 로 재개한다 (바탕화면 정션 경로로 열면 canonical 경로가 다시 한글이 된다).
-
-> 참고: `C:\proj\parents-matching` 을 정션으로 두고 그쪽에서 빌드하는 방법은 **통하지 않는다.**
-> Gradle/Expo 가 canonical 경로로 되돌려 한글 경로를 그대로 쓴다 (실측 확인).
+> **바탕화면에는 정션을 만들지 않았다.** 바탕화면 경로(`C:\Users\한화손해보험\...`)가 한글이라, 그 경로로 열면
+> 정션을 canonical 로 되돌리지 못하는 도구에서 한글 경로가 되살아난다 — 이번에 해결한 문제가 그대로 재발한다.
+> 대신 바로가기(`바탕화면\Booting.lnk`)만 두었다. 바로가기는 빌드 도구가 프로젝트 루트로 오인할 수 없다.
 
 ## 3. 포트 4200 충돌
 

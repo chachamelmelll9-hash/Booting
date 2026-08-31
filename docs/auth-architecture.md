@@ -287,7 +287,7 @@ POST /auth/logout
 POST /auth/reset-password
 {
   "email": "user@example.com",
-  "redirectTo": "myapp-mobile://reset-password"
+  "redirectTo": "booting-mobile://reset-password"
 }
 
 // Response 200
@@ -1051,7 +1051,7 @@ export class AuthService {
     const supabase = this.supabaseService.getClient();
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectTo ?? 'myapp-mobile://reset-password',
+      redirectTo: redirectTo ?? 'booting-mobile://reset-password',
     });
 
     if (error) {

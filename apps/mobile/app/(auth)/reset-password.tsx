@@ -38,7 +38,7 @@ interface RecoveryParams {
 
 /**
  * Supabase recovery links deliver tokens in the URL fragment
- * (myapp-mobile://reset-password#access_token=...&refresh_token=...&type=recovery),
+ * (booting-mobile://reset-password#access_token=...&refresh_token=...&type=recovery),
  * which expo-router does not expose as route params — parse them manually.
  */
 function parseRecoveryParams(url: string | null): RecoveryParams {

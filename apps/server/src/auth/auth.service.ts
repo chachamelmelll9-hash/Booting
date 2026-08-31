@@ -336,7 +336,7 @@ export class AuthService {
     try {
       await this.gotruePost('/recover', {
         email,
-        redirect_to: redirectTo ?? 'myapp-mobile://reset-password',
+        redirect_to: redirectTo ?? 'booting-mobile://reset-password',
       });
     } catch (err: unknown) {
       this.throwIfUpstreamError(err);

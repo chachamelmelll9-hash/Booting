@@ -16,7 +16,7 @@
     "select_device": "기기 선택",
     "scanning_devices": "기기 검색 중...",
     "no_devices_found": "발견된 기기가 없습니다",
-    "check_device_nearby": "MyApp 기기가 켜져 있고 가까이 있는지 확인해주세요",
+    "check_device_nearby": "Booting 기기가 켜져 있고 가까이 있는지 확인해주세요",
     "device_selected": "기기 선택됨",
     "connecting": "기기 연결 중...",
     "connected": "기기 연결 완료",
@@ -24,7 +24,7 @@
   },
   "wifi_setup": {
     "title": "WiFi 설정",
-    "description": "MyApp이 연결할 WiFi 네트워크 정보를 입력해주세요",
+    "description": "Booting이 연결할 WiFi 네트워크 정보를 입력해주세요",
     "ssid_label": "네트워크 이름 (SSID)",
     "ssid_placeholder": "WiFi 이름을 입력하세요",
     "password_label": "비밀번호",
@@ -46,14 +46,14 @@
     "mqtt_connected": "실시간 연결 완료",
     "mqtt_failed": "실시간 연결 실패",
     "complete": "등록 완료!",
-    "complete_message": "MyApp이 성공적으로 등록되었습니다.\\n잠시 후 홈 화면으로 이동합니다.",
+    "complete_message": "Booting이 성공적으로 등록되었습니다.\\n잠시 후 홈 화면으로 이동합니다.",
     "failed": "프로비저닝 실패",
     "retry": "다시 시도",
     "error_occurred": "오류가 발생했습니다"
   },
   "permissions": {
     "title": "권한이 필요합니다",
-    "bluetooth_message": "MyApp 기기를 연결하려면\\nBluetooth 권한이 필요합니다.",
+    "bluetooth_message": "Booting 기기를 연결하려면\\nBluetooth 권한이 필요합니다.",
     "location_message": "Bluetooth를 사용하려면\\n위치 권한이 필요합니다.",
     "open_settings": "설정으로 이동",
     "retry": "다시 시도"

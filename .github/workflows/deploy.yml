@@ -85,7 +85,7 @@ jobs:
           context: .
           file: apps/server/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/myapp-server:latest
+          tags: ghcr.io/${{ github.repository_owner }}/booting-server:latest
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -115,4 +115,4 @@ jobs:
             fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/myapp-server:latest
+          SERVER_IMAGE: ghcr.io/${{ github.repository_owner }}/booting-server:latest

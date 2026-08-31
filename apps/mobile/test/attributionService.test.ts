@@ -110,7 +110,7 @@ describe('initializeAttributionTracking', () => {
 
   it('registers deep link attribution from the initial URL', async () => {
     mockGetInitialURL.mockResolvedValue(
-      'myapp-mobile://home?utm_source=google&utm_medium=cpc&gclid=abc123'
+      'booting-mobile://home?utm_source=google&utm_medium=cpc&gclid=abc123'
     );
     const registerSpy = jest.spyOn(analytics, 'register');
 
@@ -141,12 +141,12 @@ describe('initializeAttributionTracking', () => {
 
   it('does not overwrite stored first-touch attribution on later launches', async () => {
     mockGetInitialURL.mockResolvedValue(
-      'myapp-mobile://home?utm_source=first-campaign'
+      'booting-mobile://home?utm_source=first-campaign'
     );
     await initializeAttributionTracking();
 
     mockGetInitialURL.mockResolvedValue(
-      'myapp-mobile://home?utm_source=second-campaign'
+      'booting-mobile://home?utm_source=second-campaign'
     );
     const registerSpy = jest.spyOn(analytics, 'register');
     await initializeAttributionTracking();

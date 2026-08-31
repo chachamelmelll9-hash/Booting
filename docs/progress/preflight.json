@@ -30,9 +30,9 @@
     "keys_source": "supabase CLI (SUPABASE_ACCESS_TOKEN in env)"
   },
   "decisions": {
-    "app_name": "부모님을 소개합니다",
+    "app_name": "부팅(Booting)",
     "pricing": "free, no ads",
-    "todo_01": "부모님을 소개합니다",
+    "todo_01": "부팅(Booting)",
     "todo_02": "만 50세 이상",
     "todo_03": "강력 권장 + 미동행 시 확인 절차",
     "todo_04": "자녀 단말 대면 동의 + 기록",
@@ -75,11 +75,6 @@
       "item": "T2_DECL_BUSINESS",
       "reason": "docs/store-declarations.yaml의 business.name/address/phone 미기입 (사용자 실제 신원 정보)",
       "manual_action": "출시 전 docs/store-declarations.yaml의 TODO(user) 항목 기입"
-    },
-    {
-      "item": "REPO_PATH_NON_ASCII",
-      "reason": "프로젝트 경로에 한글이 있어 Android 네이티브 빌드(:app CMake/prefab)가 실패한다",
-      "manual_action": "세션 밖에서 저장소를 C:\\proj\\parents-matching 으로 이동 + 바탕화면에 정션 생성. docs/progress/windows-setup-notes.md 2절 참조"
     }
   ],
   "notes": [
@@ -87,6 +82,7 @@
     "Docker 미설치 — 로컬 Supabase 폴백은 불가하나 클라우드 프로비저닝이 성공했으므로 영향 없다.",
     "java는 PATH에 없고 Android Studio JBR(C:\\Program Files\\Android\\Android Studio\\jbr)을 사용한다. Gradle 실행 시 JAVA_HOME 설정이 필요하다.",
     "Supabase MCP는 프로젝트 .mcp.json이 아니라 사용자 스코프에 설정되어 있으며 정상 동작한다. 중복 등록을 피하려고 .mcp.json을 새로 만들지 않았다.",
-    "TODO-05가 '심사 자동 승인'이므로 실사용자 대상 출시 전에 실제 본인인증 연동이 선행되어야 한다."
+    "TODO-05가 '심사 자동 승인'이므로 실사용자 대상 출시 전에 실제 본인인증 연동이 선행되어야 한다.",
+    "REPO_PATH_NON_ASCII 해소: 2026-08-31 저장소를 C:\\proj\\Booting 으로 이동했다. node_modules 는 C:\\proj\\pm\\node_modules 를 가리키는 정션으로 유지한다(5.2GB, .cxx 네이티브 캐시 보존)."
   ]
 }
