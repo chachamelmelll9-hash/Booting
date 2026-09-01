@@ -2,8 +2,10 @@ import { useAuthStore } from '@features/auth';
 import {
   type DraftErrors,
   hasErrors,
+  MockAlbumSheet,
   pickImage,
   RegionPicker,
+  type SampleImage,
   uploadToStorage,
   useParentProfile,
   useParentProfileMutations,
@@ -54,6 +56,29 @@ export default function ProfileEditScreen() {
   const [errors, setErrors] = useState<DraftErrors>({});
   const [regionOpen, setRegionOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [albumOpen, setAlbumOpen] = useState(false);
+
+  const addPhotoFrom = async (sample: SampleImage) => {
+    setAlbumOpen(false);
+    if (!user?.id) return;
+    try {
+      setUploading(true);
+      // 기본 정보가 유효하면 프로필을 먼저 만든다 (사진은 프로필에 딸린 자원)
+      const target = await ensureProfile();
+      if (!target) return;
+      const image = await pickImage(sample);
+      if (!image) return;
+      const path = await uploadToStorage('parent-photos', user.id, image);
+      addPhoto.mutate({
+        storagePath: path,
+        isPrimary: (target.photos?.length ?? 0) === 0,
+      });
+    } catch (error) {
+      toast.show({ message: (error as Error).message });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // 이미 만든 프로필이 있으면 draft 를 서버 값으로 채운다 (재진입·수정)
   useEffect(() => {
@@ -264,25 +289,7 @@ export default function ProfileEditScreen() {
       <PhotoUploader
         photos={profile?.photos ?? []}
         busy={uploading || addPhoto.isPending}
-        onAdd={async () => {
-          if (!user?.id) return;
-          try {
-            setUploading(true);
-            const target = await ensureProfile();
-            if (!target) return;
-            const image = await pickImage();
-            if (!image) return;
-            const path = await uploadToStorage('parent-photos', user.id, image);
-            addPhoto.mutate({
-              storagePath: path,
-              isPrimary: (target.photos?.length ?? 0) === 0,
-            });
-          } catch (error) {
-            toast.show({ message: (error as Error).message });
-          } finally {
-            setUploading(false);
-          }
-        }}
+        onAdd={() => setAlbumOpen(true)}
         onRemove={(photoId) => removePhoto.mutate(photoId)}
       />
 
@@ -410,6 +417,13 @@ export default function ProfileEditScreen() {
           maxLength={500}
         />
       </FormSection>
+
+      <MockAlbumSheet
+        visible={albumOpen}
+        title="앨범에서 사진 선택"
+        onSelect={(sample) => void addPhotoFrom(sample)}
+        onDismiss={() => setAlbumOpen(false)}
+      />
 
       <RegionPicker
         visible={regionOpen}

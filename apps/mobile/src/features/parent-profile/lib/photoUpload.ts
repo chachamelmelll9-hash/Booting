@@ -19,17 +19,33 @@ export interface PickedImage {
   fileName: string;
 }
 
+/** 개발용 앨범에 표시할 샘플 항목 */
+export interface SampleImage {
+  id: string;
+  label: string;
+  /** 시트에서 구분되게 보여줄 색 (업로드되는 바이트와는 무관하다) */
+  tint: string;
+}
+
+export const SAMPLE_IMAGES: SampleImage[] = [
+  { id: 'doc-1', label: '가족관계증명서', tint: '#CCFBF1' },
+  { id: 'doc-2', label: '주민등록등본', tint: '#E0F2FE' },
+  { id: 'photo-1', label: '부모님 사진', tint: '#FEF3C7' },
+];
+
 /**
  * 이미지 선택.
  *
- * TODO: `expo-image-picker` 가 설치되면 이 함수 **하나만** 갈아끼우면 된다.
- * 지금은 의존성을 추가할 수 없어(pnpm virtual store 불일치) 로컬에서
- * 자리표시자 이미지를 만들어 업로드까지의 경로 전체를 실제로 태운다.
- * 업로드·정책·서버 기록은 전부 진짜로 동작하고, 바뀌는 건 이미지 출처뿐이다.
+ * TODO: `expo-image-picker` 가 붙으면 이 함수 **하나만** 갈아끼우면 된다
+ * (네이티브 모듈이라 설치 시 앱 재빌드가 필요해 지금은 보류했다).
+ *
+ * 지금은 로컬에서 자리표시자 파일을 만들어 넘긴다. 업로드·Storage 정책·서버
+ * 기록은 전부 진짜로 동작하고, 바뀌는 건 이미지 출처뿐이다.
  */
-export async function pickImage(): Promise<PickedImage | null> {
+export async function pickImage(sample?: SampleImage): Promise<PickedImage | null> {
   const base64 = PLACEHOLDER_PNG_BASE64;
-  const fileName = `photo-${Date.now()}.png`;
+  const prefix = sample?.id ?? 'photo';
+  const fileName = `${prefix}-${Date.now()}.png`;
   const uri = `${FileSystem.cacheDirectory}${fileName}`;
   await FileSystem.writeAsStringAsync(uri, base64, { encoding: 'base64' });
   return { uri, mimeType: 'image/png', fileName };

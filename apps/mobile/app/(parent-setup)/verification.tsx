@@ -1,7 +1,9 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useAuthStore } from '@features/auth';
 import {
+  MockAlbumSheet,
   pickImage,
+  type SampleImage,
   uploadToStorage,
   useVerification,
   useVerificationMutations,
@@ -39,6 +41,29 @@ export default function VerificationScreen() {
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [albumOpen, setAlbumOpen] = useState(false);
+
+  const uploadFamilyDoc = async (sample: SampleImage) => {
+    setAlbumOpen(false);
+    if (!user?.id) {
+      toast.show({ message: '로그인 정보를 확인할 수 없습니다' });
+      return;
+    }
+    try {
+      setUploading(true);
+      const image = await pickImage(sample);
+      if (!image) return;
+      const path = await uploadToStorage('family-docs', user.id, image);
+      submitFamilyDoc.mutate(path, {
+        onSuccess: () => toast.show({ message: '가족관계 확인이 완료되었습니다' }),
+        onError: (e: Error) => toast.show({ message: e.message }),
+      });
+    } catch (error) {
+      toast.show({ message: (error as Error).message });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (isLoading || !status) {
     return (
@@ -149,30 +174,18 @@ export default function VerificationScreen() {
               variant="secondary"
               loading={uploading || submitFamilyDoc.isPending}
               testID="verify-family-doc"
-              onPress={async () => {
-                if (!user?.id) {
-                  toast.show({ message: '로그인 정보를 확인할 수 없습니다' });
-                  return;
-                }
-                try {
-                  setUploading(true);
-                  const image = await pickImage();
-                  if (!image) return;
-                  const path = await uploadToStorage('family-docs', user.id, image);
-                  submitFamilyDoc.mutate(path, {
-                    onSuccess: () => toast.show({ message: '가족관계 확인이 완료되었습니다' }),
-                    onError: (e: Error) => toast.show({ message: e.message }),
-                  });
-                } catch (error) {
-                  toast.show({ message: (error as Error).message });
-                } finally {
-                  setUploading(false);
-                }
-              }}
+              onPress={() => setAlbumOpen(true)}
             />
           </>
         )}
       </View>
+
+      <MockAlbumSheet
+        visible={albumOpen}
+        title="앨범에서 증명서 선택"
+        onSelect={(sample) => void uploadFamilyDoc(sample)}
+        onDismiss={() => setAlbumOpen(false)}
+      />
     </Screen>
   );
 }
