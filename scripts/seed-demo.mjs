@@ -29,32 +29,36 @@ const DOMAIN = 'seed.booting.app';
  *
  * 손으로 적었다. 이름에서 기계적으로 만들면(`이OO`) 23명이 전부 비슷해 보여서,
  * 별명을 도입한 이유 — "누가 누군지 구분되고 대화에서 부를 수 있다" — 가
- * 그대로 사라진다. 실명 조각이 들어가지 않게만 지켰다.
+ * 그대로 사라진다.
+ *
+ * 짧게 짓는다. "산책하는 아버지" 같은 설명형은 카드에서 두 줄로 밀리고
+ * 서로 비슷해져서 결국 `김OO` 과 같은 신세가 된다. 3~6자로 끊고 숫자를
+ * 섞으면(`40년이발사`) 한 눈에 붙는다. 실명 조각은 넣지 않았다.
  */
 const NICKNAMES = {
-  sook: '석촌호수 산책',
-  jung: '사진동호회 총무',
-  ok: '서예하는 어머니',
-  mija: '반찬가게 어머니',
-  younghee: '수영하는 어머니',
-  boknyeo: '뜨개질 친구',
-  hyeja: '합창단 소프라노',
-  eunsook: '혼자 여행 어머니',
-  jina: '도자기 공방지기',
-  sunmi: '호수공원 걷기',
-  cheolsu: '바둑 두는 아버지',
-  youngsu: '전국일주 아버지',
-  jongho: '뒷산 오르는 분',
-  sanghoon: '색소폰 아저씨',
-  dukbae: '낚시하는 분',
-  giseok: '주말 등산 친구',
-  myeongsu: '동네 이발사',
-  inho: '한강 자전거',
-  taeho: '주말 텃밭지기',
-  junsik: '요리하는 아버지',
-  hyunwoo: '마라톤 아버지',
-  seokjin: '캠핑 목수',
-  dongjin: '동네 축구 총무',
+  sook: '호수한바퀴',
+  jung: '찰칵총무',
+  ok: '붓끝20년',
+  mija: '반찬40년',
+  younghee: '주3회수영',
+  boknyeo: '뜨개질친구',
+  hyeja: '합창20년',
+  eunsook: '혼자떠나요',
+  jina: '도자기공방',
+  sunmi: '아침걷기',
+  cheolsu: '30년수학쌤',
+  youngsu: '전국일주중',
+  jongho: '아침뒷산',
+  sanghoon: '색소폰5년',
+  dukbae: '주말엔낚시',
+  giseok: '주말산꾼',
+  myeongsu: '40년이발사',
+  inho: '한강라이더',
+  taeho: '텃밭지기',
+  junsik: '손맛자랑',
+  hyunwoo: '마라톤10년',
+  seokjin: '캠핑목수',
+  dongjin: '동네축구맨',
 };
 
 /**

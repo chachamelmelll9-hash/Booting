@@ -268,14 +268,14 @@ export default function ProfileEditScreen() {
       <FormSection
         label="별명"
         required
-        helper="다른 분에게는 이 별명으로 보입니다"
+        helper="다른 분에게는 이 별명으로 보입니다 · 예) 텃밭지기, 한강라이더, 40년이발사"
         error={errors.nickname}
       >
         <TextField
           testID="profile-nickname"
           value={draft.nickname}
           onChangeText={(v) => set({ nickname: v })}
-          placeholder="예: 산책하는 아버지"
+          placeholder="짧을수록 잘 기억됩니다"
           maxLength={12}
           invalid={!!errors.nickname}
         />

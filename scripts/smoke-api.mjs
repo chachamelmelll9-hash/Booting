@@ -165,7 +165,7 @@ async function main() {
     c.token = await signIn(anon, c.email, PASSWORD);
     const res = await c.call('POST', '/parent-profile', {
       displayName: '테스트',
-      nickname: '테스트별명',
+      nickname: '테스트',
       gender: 'male',
       birthDate: '1960-01-01',
       regionCode: '11680',
@@ -188,7 +188,7 @@ async function main() {
     '/parent-profile',
     {
       displayName: '김철수',
-      nickname: '바둑두는아버지',
+      nickname: '바둑한판',
       gender: 'male',
       birthDate: '1958-04-11',
       regionCode: '11680', // 서울 강남구
@@ -206,7 +206,7 @@ async function main() {
     '/parent-profile',
     {
       displayName: '이영희',
-      nickname: '텃밭어머니',
+      nickname: '텃밭지기',
       gender: 'female',
       birthDate: '1961-09-22',
       regionCode: '11710', // 서울 송파구
@@ -246,7 +246,7 @@ async function main() {
     // (실수 방지용 확인은 화면에서 한다)
     const sameAsRealName = await a.call('PATCH', '/parent-profile', { nickname: '김철수' });
     check('별명을 실명과 같게 두는 건 허용', sameAsRealName.status === 200, `status=${sameAsRealName.status}`);
-    await a.expect('PATCH', '/parent-profile', { nickname: '바둑두는아버지' }, 'A restore nickname');
+    await a.expect('PATCH', '/parent-profile', { nickname: '바둑한판' }, 'A restore nickname');
   }
 
   console.log('\n[5] 프로필 내용 + 사진 + 동의 + 공개');
@@ -339,7 +339,7 @@ async function main() {
   const feed = await a.expect('GET', '/discovery', null, 'A discovery');
   const found = feed.items.find((i) => i.profileId === profileB.id);
   check('추천에 상대 프로필이 뜬다', !!found, `items=${feed.items.length}`);
-  check('별명으로 내려온다', found?.nickname === '텃밭어머니', found?.nickname);
+  check('별명으로 내려온다', found?.nickname === '텃밭지기', found?.nickname);
   check('시·군·구까지만 표기', found?.region === '서울 송파구', found?.region);
   check('강남↔송파 거리 계산', found?.distanceKm !== null && found?.distanceKm < 15, String(found?.distanceKm));
   check('대표 사진 서명 URL 발급', !!found?.primaryPhotoUrl?.startsWith('http'));
@@ -547,7 +547,7 @@ async function main() {
     'A report'
   );
   check('신고 접수', report.status === 'pending');
-  check('신고 이력에도 별명', report.targetNickname === '텃밭어머니', report.targetNickname);
+  check('신고 이력에도 별명', report.targetNickname === '텃밭지기', report.targetNickname);
 
   const block = await a.expect('POST', '/blocks', { targetProfileId: profileB.id }, 'A block');
   check('차단 등록', !!block.id);
