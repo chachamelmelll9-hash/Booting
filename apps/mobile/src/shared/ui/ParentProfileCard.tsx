@@ -1,4 +1,4 @@
-import type { DiscoveryItem } from '@shared/api/booting.types';
+﻿import type { DiscoveryItem } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
 import { elevation, radius, spacing, typography } from '@shared/config/tokens';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -36,7 +36,7 @@ export function ParentProfileCard({ profile, variant = 'deck', onPress, testID }
         <Image
           source={{ uri: profile.primaryPhotoUrl }}
           style={deck ? styles.photoDeck : styles.photoList}
-          accessibilityLabel={`${profile.maskedName} 님의 사진`}
+          accessibilityLabel={`${profile.nickname} 님의 사진`}
         />
       ) : (
         <View style={[deck ? styles.photoDeck : styles.photoList, styles.photoFallback]}>
@@ -47,7 +47,7 @@ export function ParentProfileCard({ profile, variant = 'deck', onPress, testID }
       <View style={deck ? styles.infoDeck : styles.infoList}>
         <View style={styles.nameRow}>
           <Text style={styles.name}>
-            {profile.maskedName} · {profile.age}세
+            {profile.nickname} · {profile.age}세
           </Text>
         </View>
 
@@ -81,7 +81,7 @@ export function ParentProfileCard({ profile, variant = 'deck', onPress, testID }
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${profile.maskedName} 프로필 열기`}
+      accessibilityLabel={`${profile.nickname} 프로필 열기`}
       onPress={onPress}
       style={({ pressed }) => pressed && styles.pressed}
     >

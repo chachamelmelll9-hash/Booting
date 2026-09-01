@@ -50,7 +50,12 @@ export class DiscoveryFilterDto {
 
 export interface DiscoveryItemDto {
   profileId: string;
-  maskedName: string;
+  /**
+   * 공개 표기용 별명. **실명(display_name)은 여기에도, 다른 어떤 공개 필드에도
+   * 실리지 않는다.** 공개되는 값은 사용자가 별명 칸에 직접 적은 문자열뿐이다
+   * (실명과 같게 적는 것도 본인 선택으로 허용한다 — 화면에서 확인만 받는다).
+   */
+  nickname: string;
   age: number;
   region: string;
   distanceKm: number | null;

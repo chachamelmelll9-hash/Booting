@@ -1,4 +1,4 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+﻿import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   filterSummary,
   radiusLabel,
@@ -174,7 +174,7 @@ export default function HomeScreen() {
 
       <HeartMessageSheet
         visible={composeOpen}
-        toName={current?.maskedName}
+        toName={current?.nickname}
         busy={sendHeart.isPending}
         onSend={(message) => sendHeartTo(message)}
         onDismiss={() => setComposeOpen(false)}

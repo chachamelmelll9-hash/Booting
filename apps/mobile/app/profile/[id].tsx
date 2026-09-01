@@ -91,7 +91,7 @@ export default function PublicProfileScreen() {
           />
           <HeartMessageSheet
             visible={composeOpen}
-            toName={profile.maskedName}
+            toName={profile.nickname}
             busy={sendHeart.isPending}
             onSend={(message) => sendHeartTo(message)}
             onDismiss={() => setComposeOpen(false)}
@@ -114,7 +114,7 @@ export default function PublicProfileScreen() {
       ) : null}
 
       <Text style={styles.name}>
-        {profile.maskedName} · {profile.age}세
+        {profile.nickname} · {profile.age}세
       </Text>
       <Text style={styles.meta}>
         {profile.region}

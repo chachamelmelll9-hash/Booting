@@ -22,6 +22,23 @@ export function calcAge(birthDate: string): number | null {
 export type DraftErrors = Partial<Record<keyof ProfileDraft, string>>;
 
 /**
+ * 별명이 실명을 드러내는지.
+ *
+ * **막지 않고 경고만 한다.** 실명으로 알리고 싶은 사람도 있고, 그건 본인 선택이다.
+ * 다만 별명 칸이 공개되는 자리라는 걸 모른 채 실명을 적는 경우가 더 흔하므로,
+ * 같으면 경고 문구를 띄우고 다음 단계로 넘어갈 때 한 번 확인받는다.
+ * 부분 일치까지 보는 이유는 실명 "김철수" 에 "철수" 만 적는 경우가 실질적으로
+ * 실명 공개이기 때문이다.
+ */
+export function leaksRealName(nickname: string, realName: string): boolean {
+  const normalize = (v: string) => v.replace(/\s+/g, '').toLowerCase();
+  const nick = normalize(nickname);
+  const real = normalize(realName);
+  if (!nick || !real || nick.length < 2) return false;
+  return real.includes(nick) || nick.includes(real);
+}
+
+/**
  * 기본 정보 단계 검증.
  *
  * 같은 규칙이 서버 DTO 와 DB 트리거에도 있다. 여기서 막는 이유는 보안이 아니라
@@ -33,6 +50,11 @@ export function validateBasics(draft: ProfileDraft): DraftErrors {
 
   if (draft.displayName.trim().length < 2) {
     errors.displayName = '부모님 성함을 입력해주세요';
+  }
+
+  const nickname = draft.nickname.trim();
+  if (nickname.length < 2 || nickname.length > 12) {
+    errors.nickname = '별명을 2~12자로 지어주세요';
   }
   if (!draft.gender) {
     errors.gender = '성별을 선택해주세요';
@@ -122,6 +144,7 @@ export function hasErrors(errors: DraftErrors): boolean {
  * 서버가 항목을 추가하면 여기에도 추가한다 — 없으면 코드값이 그대로 노출된다.
  */
 export const MISSING_LABEL: Record<string, string> = {
+  nickname: '별명',
   photos: `사진 ${MIN_PROFILE_PHOTOS}장 이상`,
   introByChild: '부모님 소개',
   desiredPartner: '만나고 싶은 분',

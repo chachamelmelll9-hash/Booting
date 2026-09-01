@@ -1,4 +1,4 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+﻿import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   MessageBubble,
   useConnection,
@@ -131,7 +131,7 @@ export default function ChatRoomScreen() {
       <View style={styles.header}>
         <View style={styles.headerText}>
           <Text style={styles.partner}>
-            {connection.partner.maskedName} 님 ({connection.partner.age}세) 자녀분
+            {connection.partner.nickname} 님 ({connection.partner.age}세) 자녀분
           </Text>
           <ConnectionStatusBadge status={connection.status} />
         </View>

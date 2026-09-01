@@ -77,6 +77,7 @@ export class ParentProfileService {
       .insert({
         user_id: userId,
         display_name: dto.displayName,
+        nickname: dto.nickname,
         gender: dto.gender,
         birth_date: dto.birthDate,
         region_code: dto.regionCode,
@@ -102,6 +103,7 @@ export class ParentProfileService {
     const patch: Record<string, unknown> = {};
     const map: Record<string, string> = {
       displayName: 'display_name',
+      nickname: 'nickname',
       regionCode: 'region_code',
       maritalSince: 'marital_since',
       heightCm: 'height_cm',
@@ -318,6 +320,7 @@ export class ParentProfileService {
     // 제출 필수 항목. 화면 검증과 같은 목록이지만 여기가 진짜 관문이다 —
     // 클라이언트를 우회해 PATCH → submit 을 직접 부르는 경로도 여기서 막힌다.
     const missing: string[] = [];
+    if (!row.nickname) missing.push('nickname');
     if (photos.length < MIN_PROFILE_PHOTOS) missing.push('photos');
     if (!row.intro_by_child) missing.push('introByChild');
     if (!row.desired_partner) missing.push('desiredPartner');
@@ -335,6 +338,7 @@ export class ParentProfileService {
     return {
       id: row.id,
       displayName: row.display_name,
+      nickname: row.nickname ?? '',
       gender: row.gender,
       birthDate: row.birth_date,
       age: calcAge(row.birth_date),

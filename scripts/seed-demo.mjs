@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 /**
  * seed-demo.mjs — 에뮬레이터에서 앱을 직접 몰아보기 위한 데모 데이터.
  *
@@ -23,6 +23,39 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const API = process.env.SEED_API_URL || 'http://localhost:3000/api';
 const PASSWORD = 'BootingDemo123!';
 const DOMAIN = 'seed.booting.app';
+
+/**
+ * 공개 표기용 별명 (실명은 비공개).
+ *
+ * 손으로 적었다. 이름에서 기계적으로 만들면(`이OO`) 23명이 전부 비슷해 보여서,
+ * 별명을 도입한 이유 — "누가 누군지 구분되고 대화에서 부를 수 있다" — 가
+ * 그대로 사라진다. 실명 조각이 들어가지 않게만 지켰다.
+ */
+const NICKNAMES = {
+  sook: '석촌호수 산책',
+  jung: '사진동호회 총무',
+  ok: '서예하는 어머니',
+  mija: '반찬가게 어머니',
+  younghee: '수영하는 어머니',
+  boknyeo: '뜨개질 친구',
+  hyeja: '합창단 소프라노',
+  eunsook: '혼자 여행 어머니',
+  jina: '도자기 공방지기',
+  sunmi: '호수공원 걷기',
+  cheolsu: '바둑 두는 아버지',
+  youngsu: '전국일주 아버지',
+  jongho: '뒷산 오르는 분',
+  sanghoon: '색소폰 아저씨',
+  dukbae: '낚시하는 분',
+  giseok: '주말 등산 친구',
+  myeongsu: '동네 이발사',
+  inho: '한강 자전거',
+  taeho: '주말 텃밭지기',
+  junsik: '요리하는 아버지',
+  hyunwoo: '마라톤 아버지',
+  seokjin: '캠핑 목수',
+  dongjin: '동네 축구 총무',
+};
 
 /**
  * 시드 프로필.
@@ -117,6 +150,7 @@ const PROFILES = [
     tag, displayName, gender, birthDate, regionCode, maritalStatus, goals,
     intro, desired, children, livingWith, occupation, hobbies,
     message: desired,
+    nickname: NICKNAMES[tag],
     // 키는 성별별로 현실적인 범위 안에서 흩어 놓는다 (필터·표기 확인용)
     heightCm: gender === 'male' ? 166 + (index % 9) : 152 + (index % 9),
   })
@@ -403,7 +437,7 @@ async function main() {
       const heart = await call(demoToken, 'POST', '/hearts', { targetProfileId: target.profileId });
       const connectionId = heart.connectionId;
       if (!connectionId) {
-        console.log(`  건너뜀: ${target.maskedName} (상호 하트가 아님 — --heart-me 를 먼저 실행하세요)`);
+        console.log(`  건너뜀: ${target.nickname} (상호 하트가 아님 — --heart-me 를 먼저 실행하세요)`);
         continue;
       }
 
@@ -434,14 +468,14 @@ async function main() {
         await call(partner.token, 'POST', `/connections/${connectionId}/meeting/accept`);
         await call(demoToken, 'POST', `/connections/${connectionId}/meeting/confirm`);
         const final = await call(partner.token, 'POST', `/connections/${connectionId}/meeting/confirm`);
-        console.log(`  ${target.maskedName}: 서버 판정 → ${final.connectionStatus}`);
+        console.log(`  ${target.nickname}: 서버 판정 → ${final.connectionStatus}`);
       }
 
-      console.log(`  ${target.maskedName} → ${states[index]}`);
+      console.log(`  ${target.nickname} → ${states[index]}`);
     }
 
     const connections = await call(demoToken, 'GET', '/connections');
-    console.log(`\n인연 ${connections.length}건: ${connections.map((c) => `${c.partner.maskedName}(${c.status})`).join(', ')}`);
+    console.log(`\n인연 ${connections.length}건: ${connections.map((c) => `${c.partner.nickname}(${c.status})`).join(', ')}`);
     const received = await call(demoToken, 'GET', '/hearts/received');
     console.log(`받은 관심 ${received.items.length}건`);
     return;
@@ -465,7 +499,7 @@ async function main() {
     console.log(`필터: ${JSON.stringify(filter)}`);
 
     const feed = await call(token, 'GET', '/discovery');
-    console.log(`추천 ${feed.items.length}명: ${feed.items.map((i) => `${i.maskedName}(${i.region})`).join(', ') || '없음'}`);
+    console.log(`추천 ${feed.items.length}명: ${feed.items.map((i) => `${i.nickname}(${i.region})`).join(', ') || '없음'}`);
 
     if (!feed.items.length) {
       console.log('→ 추천이 비어 있어서 하트를 보낼 대상이 없다.');
@@ -479,7 +513,7 @@ async function main() {
       body: JSON.stringify({ targetProfileId: target.profileId }),
     });
     const heartBody = await heartRes.text();
-    console.log(`하트 → ${target.maskedName}: ${heartRes.status} ${heartBody}`);
+    console.log(`하트 → ${target.nickname}: ${heartRes.status} ${heartBody}`);
     return;
   }
 
@@ -524,6 +558,7 @@ async function main() {
      */
     if (existing?.status === 'published') {
       await call(token, 'PATCH', '/parent-profile', {
+        nickname: spec.nickname,
         heightCm: spec.heightCm,
         occupation: spec.occupation,
         childrenCount: spec.children,
@@ -534,13 +569,14 @@ async function main() {
         smoking: '비흡연',
         economicallyActive: false,
       });
-      console.log(`  갱신: ${spec.displayName} (키 ${spec.heightCm}cm)`);
+      console.log(`  갱신: ${spec.displayName} → "${spec.nickname}" (키 ${spec.heightCm}cm)`);
       continue;
     }
 
     if (!existing) {
       await call(token, 'POST', '/parent-profile', {
         displayName: spec.displayName,
+        nickname: spec.nickname,
         gender: spec.gender,
         birthDate: spec.birthDate,
         regionCode: spec.regionCode,

@@ -1,7 +1,8 @@
-import { useAuthStore } from '@features/auth';
+﻿import { useAuthStore } from '@features/auth';
 import {
   type DraftErrors,
   hasErrors,
+  leaksRealName,
   MockAlbumSheet,
   pickImage,
   RegionPicker,
@@ -36,7 +37,7 @@ import {
 } from '@shared/ui';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 /**
  * 3단계 — 프로필 작성.
@@ -86,6 +87,7 @@ export default function ProfileEditScreen() {
     if (!profile) return;
     set({
       displayName: profile.displayName,
+      nickname: profile.nickname,
       gender: profile.gender,
       birthDate: profile.birthDate,
       regionCode: profile.regionCode,
@@ -136,6 +138,7 @@ export default function ProfileEditScreen() {
 
     return create.mutateAsync({
       displayName: draft.displayName.trim(),
+      nickname: draft.nickname.trim(),
       gender: draft.gender as 'male' | 'female',
       birthDate: draft.birthDate,
       regionCode: draft.regionCode,
@@ -144,6 +147,25 @@ export default function ProfileEditScreen() {
       goals: draft.goals,
     });
   };
+
+  /**
+   * 별명이 실명과 같으면 한 번 확인받는다.
+   *
+   * 막지는 않는다 — 실명으로 알리는 것도 선택이다. 다만 별명 칸이 **공개되는
+   * 자리**라는 걸 모른 채 실명을 적는 경우가 더 흔해서, 되돌릴 수 없는 공개가
+   * 되기 전에 한 번 묻는다. 확인하면 그대로 저장된다.
+   */
+  const confirmRealNameNickname = () =>
+    new Promise<boolean>((resolve) => {
+      Alert.alert(
+        '실명이 그대로 공개됩니다',
+        `별명이 성함과 같습니다. 다른 분들에게 "${draft.nickname.trim()}" 으로 보입니다.\n\n그대로 등록할까요?`,
+        [
+          { text: '별명 다시 짓기', style: 'cancel', onPress: () => resolve(false) },
+          { text: '실명으로 공개', onPress: () => resolve(true) },
+        ]
+      );
+    });
 
   const save = async () => {
     const all = {
@@ -159,6 +181,9 @@ export default function ProfileEditScreen() {
     if ((profile?.photos.length ?? 0) < MIN_PROFILE_PHOTOS) {
       toast.show({ message: `사진을 최소 ${MIN_PROFILE_PHOTOS}장 등록해주세요` });
       return;
+    }
+    if (leaksRealName(draft.nickname, draft.displayName)) {
+      if (!(await confirmRealNameNickname())) return;
     }
 
     const details = {
@@ -186,6 +211,7 @@ export default function ProfileEditScreen() {
       if (!profile) {
         await create.mutateAsync({
           displayName: draft.displayName.trim(),
+          nickname: draft.nickname.trim(),
           gender: draft.gender as 'male' | 'female',
           birthDate: draft.birthDate,
           regionCode: draft.regionCode,
@@ -196,6 +222,7 @@ export default function ProfileEditScreen() {
       }
       await update.mutateAsync({
         displayName: draft.displayName.trim(),
+        nickname: draft.nickname.trim(),
         regionCode: draft.regionCode,
         maritalSince: draft.maritalSince || undefined,
         ...details,
@@ -222,7 +249,12 @@ export default function ProfileEditScreen() {
 
       <Text style={styles.section}>기본 정보</Text>
 
-      <FormSection label="부모님 성함" required helper="상대에게는 김OO 형태로만 보입니다" error={errors.displayName}>
+      <FormSection
+        label="부모님 성함"
+        required
+        helper="확인용입니다. 다른 분에게는 공개되지 않습니다"
+        error={errors.displayName}
+      >
         <TextField
           testID="profile-name"
           value={draft.displayName}
@@ -231,6 +263,27 @@ export default function ProfileEditScreen() {
           maxLength={20}
           invalid={!!errors.displayName}
         />
+      </FormSection>
+
+      <FormSection
+        label="별명"
+        required
+        helper="다른 분에게는 이 별명으로 보입니다"
+        error={errors.nickname}
+      >
+        <TextField
+          testID="profile-nickname"
+          value={draft.nickname}
+          onChangeText={(v) => set({ nickname: v })}
+          placeholder="예: 산책하는 아버지"
+          maxLength={12}
+          invalid={!!errors.nickname}
+        />
+        {leaksRealName(draft.nickname, draft.displayName) && (
+          <Text style={styles.nicknameWarning}>
+            성함과 같은 별명입니다. 실명이 그대로 공개됩니다.
+          </Text>
+        )}
       </FormSection>
 
       <FormSection label="성별" required error={errors.gender}>
@@ -516,6 +569,12 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
+  },
+  // 오류가 아니라 주의 — 저장은 그대로 된다. 그래서 error 색이 아닌 경고 색을 쓴다
+  nicknameWarning: {
+    ...typography.caption,
+    color: theme.colors.warning,
+    marginTop: spacing.xs,
   },
   sectionNote: {
     ...typography.caption,

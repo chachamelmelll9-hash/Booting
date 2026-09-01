@@ -152,8 +152,9 @@ export class DiscoveryService {
     return Promise.all(
       rows.map(async (r) => ({
         profileId: r.id,
-        // 실명은 여기서 끝난다 — DTO 에 원본이 들어가지 않는다
-        maskedName: maskName(r.display_name),
+        // 실명은 여기서 끝난다 — DTO 에 원본이 들어가지 않는다.
+        // 별명이 없는 옛 데이터만 마스킹으로 폴백한다.
+        nickname: r.nickname || maskName(r.display_name),
         age: calcAge(r.birth_date),
         region: await this.regions.label(r.region_code),
         distanceKm: originRegionCode

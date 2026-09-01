@@ -25,10 +25,17 @@ import type {
 import { RELATIONSHIP_GOALS } from '../../common/types';
 
 export class CreateParentProfileDto {
+  /** 실명. 확인 용도로만 쓰이고 공개 응답에는 절대 실리지 않는다 */
   @IsString()
   @MinLength(2)
   @MaxLength(20)
   displayName!: string;
+
+  /** 공개 표기용 별명 */
+  @IsString()
+  @MinLength(2)
+  @MaxLength(12)
+  nickname!: string;
 
   @IsIn(['male', 'female'])
   gender!: 'male' | 'female';
@@ -69,6 +76,7 @@ export class SajuInput {
 
 export class UpdateParentProfileDto {
   @IsOptional() @IsString() @MinLength(2) @MaxLength(20) displayName?: string;
+  @IsOptional() @IsString() @MinLength(2) @MaxLength(12) nickname?: string;
   @IsOptional() @IsString() regionCode?: string;
   @IsOptional() @IsDateString() maritalSince?: string;
 
@@ -168,6 +176,8 @@ export interface ProfileBadges {
 export interface ParentProfileDto {
   id: string;
   displayName: string;
+  /** 공개 표기용 별명 */
+  nickname: string;
   gender: 'male' | 'female';
   birthDate: string;
   age: number;

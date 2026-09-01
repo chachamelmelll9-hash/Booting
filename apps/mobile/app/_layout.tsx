@@ -1,11 +1,11 @@
 import 'react-native-reanimated';
 
+import { i18n } from '@chachamelmelll9-hash-service/i18n';
+import { initI18nMobile } from '@chachamelmelll9-hash-service/i18n/config/mobile';
 import { isAdMobEnabled } from '@features/ads';
 import { AnalyticsProvider } from '@features/analytics';
 import { useAuth } from '@features/auth';
 import { useLanguageStore } from '@features/settings';
-import { i18n } from '@chachamelmelll9-hash-service/i18n';
-import { initI18nMobile } from '@chachamelmelll9-hash-service/i18n/config/mobile';
 import { initializeKakaoSDK } from '@react-native-kakao/core';
 import {
   DefaultTheme,

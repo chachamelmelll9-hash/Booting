@@ -1,4 +1,4 @@
-import {
+﻿import {
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -157,7 +157,7 @@ export class ConnectionsService {
       status: row.status,
       partner: partner ?? {
         profileId: partnerProfileId,
-        maskedName: '',
+        nickname: '',
         age: 0,
         region: '',
         distanceKm: null,

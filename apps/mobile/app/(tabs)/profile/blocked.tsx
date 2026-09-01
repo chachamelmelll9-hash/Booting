@@ -1,4 +1,4 @@
-import { useBlocks, useSafetyMutations } from '@features/safety';
+﻿import { useBlocks, useSafetyMutations } from '@features/safety';
 import { theme } from '@shared/config/colors';
 import { spacing, typography } from '@shared/config/tokens';
 import { AppButton, EmptyState, Screen, SkeletonList, useToast } from '@shared/ui';
@@ -39,7 +39,7 @@ export default function BlockedScreen() {
         renderItem={({ item }) => (
           <View style={styles.row}>
             <View style={styles.info}>
-              <Text style={styles.name}>{item.maskedName}</Text>
+              <Text style={styles.name}>{item.nickname}</Text>
               <Text style={styles.date}>{formatDate(item.createdAt)} 차단</Text>
             </View>
             <AppButton

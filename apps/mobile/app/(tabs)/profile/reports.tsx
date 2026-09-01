@@ -1,4 +1,4 @@
-import { useReports } from '@features/safety';
+﻿import { useReports } from '@features/safety';
 import { theme } from '@shared/config/colors';
 import { REPORT_REASONS } from '@shared/config/safetyRules';
 import { radius, spacing, typography } from '@shared/config/tokens';
@@ -44,7 +44,7 @@ export default function ReportsScreen() {
         renderItem={({ item }) => (
           <View style={styles.row}>
             <View style={styles.header}>
-              <Text style={styles.name}>{item.targetMaskedName}</Text>
+              <Text style={styles.name}>{item.targetNickname}</Text>
               <View style={styles.status}>
                 <Text style={styles.statusText}>{STATUS_LABEL[item.status] ?? item.status}</Text>
               </View>

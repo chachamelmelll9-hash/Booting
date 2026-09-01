@@ -1,4 +1,4 @@
-import { useConnection } from '@features/connections';
+﻿import { useConnection } from '@features/connections';
 import { PARENT_INTENT_LABELS, useMeetingMutations } from '@features/meetings';
 import type { ParentIntentKind } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
@@ -56,7 +56,7 @@ export default function ParentIntentScreen() {
     >
       <Text style={styles.title}>부모님께 여쭤보셨나요?</Text>
       <Text style={styles.body}>
-        {connection?.partner.maskedName} 님을 만나보실 의향이 있으신지 부모님께 직접 여쭤본 뒤,
+        {connection?.partner.nickname} 님을 만나보실 의향이 있으신지 부모님께 직접 여쭤본 뒤,
         답변을 그대로 선택해주세요. 상대측에도 같은 확인이 필요합니다.
       </Text>
 

@@ -1,4 +1,4 @@
-import {
+﻿import {
   usePassReceivedHeart,
   useReceivedHearts,
   useSendHeartBack,
@@ -120,7 +120,7 @@ export default function HeartsScreen() {
 
       <HeartMessageSheet
         visible={composeOpen}
-        toName={current.profile.maskedName}
+        toName={current.profile.nickname}
         busy={sendBack.isPending}
         onSend={(message) => sendHeartBack(message)}
         onDismiss={() => setComposeOpen(false)}

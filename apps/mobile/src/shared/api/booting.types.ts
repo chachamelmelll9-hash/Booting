@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 서버 DTO 미러.
  *
  * 서버 `apps/server/src/<module>/dto/` 와 짝을 이룬다. 여기에 실명·생년월일·연락처
@@ -53,7 +53,10 @@ export interface Photo {
 
 export interface ParentProfile {
   id: string;
+  /** 실명 — 소유자 본인만 본다. 공개 응답에는 절대 실리지 않는다 */
   displayName: string;
+  /** 공개 표기용 별명 */
+  nickname: string;
   gender: 'male' | 'female';
   birthDate: string;
   age: number;
@@ -102,10 +105,10 @@ export interface ParentProfile {
   missing: string[];
 }
 
-/** 추천 카드. 실명이 아니라 마스킹된 이름만 온다 */
+/** 추천 카드. 실명은 오지 않고 공개용 별명만 온다 */
 export interface DiscoveryItem {
   profileId: string;
-  maskedName: string;
+  nickname: string;
   age: number;
   region: string;
   distanceKm: number | null;
@@ -234,12 +237,12 @@ export interface Report {
   detail: string | null;
   status: 'pending' | 'reviewing' | 'resolved' | 'dismissed';
   createdAt: string;
-  targetMaskedName: string;
+  targetNickname: string;
 }
 
 export interface Block {
   id: string;
-  maskedName: string;
+  nickname: string;
   createdAt: string;
 }
 

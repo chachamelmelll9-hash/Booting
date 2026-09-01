@@ -2,7 +2,10 @@ import type { RelationshipGoal } from '@shared/config/relationshipGoals';
 import { create } from 'zustand';
 
 export interface ProfileDraft {
+  /** 실명 — 확인용. 공개되지 않는다 */
   displayName: string;
+  /** 공개 표기용 별명 */
+  nickname: string;
   gender: 'male' | 'female' | null;
   birthDate: string;
   regionCode: string;
@@ -31,6 +34,7 @@ export interface ProfileDraft {
 
 const EMPTY: ProfileDraft = {
   displayName: '',
+  nickname: '',
   gender: null,
   birthDate: '',
   regionCode: '',

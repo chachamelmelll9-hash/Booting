@@ -217,7 +217,6 @@ apps/mobile/
       query/{keys,queryClient}.ts            [기존 — keys 확장]
       lib/{supabase,sentry,...}.ts           [기존]
       lib/realtime.ts                        [신규] Supabase Realtime 구독 헬퍼
-      lib/maskName.ts                        [신규] "김철수" → "김OO"
       lib/formatRegion.ts                    [신규] 시·군·구 표기
       config/colors.ts                       [기존 — 액센트/위험/상태색 추가]
       config/styles.ts                       [기존]
@@ -488,7 +487,7 @@ apps/server/src/
 ```typescript
 {
   profileId: string;
-  maskedName: string;        // "김OO" — 서버가 마스킹해서 내려준다. 원본 성명을 보내지 않는다
+  nickname: string;          // "텃밭지기" — 사용자가 정한 공개 별명. 실명(display_name)은 보내지 않는다
   age: number;               // 생년월일이 아니라 나이만
   region: string;            // "서울 송파구" — 시·군·구까지
   maritalStatus: 'bereaved' | 'divorced';
@@ -660,7 +659,7 @@ create index messages_conv_idx  on messages (conversation_id, sent_at desc);
 | Mobile | 디자인 토큰 | `config/{spacing,typography,radius,zIndex,motion}.ts` 신설. 기존 `colors.ts`·`styles.ts`는 확장만 |
 | Mobile | 등록 플로우 위치 | 탭 밖 `(parent-setup)` Modal 그룹 + 전용 draft 스토어 |
 | Mobile | ads feature | 남기되 사용하지 않는다 (TODO-10 전면 무료·광고 없음). 삭제는 템플릿 diff를 키우므로 미사용 확인만 |
-| Server | 마스킹 위치 | **서버**. `DiscoveryItemDto`/`PublicProfileDto`에 실명을 아예 담지 않는다. 클라이언트 마스킹은 우회 가능 |
+| Server | 실명 비공개 위치 | **서버**. `DiscoveryItemDto`/`PublicProfileDto`에 `display_name`(실명)을 아예 담지 않고, 공개되는 건 사용자가 정한 `nickname` 뿐이다. 클라이언트 가공은 API 를 직접 부르면 우회된다 |
 | Server | 최종 매칭 판정 | `meetings/match.service.ts` 한 곳. 모바일에 `matched` 쓰기 경로 없음 |
 | Server | 상호 하트 판정 | `hearts.service`가 역방향 하트를 확인하고 Connection을 생성. 클라이언트는 결과만 받는다 |
 | Server | 추천 제외 집합 | 서버에서만 계산 (blocks 양방향 ∪ passes ∪ 내가 보낸 hearts ∪ 비공개 ∪ 본인) |

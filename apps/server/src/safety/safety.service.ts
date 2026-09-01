@@ -1,4 +1,4 @@
-import {
+﻿import {
   BadRequestException,
   Injectable,
   NotFoundException,
@@ -9,6 +9,10 @@ import { maskName } from '../common/privacy';
 import { SupabaseService } from '../supabase/supabase.service';
 import { BlockDto, CreateReportDto, ReportDto } from './dto/safety.dto';
 
+/** 공개 표기는 별명을 쓰고, 별명이 없는 옛 데이터만 마스킹으로 폴백한다 */
+const publicName = (row: { nickname?: string | null; display_name: string }) =>
+  row.nickname || maskName(row.display_name);
+
 @Injectable()
 export class SafetyService {
   constructor(private readonly supabase: SupabaseService) {}
@@ -17,7 +21,7 @@ export class SafetyService {
     const { data } = await this.supabase
       .getClient()
       .from('parent_profiles')
-      .select('id, user_id, display_name')
+      .select('id, user_id, display_name, nickname')
       .eq('id', profileId)
       .maybeSingle();
     if (!data) throw new NotFoundException(domainError(ERROR_CODES.PROFILE_NOT_FOUND));
@@ -50,7 +54,7 @@ export class SafetyService {
       detail: data.detail,
       status: data.status,
       createdAt: data.created_at,
-      targetMaskedName: maskName(target.display_name),
+      targetNickname: publicName(target),
     };
   }
 
@@ -68,11 +72,11 @@ export class SafetyService {
     const profileIds = rows.map((r) => r.target_parent_profile_id).filter(Boolean);
     const { data: profiles } = await client
       .from('parent_profiles')
-      .select('id, display_name')
+      .select('id, display_name, nickname')
       .in('id', profileIds.length ? profileIds : ['00000000-0000-0000-0000-000000000000']);
 
     const nameById = new Map(
-      (profiles ?? []).map((p) => [p.id, maskName(p.display_name)])
+      (profiles ?? []).map((p) => [p.id, publicName(p)])
     );
 
     return rows.map((r) => ({
@@ -81,7 +85,7 @@ export class SafetyService {
       detail: r.detail,
       status: r.status,
       createdAt: r.created_at,
-      targetMaskedName: nameById.get(r.target_parent_profile_id) ?? '알 수 없음',
+      targetNickname: nameById.get(r.target_parent_profile_id) ?? '알 수 없음',
     }));
   }
 
@@ -123,7 +127,7 @@ export class SafetyService {
 
     return {
       id: data.id,
-      maskedName: maskName(target.display_name),
+      nickname: publicName(target),
       createdAt: data.created_at,
     };
   }
@@ -141,16 +145,16 @@ export class SafetyService {
 
     const { data: profiles } = await client
       .from('parent_profiles')
-      .select('user_id, display_name')
+      .select('user_id, display_name, nickname')
       .in('user_id', rows.map((r) => r.blocked_user_id));
 
     const nameByUser = new Map(
-      (profiles ?? []).map((p) => [p.user_id, maskName(p.display_name)])
+      (profiles ?? []).map((p) => [p.user_id, publicName(p)])
     );
 
     return rows.map((r) => ({
       id: r.id,
-      maskedName: nameByUser.get(r.blocked_user_id) ?? '알 수 없음',
+      nickname: nameByUser.get(r.blocked_user_id) ?? '알 수 없음',
       createdAt: r.created_at,
     }));
   }

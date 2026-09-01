@@ -1,4 +1,4 @@
-import {
+﻿import {
   missingLabel,
   useParentProfile,
   useParentProfileMutations,
@@ -39,10 +39,10 @@ export default function PreviewScreen() {
     );
   }
 
-  // 서버가 내려주는 공개용 모양을 그대로 흉내낸다 (마스킹된 이름·나이·지역)
+  // 서버가 내려주는 공개용 모양을 그대로 흉내낸다 (별명·나이·지역)
   const preview: DiscoveryItem = {
     profileId: profile.id,
-    maskedName: maskName(profile.displayName),
+    nickname: profile.nickname,
     age: profile.age,
     region: profile.region,
     distanceKm: null,
@@ -91,7 +91,8 @@ export default function PreviewScreen() {
 
       <Text style={styles.title}>다른 분들에게는 이렇게 보입니다</Text>
       <Text style={styles.body}>
-        실명 대신 {preview.maskedName} 로, 생년월일 대신 나이로만 표시됩니다.
+        실명 대신 별명 &lsquo;{preview.nickname}&rsquo;으로, 생년월일 대신 나이로만
+        표시됩니다.
       </Text>
 
       <View style={styles.card}>
@@ -121,14 +122,6 @@ export default function PreviewScreen() {
       ) : null}
     </Screen>
   );
-}
-
-/** 서버와 같은 규칙 — 미리보기에서만 쓴다 (실제 노출값은 서버가 만든다) */
-function maskName(name: string): string {
-  const trimmed = (name ?? '').trim();
-  if (!trimmed) return '';
-  const chars = Array.from(trimmed);
-  return chars[0] + 'O'.repeat(Math.max(chars.length - 1, 1));
 }
 
 const styles = StyleSheet.create({

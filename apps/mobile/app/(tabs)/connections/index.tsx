@@ -1,4 +1,4 @@
-import { useConnections } from '@features/connections';
+﻿import { useConnections } from '@features/connections';
 import { theme } from '@shared/config/colors';
 import {
   CONNECTION_FILTERS,
@@ -79,7 +79,7 @@ export default function ConnectionsScreen() {
           renderItem={({ item }) => (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`${item.partner.maskedName} 님과의 대화`}
+              accessibilityLabel={`${item.partner.nickname} 님과의 대화`}
               onPress={() => router.push(`/(tabs)/connections/${item.id}`)}
               style={({ pressed }) => [styles.rowWrap, pressed && styles.pressed]}
               testID={`connection-${item.id}`}

@@ -54,6 +54,7 @@ export const parentProfileApi = {
   get: () => serverFetch<ParentProfile | null>('/parent-profile'),
   create: (body: {
     displayName: string;
+    nickname: string;
     gender: 'male' | 'female';
     birthDate: string;
     regionCode: string;
