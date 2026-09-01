@@ -119,3 +119,6 @@ test-results/
 docs/progress/runs/
 docs/progress/rate-limit.json
 docs/progress/supervisor.json
+
+# 시드용 인물 사진 — 실존 인물 사진을 저장소에 담지 않는다 (직접 넣고 로컬에서만 쓴다)
+assets/seed-photos/

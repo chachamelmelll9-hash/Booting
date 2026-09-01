@@ -13,11 +13,13 @@
  *                                              # (앱에서 되보내면 상호 하트 → 대화)
  *   node scripts/seed-demo.mjs --clean         # seed/demo 계정 전부 삭제
  */
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { createClient } from '@supabase/supabase-js';
+
+import { makePortrait } from './lib/seed-images.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const API = process.env.SEED_API_URL || 'http://localhost:3000/api';
@@ -160,13 +162,6 @@ const PROFILES = [
   })
 );
 
-const PLACEHOLDER_PNG = Buffer.from(
-  'iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAAWklEQVR4nO3BAQ0AAADCoPdPbQ8H' +
-    'FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-    'AAAAAAAAAAAAAAAAvAYtAAABAKuVvQAAAABJRU5ErkJggg==',
-  'base64'
-);
-
 async function loadEnv() {
   const text = await readFile(path.join(ROOT, 'apps', 'server', '.env.development'), 'utf8');
   const get = (key) => text.match(new RegExp(`^${key}=(.*)$`, 'm'))?.[1]?.trim();
@@ -226,19 +221,74 @@ async function verify(token, userId, phoneSuffix) {
   });
 }
 
-/** 사진은 최소 3장이 필수라 시드도 3장을 올린다 */
-async function uploadPhotos(url, anonKey, token, userId, count = 3) {
+/**
+ * 직접 넣은 사진을 우선 쓴다.
+ *
+ * `assets/seed-photos/male/*.jpg`, `.../female/*.jpg` 에 파일을 넣어 두면
+ * 시드가 그걸 성별에 맞춰 돌려 쓴다. 없으면 생성 아바타로 떨어진다.
+ *
+ * 왜 이렇게 열어 뒀나: 무료로 받을 수 있는 인물 사진은 대부분 **실존 인물**
+ * 이고 라이선스도 비상업·변경금지다. 특정인을 소개팅 서비스 가입자처럼
+ * 보이게 만드는 건 데모라도 하면 안 된다. 어떤 사진을 쓸지는 이 저장소가
+ * 정할 일이 아니라 쓰는 사람이 정할 일이라, 폴더만 만들어 두고 비워 놨다.
+ * (이 폴더는 .gitignore 로 커밋되지 않는다)
+ */
+const PHOTO_DIR = path.join(ROOT, 'assets', 'seed-photos');
+
+async function loadLocalPhotos() {
+  const byGender = { male: [], female: [] };
+  for (const gender of Object.keys(byGender)) {
+    try {
+      const names = (await readdir(path.join(PHOTO_DIR, gender)))
+        .filter((name) => /\.(jpe?g|png|webp)$/i.test(name))
+        .sort();
+      byGender[gender] = names.map((name) => path.join(PHOTO_DIR, gender, name));
+    } catch {
+      byGender[gender] = []; // 폴더가 없으면 생성 아바타를 쓴다
+    }
+  }
+  return byGender;
+}
+
+const CONTENT_TYPES = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+};
+
+/**
+ * 사진은 최소 3장이 필수라 시드도 3장을 올린다.
+ *
+ * 경로(`{userId}/photo-N.png`)를 고정하고 upsert 로 덮어쓴다 — 이미 공개된
+ * 프로필도 DB 의 사진 행을 건드리지 않고 그림만 갈아끼울 수 있다. 그래서
+ * 실제 내용이 JPEG 여도 경로는 `.png` 그대로다 (스토리지는 contentType 으로
+ * 서빙하므로 확장자와 달라도 문제가 없다).
+ */
+async function uploadPhotos(url, anonKey, token, userId, spec, localPhotos, count = 3) {
   const client = createClient(url, anonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
 
+  const pool = localPhotos?.[spec.gender] ?? [];
+  const offset = PROFILES.findIndex((p) => p.tag === spec.tag);
+
   const paths = [];
   for (let i = 0; i < count; i += 1) {
     const objectPath = `${userId}/photo-${i + 1}.png`;
+
+    let body = makePortrait(spec.nickname, i);
+    let contentType = 'image/png';
+    if (pool.length) {
+      const file = pool[(offset * count + i) % pool.length];
+      body = await readFile(file);
+      contentType = CONTENT_TYPES[path.extname(file).toLowerCase()] ?? 'image/jpeg';
+    }
+
     const { error } = await client.storage
       .from('parent-photos')
-      .upload(objectPath, PLACEHOLDER_PNG, { contentType: 'image/png', upsert: true });
+      .upload(objectPath, body, { contentType, upsert: true });
     if (error) throw new Error(`photo upload: ${error.message}`);
     paths.push(objectPath);
   }
@@ -272,7 +322,34 @@ async function main() {
     const demo = list.users.find((u) => u.email === `demo@${DOMAIN}`);
     if (!demo) throw new Error('demo 계정이 없습니다');
 
-    const hearts = await admin.from('hearts').delete().eq('sender_user_id', demo.id).select('id');
+    /**
+     * 인연도 함께 지운다.
+     *
+     * 하트만 지우면 이미 인연이 된 사람이 추천에 다시 뜨는데, 거기서 하트를
+     * 누르면 서버가 중복 하트로 거부한다 — 되돌릴 방법이 없는 카드가 피드에
+     * 박힌다. 대화·만남 기록은 connections 에 걸린 FK 로 함께 정리된다.
+     */
+    const connections = await admin
+      .from('connections')
+      .delete()
+      .or(`user_a_id.eq.${demo.id},user_b_id.eq.${demo.id}`)
+      .select('id');
+
+    // 상대가 보낸 하트까지 지워야 '받은 관심'도 같이 초기화된다
+    const { data: demoProfileRow } = await admin
+      .from('parent_profiles')
+      .select('id')
+      .eq('user_id', demo.id)
+      .maybeSingle();
+
+    const hearts = await admin
+      .from('hearts')
+      .delete()
+      .or(
+        `sender_user_id.eq.${demo.id}` +
+          (demoProfileRow ? `,target_parent_profile_id.eq.${demoProfileRow.id}` : '')
+      )
+      .select('id');
     const passes = await admin.from('passes').delete().eq('user_id', demo.id).select('id');
     // 저장된 조건도 지운다 → 서버 기본값(이성 · 30km)으로 돌아간다
     const filters = await admin
@@ -282,8 +359,9 @@ async function main() {
       .select('user_id');
 
     console.log(
-      `초기화: 하트 ${hearts.data?.length ?? 0}건, 넘김 ${passes.data?.length ?? 0}건, ` +
-        `저장된 조건 ${filters.data?.length ?? 0}건 삭제 (조건은 기본값으로 복귀)`
+      `초기화: 인연 ${connections.data?.length ?? 0}건, 하트 ${hearts.data?.length ?? 0}건, ` +
+        `넘김 ${passes.data?.length ?? 0}건, 저장된 조건 ${filters.data?.length ?? 0}건 삭제 ` +
+        `(조건은 기본값으로 복귀)`
     );
     return;
   }
@@ -543,7 +621,14 @@ async function main() {
     return;
   }
 
+  const localPhotos = await loadLocalPhotos();
+  const localCount = localPhotos.male.length + localPhotos.female.length;
   console.log(`공개 프로필 `+PROFILES.length+`개 준비 중…`);
+  console.log(
+    localCount
+      ? `  사진: assets/seed-photos 의 `+localCount+`장을 사용합니다`
+      : '  사진: 생성 아바타 (assets/seed-photos/{male,female}/ 에 넣으면 그걸 씁니다)'
+  );
   let phoneSuffix = 10000001;
 
   for (const spec of PROFILES) {
@@ -561,6 +646,8 @@ async function main() {
      * 데이터가 남아 화면에서 빈칸으로 보인다.
      */
     if (existing?.status === 'published') {
+      // 사진도 다시 만든다 — 경로가 같아서 DB 는 그대로 두고 그림만 바뀐다
+      await uploadPhotos(url, anonKey, token, userId, spec, localPhotos);
       await call(token, 'PATCH', '/parent-profile', {
         nickname: spec.nickname,
         heightCm: spec.heightCm,
@@ -589,7 +676,7 @@ async function main() {
       });
     }
 
-    const photoPaths = await uploadPhotos(url, anonKey, token, userId);
+    const photoPaths = await uploadPhotos(url, anonKey, token, userId, spec, localPhotos);
     for (const [index, photoPath] of photoPaths.entries()) {
       await call(token, 'POST', '/parent-profile/photos', {
         storagePath: photoPath,

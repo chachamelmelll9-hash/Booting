@@ -7,6 +7,7 @@ import {
   useSendMessage,
 } from '@features/connections';
 import { meetingPhase, useMeeting } from '@features/meetings';
+import { bootingKeys } from '@shared/api/booting';
 import { theme } from '@shared/config/colors';
 import { statusDescription } from '@shared/config/connectionStatus';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
@@ -20,9 +21,18 @@ import {
   SkeletonList,
   useToast,
 } from '@shared/ui';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  BackHandler,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 /**
  * 채팅방.
@@ -34,6 +44,7 @@ export default function ChatRoomScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   const { data: connection, isLoading } = useConnection(id);
   const { data: meeting } = useMeeting(id);
@@ -47,6 +58,33 @@ export default function ChatRoomScreen() {
   const messages = useMemo(
     () => messagesQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [messagesQuery.data]
+  );
+
+  /**
+   * 하드웨어 뒤로가기 + 나갈 때 목록 갱신.
+   *
+   * 뒤로가기: 헤더 화살표만 고치면 절반만 고친 것이다 — 실제로 대부분
+   * 하드웨어 뒤로가기나 스와이프로 나간다. 상호 하트 시트·알림에서 대화방으로
+   * 바로 들어오면 이 스택에 대화방 하나뿐이라 기본 동작이 탭 네비게이터까지
+   * 올라가 홈 탭으로 튄다. `navigate` 는 목록이 있으면 거기까지 pop 한다.
+   *
+   * 목록 갱신: 대화를 열면 서버가 상대 메시지를 읽음 처리하는데, 목록 캐시는
+   * 그대로라 뒤로 나오면 안 읽은 개수 뱃지가 그대로 남아 있었다. 화면을 벗어날
+   * 때 한 번만 무효화한다 — 5초 폴링마다 무효화하면 대화 중에 목록을 계속
+   * 다시 불러오게 된다.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+        router.navigate('/(tabs)/connections');
+        return true;
+      });
+      return () => {
+        subscription.remove();
+        void queryClient.invalidateQueries({ queryKey: ['connections'] });
+        void queryClient.invalidateQueries({ queryKey: bootingKeys.connection(id ?? '') });
+      };
+    }, [router, queryClient, id])
   );
 
   if (isLoading || !connection) {

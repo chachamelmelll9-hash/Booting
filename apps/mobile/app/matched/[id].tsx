@@ -41,7 +41,12 @@ export default function MutualHeartScreen() {
           <AppButton
             label="대화 시작하기"
             testID="mutual-start-chat"
-            onPress={() => router.replace(`/(tabs)/connections/${connection.id}`)}
+            // withAnchor: 대화방 아래에 인연 목록을 깔아 둔다. 없으면 대화방이
+            // 스택의 유일한 화면이 되어 뒤로가기가 탭 네비게이터까지 올라가
+            // 홈 탭으로 튄다 — 사용자가 기대하는 곳은 대화 목록이다.
+            onPress={() =>
+              router.replace(`/(tabs)/connections/${connection.id}`, { withAnchor: true })
+            }
           />
           <AppButton label="나중에 하기" variant="ghost" onPress={() => router.back()} />
         </View>

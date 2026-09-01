@@ -12,10 +12,12 @@ export const unstable_settings = {
 /**
  * 대화방 뒤로가기.
  *
- * 대화방은 이 스택의 첫 화면이라 기본 뒤로가기 화살표가 붙지 않는다. 그런데
- * 사용자는 대화 → 목록으로 돌아가려 한다 — 직접 넣어준다.
- * 상호 하트 시트에서 바로 들어온 경우까지 대비해 돌아갈 곳이 없으면
- * 인연 목록으로 보낸다 (탭 자체를 벗어나 홈으로 튀는 것보다 낫다).
+ * 대화방은 이 스택의 첫 화면이라 기본 뒤로가기 화살표가 붙지 않는다. 직접 넣는다.
+ *
+ * `back()` 이 아니라 `navigate()` 인 이유: 상호 하트 시트나 알림에서 대화방으로
+ * 바로 들어오면 이 스택에 대화방 하나뿐이라 `back()` 이 탭 네비게이터까지 올라가
+ * 홈 탭으로 튄다. `navigate` 는 목록이 스택에 있으면 거기까지 pop 하고, 없으면
+ * 목록을 띄운다 — 어느 경로로 들어왔든 결과가 같다.
  */
 function BackToConnections() {
   const router = useRouter();
@@ -25,9 +27,7 @@ function BackToConnections() {
       accessibilityRole="button"
       accessibilityLabel="인연 목록으로"
       hitSlop={8}
-      onPress={() =>
-        router.canGoBack() ? router.back() : router.replace('/(tabs)/connections')
-      }
+      onPress={() => router.navigate('/(tabs)/connections')}
       style={({ pressed }) => [
         { width: HIT_SIZE, height: HIT_SIZE, alignItems: 'center', justifyContent: 'center' },
         pressed && { opacity: 0.6 },
