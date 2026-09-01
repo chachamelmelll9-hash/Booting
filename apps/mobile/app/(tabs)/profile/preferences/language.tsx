@@ -1,9 +1,9 @@
-import { useLanguageStore } from '@features/settings';
 import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import {
   LANGUAGE_NAMES,
   SUPPORTED_LANGUAGES,
 } from '@chachamelmelll9-hash-service/i18n/config/mobile';
+import { useLanguageStore } from '@features/settings';
 import React from 'react';
 import { Pressable, StyleSheet,Text, View } from 'react-native';
 

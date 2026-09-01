@@ -1,7 +1,7 @@
-﻿import { useAuthStore } from '@features/auth';
+﻿import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+import { useAuthStore } from '@features/auth';
 import { deleteAccountApi,logoutApi } from '@features/auth/api';
 import { useParentProfile } from '@features/parent-profile';
-import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { screenStyles } from '@shared/config/styles';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';

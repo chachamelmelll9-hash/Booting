@@ -1,10 +1,10 @@
-﻿import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Tabs } from 'expo-router';
-
+﻿import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useHeartsUnreadCount } from '@features/hearts';
+import { useParentProfile } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
 import { useClientOnlyValue } from '@shared/lib';
+import { Tabs } from 'expo-router';
+import React from 'react';
 
 // Expo Router 는 탭 초기 화면을 파일 시스템 순서(알파벳)로 고른다 —
 // 지정하지 않으면 connections 가 먼저 잡혀 앱이 '인연' 탭으로 열린다.
@@ -29,6 +29,12 @@ function TabBarIcon(props: {
 export default function TabLayout() {
   const { data: hearts } = useHeartsUnreadCount();
   const heartBadge = hearts?.count ? String(hearts.count) : undefined;
+
+  // 프로필을 공개하기 전에는 관심·인연 탭이 아무것도 못 한다 (서버가 403 을 준다).
+  // 눌러봐야 빈 화면이 나오는 탭을 띄워두면 등록 동선에서 주의만 흩어진다.
+  // '내 정보'는 남긴다 — 로그아웃과 등록 상태 확인 경로가 여기뿐이다.
+  const { data: parentProfile } = useParentProfile();
+  const published = parentProfile?.status === 'published';
 
   return (
     <Tabs
@@ -61,6 +67,7 @@ export default function TabLayout() {
         name="hearts"
         options={{
           title: '관심',
+          href: published ? undefined : null,
           tabBarAccessibilityLabel: '관심',
           tabBarBadge: heartBadge,
           tabBarIcon: ({ color }) => <TabBarIcon name="heart" color={color} />,
@@ -70,6 +77,7 @@ export default function TabLayout() {
         name="connections"
         options={{
           title: '인연',
+          href: published ? undefined : null,
           tabBarAccessibilityLabel: '인연',
           tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
         }}

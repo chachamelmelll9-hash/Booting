@@ -1,7 +1,6 @@
+import { screenStyles } from '@shared/config/styles';
 import React from 'react';
 import { Text, View } from 'react-native';
-
-import { screenStyles } from '@shared/config/styles';
 
 export default function NotificationSettingsScreen() {
   return (

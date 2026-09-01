@@ -95,7 +95,6 @@ export default function HomeScreen() {
         <EmptyState
           icon="user-plus"
           title="부모님 프로필을 먼저 등록해주세요"
-          description="프로필을 공개하셔야 다른 부모님을 추천해드릴 수 있습니다. 서로 프로필을 내놓는 것이 이 서비스의 기본 약속입니다."
           cta={{
             label: '부모님 프로필 등록하기',
             onPress: () => router.push('/(parent-setup)/onboarding'),

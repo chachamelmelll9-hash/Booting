@@ -1,8 +1,7 @@
+import { screenStyles } from '@shared/config/styles';
+import { Link } from 'expo-router';
 import React from 'react';
 import { Text, View } from 'react-native';
-import { Link } from 'expo-router';
-
-import { screenStyles } from '@shared/config/styles';
 
 export default function PasswordScreen() {
   return (
