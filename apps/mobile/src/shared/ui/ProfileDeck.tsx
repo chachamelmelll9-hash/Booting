@@ -27,6 +27,8 @@ interface Props {
   busy?: boolean;
   /** 카드 아래 안내 문구 (남은 수 등) */
   note?: string;
+  /** 상대가 관심과 함께 보낸 인사말 — 답할지 판단하는 근거가 된다 */
+  highlight?: string | null;
   testID?: string;
 }
 
@@ -48,6 +50,7 @@ export function ProfileDeck({
   onDetail,
   busy = false,
   note,
+  highlight,
   testID,
 }: Props) {
   const position = useRef(new Animated.ValueXY()).current;
@@ -72,23 +75,32 @@ export function ProfileDeck({
           const decided =
             gesture.dx > SWIPE_THRESHOLD ? 'heart' : gesture.dx < -SWIPE_THRESHOLD ? 'pass' : null;
 
-          if (!decided) {
+          const springBack = () =>
             Animated.spring(position, {
               toValue: { x: 0, y: 0 },
               useNativeDriver: false,
               friction: 6,
             }).start();
+
+          if (!decided) {
+            springBack();
+            return;
+          }
+
+          // 관심은 인사말 시트를 연다 → 아직 보낸 게 아니므로 카드를 날려보내지
+          // 않는다. 취소했을 때 카드가 사라진 채로 남는 걸 막는다.
+          // (보내기가 성공하면 부모가 index 를 올려 다음 카드가 나온다)
+          if (decided === 'heart') {
+            springBack();
+            onHeart();
             return;
           }
 
           Animated.timing(position, {
-            toValue: { x: decided === 'heart' ? SCREEN_WIDTH : -SCREEN_WIDTH, y: 0 },
+            toValue: { x: -SCREEN_WIDTH, y: 0 },
             duration: 180,
             useNativeDriver: false,
-          }).start(() => {
-            if (decided === 'heart') onHeart();
-            else onPass();
-          });
+          }).start(() => onPass());
         },
       }),
     [position, onHeart, onPass]
@@ -144,6 +156,13 @@ export function ProfileDeck({
         </Animated.View>
       </View>
 
+      {highlight ? (
+        <View style={styles.highlight} testID="deck-highlight">
+          <Text style={styles.highlightLabel}>함께 보낸 인사말</Text>
+          <Text style={styles.highlightText}>{highlight}</Text>
+        </View>
+      ) : null}
+
       {note ? <Text style={styles.note}>{note}</Text> : null}
 
       <View style={styles.actions}>
@@ -182,6 +201,15 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceSecondary,
   },
   stampPassText: { ...typography.bodyStrong, color: theme.colors.textTertiary },
+  highlight: {
+    backgroundColor: theme.colors.primarySurface,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    marginTop: spacing.sm,
+    gap: 2,
+  },
+  highlightLabel: { ...typography.micro, color: theme.colors.primaryDark },
+  highlightText: { ...typography.body, color: theme.colors.textSecondary },
   note: {
     ...typography.caption,
     color: theme.colors.textTertiary,

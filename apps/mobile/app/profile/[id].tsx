@@ -1,4 +1,4 @@
-import { useHeartActions, usePublicProfile } from '@features/discovery';
+﻿import { useHeartActions, usePublicProfile } from '@features/discovery';
 import { theme } from '@shared/config/colors';
 import { formatOccupation } from '@shared/config/profileOptions';
 import { radius, spacing, typography } from '@shared/config/tokens';
@@ -6,6 +6,7 @@ import {
   AppButton,
   EmptyState,
   HeartActionBar,
+  HeartMessageSheet,
   RelationshipGoalChips,
   Screen,
   SkeletonList,
@@ -13,6 +14,7 @@ import {
   VerificationBadgeRow,
 } from '@shared/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const MARITAL_LABEL: Record<string, string> = { bereaved: '사별', divorced: '이혼' };
@@ -30,6 +32,28 @@ export default function PublicProfileScreen() {
 
   const { data: profile, isLoading, isError, refetch } = usePublicProfile(id);
   const { sendHeart, pass } = useHeartActions();
+  const [composeOpen, setComposeOpen] = useState(false);
+
+  const sendHeartTo = (message?: string) => {
+    if (!profile) return;
+    sendHeart.mutate(
+      { targetProfileId: profile.profileId, message },
+      {
+        onSuccess: (result) => {
+          setComposeOpen(false);
+          if (result.mutual && result.connectionId) {
+            router.replace(`/matched/${result.connectionId}`);
+          } else {
+            toast.show({
+              message: message ? '인사말과 함께 관심을 보냈습니다' : '관심을 보냈습니다',
+            });
+            router.back();
+          }
+        },
+        onError: (error: Error) => toast.show({ message: error.message }),
+      }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -60,22 +84,17 @@ export default function PublicProfileScreen() {
           <HeartActionBar
             heartDisabled={profile.heartSent}
             busy={sendHeart.isPending || pass.isPending}
-            onHeart={() =>
-              sendHeart.mutate(profile.profileId, {
-                onSuccess: (result) => {
-                  if (result.mutual && result.connectionId) {
-                    router.replace(`/matched/${result.connectionId}`);
-                  } else {
-                    toast.show({ message: '관심을 보냈습니다' });
-                    router.back();
-                  }
-                },
-                onError: (error: Error) => toast.show({ message: error.message }),
-              })
-            }
+            onHeart={() => setComposeOpen(true)}
             onPass={() =>
               pass.mutate(profile.profileId, { onSuccess: () => router.back() })
             }
+          />
+          <HeartMessageSheet
+            visible={composeOpen}
+            toName={profile.maskedName}
+            busy={sendHeart.isPending}
+            onSend={(message) => sendHeartTo(message)}
+            onDismiss={() => setComposeOpen(false)}
           />
           <AppButton
             label="신고하기"

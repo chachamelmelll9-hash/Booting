@@ -76,7 +76,8 @@ export function useHeartActions() {
   };
 
   const sendHeart = useMutation({
-    mutationFn: heartsApi.send,
+    mutationFn: ({ targetProfileId, message }: { targetProfileId: string; message?: string }) =>
+      heartsApi.send(targetProfileId, message),
     onSuccess: invalidateFeed,
   });
 

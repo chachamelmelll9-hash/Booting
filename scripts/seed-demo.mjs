@@ -323,10 +323,22 @@ async function main() {
     // 기존에 잘못 들어간 하트(성별 안 맞는 것 포함)를 먼저 지운다
     await admin.from('hearts').delete().eq('target_parent_profile_id', demoProfile.id);
 
+    // 인사말도 섞어 넣는다 — 받은 관심 카드와 매칭 후 대화방을 함께 확인하려면
+    // 인사말이 있는 하트와 없는 하트가 둘 다 있어야 한다
+    const GREETINGS = [
+      '저희 어머니도 매일 오전 광교호수공원 산책 가십니다!',
+      '아버님 소개글 잘 읽었습니다. 바둑 두시는 것도 비슷하네요.',
+      '어머니가 텃밭 가꾸시는 게 저희 아버지와 똑같아서 반가웠습니다.',
+      '사진 동호회 하신다니 저희 아버지도 사진을 좋아하십니다.',
+      null,
+      null,
+    ];
+
     const { error } = await admin.from('hearts').upsert(
-      seedUserIds.map((id) => ({
+      seedUserIds.map((id, i) => ({
         sender_user_id: id,
         target_parent_profile_id: demoProfile.id,
+        message: GREETINGS[i % GREETINGS.length],
       })),
       { onConflict: 'sender_user_id,target_parent_profile_id' }
     );

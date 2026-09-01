@@ -376,15 +376,54 @@ async function main() {
   }
 
   console.log('\n[8] 하트 → 상호 하트 → 대화');
-  const heart1 = await a.expect('POST', '/hearts', { targetProfileId: profileB.id }, 'A heart B');
+  const GREETING_A = '저희 어머니도 매일 오전 광교호수공원 산책 가십니다!';
+  const GREETING_B = '아버님 소개글 잘 읽었습니다. 반갑습니다.';
+
+  const heart1 = await a.expect(
+    'POST',
+    '/hearts',
+    { targetProfileId: profileB.id, message: GREETING_A },
+    'A heart B'
+  );
   check('단방향 하트는 mutual=false', heart1.mutual === false && heart1.connectionId === null);
+
+  const bReceived = await b.expect('GET', '/hearts/received', null, 'B received (greeting)');
+  check(
+    '받은 관심에 인사말이 함께 온다',
+    bReceived.items.some((i) => i.message === GREETING_A),
+    JSON.stringify(bReceived.items.map((i) => i.message))
+  );
 
   const dupe = await a.call('POST', '/hearts', { targetProfileId: profileB.id });
   check('같은 상대에게 중복 하트 거부', dupe.status === 400, `status=${dupe.status}`);
 
-  const heart2 = await b.expect('POST', '/hearts', { targetProfileId: profileA.id }, 'B heart A');
+  const heart2 = await b.expect(
+    'POST',
+    '/hearts',
+    { targetProfileId: profileA.id, message: GREETING_B },
+    'B heart A'
+  );
   check('역방향 하트로 상호 하트 성립', heart2.mutual === true && !!heart2.connectionId);
   const connectionId = heart2.connectionId;
+
+  // 인사말은 대화방 첫 메시지로 옮겨간다 — 빈 채팅방에서 말을 트는 부담을 없앤다
+  {
+    const carried = await a.expect(
+      'GET',
+      `/connections/${connectionId}/messages`,
+      null,
+      'A messages (carried)'
+    );
+    const bodies = carried.items.map((m) => m.body);
+    check('보낸 인사말이 대화방에 남는다', bodies.includes(GREETING_A), JSON.stringify(bodies));
+    check('상대 인사말도 대화방에 남는다', bodies.includes(GREETING_B));
+    // items 는 최신순이라 먼저 보낸 A 의 인사말이 뒤에 온다
+    check(
+      '인사말은 보낸 순서를 지킨다',
+      bodies.indexOf(GREETING_A) > bodies.indexOf(GREETING_B),
+      JSON.stringify(bodies)
+    );
+  }
 
   const received = await b.expect('GET', '/hearts/received', null, 'B received');
   check('받은 하트 목록에 A가 있다', received.items.some((i) => i.profile.profileId === profileA.id));
@@ -400,7 +439,8 @@ async function main() {
   await a.expect('POST', `/connections/${connectionId}/messages`, { body: '안녕하세요, 연락 주셔서 감사합니다.' }, 'A message');
   await b.expect('POST', `/connections/${connectionId}/messages`, { body: '네, 반갑습니다.' }, 'B message');
   const messages = await a.expect('GET', `/connections/${connectionId}/messages`, null, 'A messages');
-  check('메시지 2건 저장', messages.items.length === 2, String(messages.items.length));
+  // 인사말 2건이 먼저 들어가 있으므로 총 4건
+  check('인사말 2 + 대화 2 = 4건', messages.items.length === 4, String(messages.items.length));
   const afterChat = await a.expect('GET', `/connections/${connectionId}`, null, 'A conn');
   check("첫 메시지 후 상태는 'chatting'", afterChat.status === 'chatting', afterChat.status);
 

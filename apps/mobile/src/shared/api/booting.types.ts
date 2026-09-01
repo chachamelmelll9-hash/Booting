@@ -179,6 +179,8 @@ export interface ReceivedHeart {
   heartId: string;
   createdAt: string;
   read: boolean;
+  /** 함께 온 인사말 */
+  message: string | null;
   profile: DiscoveryItem;
 }
 

@@ -10,6 +10,7 @@
 | ParentPhoto | 부모님 사진 (**최소 3장**, 최대 5장, 대표 1장) | id, parent_profile_id, storage_path, is_primary, sort_order, created_at | parent-profile-consent, profile-discovery |
 | ParentConsent | 부모님의 등록·공개 동의와 철회 이력 | id, parent_profile_id, method(sms/in_person), parent_name, consented_at, revoked_at, created_at | parent-profile-consent |
 | SajuInfo | 사주 정보 (선택 입력, 공개 여부 선택) | id, parent_profile_id, birth_date, calendar_type(solar/lunar), birth_time, birth_time_unknown, is_public, created_at | parent-profile-consent, profile-discovery |
+| Heart.message | 관심과 함께 보낸 인사말 (1~200자 CHECK, 선택). 상호 하트 시 대화방 첫 메시지로 **복사**된다 — 원본은 hearts 에 남는다 | text | heart-conversation |
 | ParentProfile.height_cm | 부모님 키 (cm, 120~220 CHECK). 상세에서만 노출 | integer | parent-profile-consent, profile-discovery |
 | RelationshipGoal | 관계 목적 (프로필당 최대 2개) | id, parent_profile_id, goal(remarriage/serious/travel_hobby/same_sex_friend/meal_walk/undecided) | parent-profile-consent, profile-discovery |
 | ProfileReview | 운영 검수 결과 | id, parent_profile_id, status(pending/approved/rejected), reject_reason, reviewed_at, created_at | parent-profile-consent |

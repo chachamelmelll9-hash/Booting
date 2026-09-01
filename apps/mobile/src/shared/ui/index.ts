@@ -8,6 +8,7 @@ export { ErrorBoundary } from './ErrorBoundary';
 export * from './form';
 export { FormSection, TextField } from './FormSection';
 export { HeartActionBar } from './HeartActionBar';
+export { HeartMessageSheet } from './HeartMessageSheet';
 export { ParentProfileCard } from './ParentProfileCard';
 export { PhotoUploader } from './PhotoUploader';
 export { ProfileDeck } from './ProfileDeck';

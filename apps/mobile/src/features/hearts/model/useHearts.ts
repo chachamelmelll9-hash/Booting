@@ -29,7 +29,8 @@ export function useSendHeartBack() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: heartsApi.send,
+    mutationFn: ({ targetProfileId, message }: { targetProfileId: string; message?: string }) =>
+      heartsApi.send(targetProfileId, message),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: bootingKeys.heartsReceived }),

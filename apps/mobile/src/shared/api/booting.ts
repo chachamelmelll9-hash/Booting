@@ -99,8 +99,12 @@ export const discoveryApi = {
 };
 
 export const heartsApi = {
-  send: (targetProfileId: string) =>
-    serverFetch<SendHeartResult>('/hearts', { method: 'POST', body: { targetProfileId } }),
+  /** message 는 선택 — 상호 하트가 되면 대화방 첫 메시지로 남는다 */
+  send: (targetProfileId: string, message?: string) =>
+    serverFetch<SendHeartResult>('/hearts', {
+      method: 'POST',
+      body: { targetProfileId, ...(message ? { message } : {}) },
+    }),
   received: (cursor?: string) =>
     serverFetch<Page<ReceivedHeart>>(`/hearts/received${qs({ cursor })}`),
   unreadCount: () => serverFetch<{ count: number }>('/hearts/unread-count'),

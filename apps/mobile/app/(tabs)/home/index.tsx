@@ -13,6 +13,7 @@ import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import {
   BootingLogo,
   EmptyState,
+  HeartMessageSheet,
   ProfileDeck,
   Screen,
   SkeletonList,
@@ -43,6 +44,7 @@ export default function HomeScreen() {
   const feed = useDiscoveryFeed();
   const { sendHeart, pass } = useHeartActions();
   const [index, setIndex] = useState(0);
+  const [composeOpen, setComposeOpen] = useState(false);
 
   const cards = useMemo(
     () => feed.data?.pages.flatMap((page) => page.items) ?? [],
@@ -58,20 +60,32 @@ export default function HomeScreen() {
     }
   };
 
-  const onHeart = () => {
+  /**
+   * 관심 보내기 = 인사말 작성.
+   *
+   * 버튼(또는 오른쪽 스와이프)을 누르면 바로 보내지 않고 인사말 시트를 연다.
+   * 확인 다이얼로그가 아니라 **작성 단계**다 — 시트에서 비워 두고 보내면
+   * 인사말 없는 관심이 되므로 그냥 보내는 길도 막히지 않는다.
+   */
+  const sendHeartTo = (message?: string) => {
     if (!current) return;
-    // 관심 표현에는 확인 다이얼로그를 두지 않는다 — 자주 하는 동작이다
-    sendHeart.mutate(current.profileId, {
-      onSuccess: (result) => {
-        advance();
-        if (result.mutual && result.connectionId) {
-          router.push(`/matched/${result.connectionId}`);
-        } else {
-          toast.show({ message: '관심을 보냈습니다' });
-        }
-      },
-      onError: (error: Error) => toast.show({ message: error.message }),
-    });
+    sendHeart.mutate(
+      { targetProfileId: current.profileId, message },
+      {
+        onSuccess: (result) => {
+          setComposeOpen(false);
+          advance();
+          if (result.mutual && result.connectionId) {
+            router.push(`/matched/${result.connectionId}`);
+          } else {
+            toast.show({
+              message: message ? '인사말과 함께 관심을 보냈습니다' : '관심을 보냈습니다',
+            });
+          }
+        },
+        onError: (error: Error) => toast.show({ message: error.message }),
+      }
+    );
   };
 
   const onPass = () => {
@@ -153,10 +167,18 @@ export default function HomeScreen() {
           note={`${index + 1}번째 · 남은 추천 ${Math.max(cards.length - index - 1, 0)}명`}
           testID="home-deck"
           onDetail={() => router.push(`/profile/${current.profileId}`)}
-          onHeart={onHeart}
+          onHeart={() => setComposeOpen(true)}
           onPass={onPass}
         />
       )}
+
+      <HeartMessageSheet
+        visible={composeOpen}
+        toName={current?.maskedName}
+        busy={sendHeart.isPending}
+        onSend={(message) => sendHeartTo(message)}
+        onDismiss={() => setComposeOpen(false)}
+      />
     </Screen>
   );
 }

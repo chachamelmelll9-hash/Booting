@@ -28,7 +28,7 @@ export class HeartsController {
     @Req() req: { parentProfileId: string },
     @Body() dto: SendHeartDto
   ) {
-    return this.hearts.send(userId, req.parentProfileId, dto.targetProfileId);
+    return this.hearts.send(userId, req.parentProfileId, dto.targetProfileId, dto.message);
   }
 
   @Get('received')

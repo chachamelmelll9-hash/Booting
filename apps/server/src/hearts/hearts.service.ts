@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -14,6 +15,8 @@ import { ReceivedHeartDto, SendHeartResponse } from './dto/hearts.dto';
 
 @Injectable()
 export class HeartsService {
+  private readonly logger = new Logger(HeartsService.name);
+
   constructor(
     private readonly supabase: SupabaseService,
     private readonly discovery: DiscoveryService,
@@ -30,7 +33,8 @@ export class HeartsService {
   async send(
     userId: string,
     myProfileId: string,
-    targetProfileId: string
+    targetProfileId: string,
+    message?: string
   ): Promise<SendHeartResponse> {
     const client = this.supabase.getClient();
 
@@ -58,6 +62,7 @@ export class HeartsService {
     const { error } = await client.from('hearts').insert({
       sender_user_id: userId,
       target_parent_profile_id: targetProfileId,
+      message: message?.trim() || null,
     });
     if (error) {
       // unique(sender, target) 위반 = 이미 보낸 하트
@@ -79,7 +84,8 @@ export class HeartsService {
       await this.notifications.publish({
         userId: target.user_id,
         type: 'heart_received',
-        payload: { profileId: myProfileId },
+        // 인사말이 있으면 알림에서 미리 보여준다 — 답할 이유가 되는 정보다
+        payload: { profileId: myProfileId, preview: message?.slice(0, 40) ?? null },
       });
       return { mutual: false, connectionId: null };
     }
@@ -149,11 +155,63 @@ export class HeartsService {
       });
     }
 
-    await client
+    const { data: conversation } = await client
       .from('conversations')
-      .upsert({ connection_id: connectionId }, { onConflict: 'connection_id' });
+      .upsert({ connection_id: connectionId }, { onConflict: 'connection_id' })
+      .select('id')
+      .single();
+
+    if (conversation) {
+      await this.carryOverHeartMessages(conversation.id, userId, myProfileId, otherUserId, otherProfileId);
+    }
 
     return connectionId;
+  }
+
+  /**
+   * 관심과 함께 보낸 인사말을 대화방 첫 메시지로 옮긴다.
+   *
+   * 상호 하트가 되면 빈 채팅방이 열리는데, 처음 말을 트는 부담 때문에 거기서
+   * 그대로 멈추는 경우가 많다. 이미 서로 건넨 한마디가 남아 있으면 대화가
+   * 이어질 여지가 생긴다.
+   *
+   * 보낸 시각 순서를 지킨다 — 먼저 관심을 보낸 쪽의 인사말이 위에 와야
+   * 대화가 자연스럽게 읽힌다.
+   */
+  private async carryOverHeartMessages(
+    conversationId: string,
+    userId: string,
+    myProfileId: string,
+    otherUserId: string,
+    otherProfileId: string
+  ): Promise<void> {
+    const client = this.supabase.getClient();
+
+    const { data: hearts } = await client
+      .from('hearts')
+      .select('sender_user_id, message, created_at')
+      .or(
+        `and(sender_user_id.eq.${userId},target_parent_profile_id.eq.${otherProfileId}),` +
+          `and(sender_user_id.eq.${otherUserId},target_parent_profile_id.eq.${myProfileId})`
+      )
+      .not('message', 'is', null)
+      .order('created_at', { ascending: true });
+
+    if (!hearts?.length) return;
+
+    const { error } = await client.from('messages').insert(
+      hearts.map((heart) => ({
+        conversation_id: conversationId,
+        sender_user_id: heart.sender_user_id,
+        body: heart.message as string,
+        sent_at: heart.created_at as string,
+      }))
+    );
+
+    if (error) {
+      // 인사말 이관이 실패해도 인연 자체는 살아 있어야 한다
+      this.logger.warn(`heart message carry-over failed: ${error.message}`);
+    }
   }
 
   async pass(userId: string, targetProfileId: string): Promise<void> {
@@ -177,7 +235,7 @@ export class HeartsService {
 
     let query = client
       .from('hearts')
-      .select('id, sender_user_id, created_at, read_at')
+      .select('id, sender_user_id, created_at, read_at, message')
       .eq('target_parent_profile_id', myProfileId) // 내 프로필이 받은 것만
       .order('created_at', { ascending: false })
       .limit(limit + 1);
@@ -235,6 +293,7 @@ export class HeartsService {
           heartId: r.id,
           createdAt: r.created_at,
           read: !!r.read_at,
+          message: r.message ?? null,
           profile: byUser.get(r.sender_user_id)!,
         })),
       nextCursor: hasMore && page.length ? page[page.length - 1].created_at : null,

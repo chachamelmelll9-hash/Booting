@@ -3,7 +3,14 @@ import {
   useReceivedHearts,
   useSendHeartBack,
 } from '@features/hearts';
-import { EmptyState, ProfileDeck, Screen, SkeletonList, useToast } from '@shared/ui';
+import {
+  EmptyState,
+  HeartMessageSheet,
+  ProfileDeck,
+  Screen,
+  SkeletonList,
+  useToast,
+} from '@shared/ui';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 
@@ -21,12 +28,32 @@ export default function HeartsScreen() {
   const sendBack = useSendHeartBack();
   const pass = usePassReceivedHeart();
   const [index, setIndex] = useState(0);
+  const [composeOpen, setComposeOpen] = useState(false);
 
   const items = useMemo(
     () => hearts.data?.pages.flatMap((page) => page.items) ?? [],
     [hearts.data]
   );
   const current = items[index];
+
+  const sendHeartBack = (message?: string) => {
+    if (!current) return;
+    sendBack.mutate(
+      { targetProfileId: current.profile.profileId, message },
+      {
+        onSuccess: (result) => {
+          setComposeOpen(false);
+          advance();
+          if (result.mutual && result.connectionId) {
+            router.push(`/matched/${result.connectionId}`);
+          } else {
+            toast.show({ message: '관심을 보냈습니다' });
+          }
+        },
+        onError: (error: Error) => toast.show({ message: error.message }),
+      }
+    );
+  };
 
   const advance = () => {
     setIndex((i) => i + 1);
@@ -84,22 +111,19 @@ export default function HeartsScreen() {
         index={index}
         busy={sendBack.isPending || pass.isPending}
         note={`받은 관심 ${index + 1} / ${items.length}`}
+        highlight={current.message}
         testID="hearts-deck"
         onDetail={() => router.push(`/profile/${current.profile.profileId}`)}
-        onHeart={() =>
-          sendBack.mutate(current.profile.profileId, {
-            onSuccess: (result) => {
-              advance();
-              if (result.mutual && result.connectionId) {
-                router.push(`/matched/${result.connectionId}`);
-              } else {
-                toast.show({ message: '관심을 보냈습니다' });
-              }
-            },
-            onError: (error: Error) => toast.show({ message: error.message }),
-          })
-        }
+        onHeart={() => setComposeOpen(true)}
         onPass={() => pass.mutate(current.profile.profileId, { onSuccess: advance })}
+      />
+
+      <HeartMessageSheet
+        visible={composeOpen}
+        toName={current.profile.maskedName}
+        busy={sendBack.isPending}
+        onSend={(message) => sendHeartBack(message)}
+        onDismiss={() => setComposeOpen(false)}
       />
     </Screen>
   );
