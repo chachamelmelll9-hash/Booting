@@ -64,15 +64,17 @@ User 1──N Notification
 | Heart ↔ Heart | — | 역방향 하트가 존재하면 서버가 Connection 을 생성 (상호 하트 = 대화 연결) |
 | User ↔ User | N:M | Connection 이 두 자녀와 두 부모님 프로필을 함께 들고 있는 교차 엔티티 |
 | Connection → Conversation | 1:1 | 상호 하트 성립 시점에만 생성 |
-| Connection → ParentIntent | 1:N | 참여자당 1건, 양측 `willing` 이어야 Meeting 생성 가능 |
-| Meeting → MeetingConfirmation | 1:N | 참여자당 1건. **2건 모두 존재해야** Connection.status = `matched` |
+| Connection → ParentIntent | 1:N | 참여자당 1건. **양측 `willing` 이 모이면 Connection.status = `matched`** (매칭 판정 지점) |
+| Meeting → MeetingConfirmation | 1:N | 참여자당 1건. 만남 기록용 — 앱 동선에서는 쓰지 않는다 |
 | Meeting → MeetingFeedback | 1:N | 참여자당 1건. 작성자 본인만 조회 가능 (RLS) |
 
 ## Notes
 
 - 논리 모델 수준이다 (Supabase 테이블/Zustand 스토어 매핑은 구현 단계에서 결정).
 - `User`는 **자녀**다. 부모님은 계정을 갖지 않고 `ParentProfile` + `ParentConsent`로만 존재한다.
-- **최종 매칭은 서버만 판정한다.** `MeetingConfirmation` 2건이 모인 순간에만 `Connection.status`가 `matched`로 전이되며, 클라이언트가 이 상태를 직접 쓸 수 없다.
+- **매칭은 서버만 판정한다.** `ParentIntent.intent='willing'` 2건이 모인 순간에만 `Connection.status`가 `matched`로 전이되며, 클라이언트가 이 상태를 직접 쓸 수 없다. 한쪽만 답한 동안에는 `parent_intent` 다 — 한쪽 답변으로 매칭을 띄우면 상대 부모님은 아무 말도 안 했는데 성사된 것처럼 보인다.
+- **`matched` 는 종착점이다.** `ended` 외의 어떤 상태로도 되돌아가지 않는다 (`ConnectionsService.setStatus`). 만남 일정 API 를 뒤늦게 부르더라도 마찬가지다 — 한 번 본 '매칭 성공'이 취소된 것처럼 보이면 안 된다.
+- **인사말 이관도 상태를 올린다.** 관심과 함께 보낸 인사말은 `Message` 로 직접 들어가므로 메시지 전송 경로의 전이를 타지 않는다. 양쪽 인사말이 모두 옮겨졌으면 `chatting` 으로 올린다 — 서로 인사를 주고받았는데 '대화 연결'이면 사용자는 자기 말이 반영되지 않았다고 느낀다.
 - 민감정보 분리: 가족관계증명서 원문은 어떤 엔티티에도 공개 컬럼으로 두지 않고 비공개 Storage 버킷 + `ChildVerification.family_doc_status` 결과 플래그만 유지한다 (PRD 15장).
 - 위치는 `region_code`(시·군·구)와 그 대표 좌표만 저장한다. 실시간 좌표는 수집하지 않는다.
 - 자동 비공개: `ParentProfile.last_active_at` 기준 60일 초과 시 `status=hidden` (TODO-11).

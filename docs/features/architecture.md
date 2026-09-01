@@ -427,7 +427,9 @@ apps/server/src/
 - **Dependencies**: SupabaseService, notifications
 
 #### meetings/
-- **Responsibility**: 부모님 의사 → 일정 → 확인 → 비공개 응답. `match.service.ts`가 **최종 매칭 전이의 유일한 지점**
+- **Responsibility**: 부모님 의사 → (일정 → 확인) → 비공개 응답
+- **매칭 판정은 `recordParentIntent`**: 같은 인연에 `parent_intents.intent='willing'` 이 2건 모이면 `matched`. 한쪽만으로는 `parent_intent` 에 머문다 — 한쪽 답변으로 '매칭 성공'을 띄우면 상대 부모님은 아무 말도 안 했는데 성사된 것처럼 보인다
+- **일정·만남 확인 API 는 남아 있지만 앱 동선에서는 쓰지 않는다.** 사후 응답이 완료된 만남을 전제로 하고, 나중에 다시 꺼낼 여지를 남겼다
 - **Endpoints**: 7개
 - **Dependencies**: connections(상태 전이), notifications
 
@@ -518,7 +520,9 @@ DiscoveryItemDto & {
 ```typescript
 {
   meeting: MeetingDto;
-  connectionStatus: 'meeting_confirm_pending' | 'matched';  // 서버가 판정한 값
+  // 반영 후 connection 의 **실제** 상태. 이미 matched 면 matched 그대로다 —
+  // matched 는 종착점이라 일정 API 로 되돌릴 수 없다 (ConnectionsService.setStatus)
+  connectionStatus: ConnectionStatus;
 }
 ```
 

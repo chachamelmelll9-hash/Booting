@@ -39,7 +39,7 @@
 - **Source Spec**: `docs/features/heart-conversation.md`
 - **User Goal**: 우리 부모님께 관심을 보낸 분을 확인하고, 서로 관심이 맞은 상대의 자녀와 대화해 부모님께 소개할지 판단한다
 - **Summary**: 받은 하트 목록에서 하트를 되돌려주면 상호 하트가 성립하고 자녀 간 1:1 메시지가 열린다. 이 단계는 '매칭 성공'이 아니라 **'대화 연결'**이며 그 표현을 화면·알림 어디에서도 쓰지 않는다. 채팅방에서 신고·차단을 바로 쓸 수 있고, 외부 연락처 공유 전 안전수칙을 안내한다.
-- **Journey Steps**: 발견(배지·푸시) → 진입(받은 하트 목록) → 결과(상호 하트 = 대화 연결) → 후속(자녀 간 메시지) → 후속(인연 관리 상태 추적) → 이탈(대화 종료·차단)
+- **Journey Steps**: 발견(배지·푸시) → 진입(받은 하트 목록) → 결과(상호 하트 = 대화 연결) → 후속(자녀 간 메시지) → 후속(매칭 탭 상태 추적) → 이탈(대화 종료·차단)
 - **Key Screens**: `/(tabs)/hearts`, `/hearts/matched/[id]`, `/(tabs)/connections`, `/(tabs)/messages`, `/messages/[conversationId]`
 - **Core Data**: Heart, Connection, Conversation, Message, Block, Report, Notification
 - **Key Decisions**: 메시지는 상호 하트 성립 시에만 활성 / 대화 주체는 자녀 (부모님 직접 참여는 P2) / 상태 문구는 PRD 10.3의 9개 목록과 글자 단위로 일치 / 안전 배너는 최초 진입 1회 후 접힘 / 위험 문구 감지는 P1 / 최종 매칭 후 채팅방 90일 유지(TODO-12)
@@ -47,12 +47,12 @@
 ### 첫 만남 & 최종 매칭 확정
 
 - **Source Spec**: `docs/features/first-meeting-match.md`
-- **User Goal**: 각자 부모님의 만남 의사를 확인하고 안전한 자리에서 첫 만남을 잡은 뒤, 만남이 실제로 이뤄졌음을 양측이 확인해 인연을 매듭짓는다
-- **Summary**: 부모님 의사 확인 → 양측 동의 → 일정 조율 → 자녀 동반 첫 만남 → 양측 '부모님끼리 만났어요' 확인 → 최종 매칭 성공. 한쪽만 확인하면 '상대방의 만남 확인을 기다리고 있어요' 상태이며 3일 후 재알림한다. 만남 이후 비공개 응답은 상대에게 평가·점수로 공개하지 않는다.
-- **Journey Steps**: 발견(채팅방 진입점) → 입력(부모님 의사 확인) → 입력(일정 등록) → 분기(자녀 미동행 확인) → 대기(만남 전 리마인드) → 결과(양측 확인 → 최종 매칭) → 후속(비공개 응답) → 이탈·완료
+- **User Goal**: 각자 부모님의 만남 의사를 확인하고, 양측 의사가 모이면 매칭을 매듭짓는다
+- **Summary**: 부모님 의사 확인 → **양측이 '만나보고 싶다'면 그 자리에서 매칭 성공**. 한쪽만 답한 동안에는 '부모님 의사 확인' 상태에 머문다. 약속 시간·장소는 앱이 관리하지 않고 자녀분들이 채팅으로 정한다(일정 API 는 남아 있으나 앱 동선에서는 쓰지 않는다). 만남 이후 비공개 응답은 상대에게 평가·점수로 공개하지 않는다.
+- **Journey Steps**: 발견(채팅방 진입점) → 입력(부모님 의사 확인) → 결과(양측 동의 → 매칭 성공) → 후속(비공개 응답) → 이탈·완료
 - **Key Screens**: `/(tabs)/connections`, `/connections/[id]/parent-intent`, `/connections/[id]/meeting`, `/connections/[id]/meeting/solo-confirm`, `/connections/[id]/meeting/confirm`, `/connections/[id]/meeting/feedback`
 - **Core Data**: Connection, ParentIntent, Meeting, MeetingConfirmation, MeetingFeedback, Notification
-- **Key Decisions**: 자녀 동행은 강력 권장 + 미동행 시 사유 입력·안전수칙 재확인(TODO-03·14) / 최종 매칭은 양측 확인이 모인 뒤 **서버만** 판정 / 만남 확인은 만남 예정 시각 이후에만 가능 / 미확인 재알림 3일 후 1회 / 사후 응답은 작성자 본인만 조회(RLS) / 공공장소 자동 추천은 P1
+- **Key Decisions**: 매칭은 **양측 부모님 의사가 모인 뒤 서버만** 판정 (한쪽 답변으로는 절대 매칭되지 않는다) / `matched` 는 종착점이라 이후 어떤 API 호출로도 되돌아가지 않는다 / 자녀 동행 권장·미동행 사유(TODO-03·14)는 API 에 남아 있으나 앱 동선에서는 안내하지 않는다 / 사후 응답은 작성자 본인만 조회(RLS)
 
 ## 전 기능 공통 제약 (다운스트림 스킬이 반드시 지켜야 할 것)
 
