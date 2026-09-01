@@ -8,6 +8,7 @@ import {
 
 import { domainError, ERROR_CODES } from '../common/constants/errors';
 import { Page } from '../common/dto/pagination.dto';
+import { ConnectionsService } from '../connections/connections.service';
 import { DiscoveryService } from '../discovery/discovery.service';
 import { NotificationsPublisher } from '../notifications/notifications.publisher';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -20,7 +21,8 @@ export class HeartsService {
   constructor(
     private readonly supabase: SupabaseService,
     private readonly discovery: DiscoveryService,
-    private readonly notifications: NotificationsPublisher
+    private readonly notifications: NotificationsPublisher,
+    private readonly connections: ConnectionsService
   ) {}
 
   /**
@@ -162,7 +164,23 @@ export class HeartsService {
       .single();
 
     if (conversation) {
-      await this.carryOverHeartMessages(conversation.id, userId, myProfileId, otherUserId, otherProfileId);
+      const bothGreeted = await this.carryOverHeartMessages(
+        conversation.id,
+        userId,
+        myProfileId,
+        otherUserId,
+        otherProfileId
+      );
+      /**
+       * 양쪽 인사말이 옮겨졌으면 이미 대화가 오간 것이다.
+       *
+       * 인사말은 `messages` 에 직접 넣기 때문에 메시지 전송 경로의 상태 전이를
+       * 타지 않는다. 그대로 두면 서로 인사를 주고받았는데도 '대화 연결'에
+       * 머물러, 사용자는 자기가 보낸 말이 반영되지 않았다고 느낀다.
+       */
+      if (bothGreeted) {
+        await this.connections.setStatus(connectionId, 'chatting');
+      }
     }
 
     return connectionId;
@@ -177,6 +195,8 @@ export class HeartsService {
    *
    * 보낸 시각 순서를 지킨다 — 먼저 관심을 보낸 쪽의 인사말이 위에 와야
    * 대화가 자연스럽게 읽힌다.
+   *
+   * @returns 양쪽 모두 인사말을 남겼는지 (상태를 '대화 중'으로 올릴지 판단용)
    */
   private async carryOverHeartMessages(
     conversationId: string,
@@ -184,7 +204,7 @@ export class HeartsService {
     myProfileId: string,
     otherUserId: string,
     otherProfileId: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     const client = this.supabase.getClient();
 
     const { data: hearts } = await client
@@ -197,7 +217,7 @@ export class HeartsService {
       .not('message', 'is', null)
       .order('created_at', { ascending: true });
 
-    if (!hearts?.length) return;
+    if (!hearts?.length) return false;
 
     const { error } = await client.from('messages').insert(
       hearts.map((heart) => ({
@@ -211,7 +231,11 @@ export class HeartsService {
     if (error) {
       // 인사말 이관이 실패해도 인연 자체는 살아 있어야 한다
       this.logger.warn(`heart message carry-over failed: ${error.message}`);
+      return false;
     }
+
+    const senders = new Set(hearts.map((heart) => heart.sender_user_id));
+    return senders.has(userId) && senders.has(otherUserId);
   }
 
   async pass(userId: string, targetProfileId: string): Promise<void> {

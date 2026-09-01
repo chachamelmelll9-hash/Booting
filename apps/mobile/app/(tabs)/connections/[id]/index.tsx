@@ -6,7 +6,6 @@ import {
   useMessages,
   useSendMessage,
 } from '@features/connections';
-import { meetingPhase, useMeeting } from '@features/meetings';
 import { bootingKeys } from '@shared/api/booting';
 import { theme } from '@shared/config/colors';
 import { statusDescription } from '@shared/config/connectionStatus';
@@ -47,7 +46,6 @@ export default function ChatRoomScreen() {
   const queryClient = useQueryClient();
 
   const { data: connection, isLoading } = useConnection(id);
-  const { data: meeting } = useMeeting(id);
   const messagesQuery = useMessages(id);
   const sendMessage = useSendMessage(id ?? '');
   const endConnection = useEndConnection(id ?? '');
@@ -95,28 +93,20 @@ export default function ChatRoomScreen() {
     );
   }
 
-  const phase = meetingPhase(meeting);
   const canWrite = !connection.readOnly && connection.status !== 'ended';
 
+  /**
+   * 대화방에서 안내하는 다음 한 걸음.
+   *
+   * 동선은 **부모님 의사 확인에서 끝난다** — 양측 부모님이 만나보고 싶다고
+   * 하시면 매칭 성공이고, 그 뒤 일정 조율은 앱이 대신할 일이 아니라 자녀분들이
+   * 대화로 정할 일이다. 여기서 만남 일정·확인·후기까지 이어 붙이면 이미 매칭된
+   * 사람에게 계속 할 일이 남은 것처럼 보인다.
+   */
   const nextAction = (() => {
-    if (connection.status === 'ended') return null;
+    if (connection.status === 'ended' || connection.status === 'matched') return null;
     if (!connection.myParentIntent) {
       return { label: '부모님 의사 확인하기', href: `/(tabs)/connections/${id}/parent-intent` };
-    }
-    if (phase === 'none' && connection.status === 'parent_intent') {
-      return { label: '만남 일정 제안하기', href: `/(tabs)/connections/${id}/meeting` };
-    }
-    if (phase === 'accept-required') {
-      return { label: '제안된 일정 확인하기', href: `/(tabs)/connections/${id}/meeting` };
-    }
-    if (phase === 'confirmable') {
-      return { label: '만남을 확인해주세요', href: `/(tabs)/connections/${id}/meeting-confirm` };
-    }
-    if (phase === 'completed' && !meeting?.myFeedback) {
-      return { label: '만남 후기 남기기', href: `/(tabs)/connections/${id}/feedback` };
-    }
-    if (meeting) {
-      return { label: '만남 일정 보기', href: `/(tabs)/connections/${id}/meeting` };
     }
     return null;
   })();

@@ -1,6 +1,7 @@
 ﻿import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -20,6 +21,8 @@ export interface ConnectionContext {
 
 @Injectable()
 export class ConnectionsService {
+  private readonly logger = new Logger(ConnectionsService.name);
+
   constructor(
     private readonly supabase: SupabaseService,
     private readonly discovery: DiscoveryService
@@ -199,15 +202,40 @@ export class ConnectionsService {
     return this.getOne(connectionId, userId);
   }
 
-  /** 상태 전이는 서버만 한다 — meetings 모듈이 호출한다 */
-  async setStatus(connectionId: string, status: ConnectionStatus): Promise<void> {
-    await this.supabase
-      .getClient()
+  /**
+   * 상태 전이는 서버만 한다 — meetings·hearts 모듈이 호출한다.
+   *
+   * `matched` 는 종착점이다. 매칭된 뒤에 만남 일정 API 를 부르더라도 상태를
+   * 되돌리지 않는다 — 한 번 '매칭 성공'을 본 사용자에게 그게 취소된 것처럼
+   * 보이면 안 된다. 되돌릴 수 있는 건 종료뿐이다.
+   *
+   * 실제로 적용된 상태를 돌려준다 (거부됐으면 기존 상태).
+   */
+  async setStatus(connectionId: string, status: ConnectionStatus): Promise<ConnectionStatus> {
+    const client = this.supabase.getClient();
+
+    const { data: current } = await client
+      .from('connections')
+      .select('status')
+      .eq('id', connectionId)
+      .maybeSingle();
+
+    const currentStatus = current?.status as ConnectionStatus | undefined;
+    if (currentStatus === 'matched' && status !== 'ended') return 'matched';
+
+    const { error } = await client
       .from('connections')
       .update({
         status,
         ...(status === 'matched' ? { matched_at: new Date().toISOString() } : {}),
       })
       .eq('id', connectionId);
+
+    if (error) {
+      // 조용히 넘기면 '메시지는 보냈는데 상태는 그대로'인 인연이 남는다
+      this.logger.error(`setStatus(${connectionId}, ${status}) failed: ${error.message}`);
+      return currentStatus ?? status;
+    }
+    return status;
   }
 }

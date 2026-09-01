@@ -79,11 +79,32 @@ export function statusDescription(status: ConnectionStatus): string {
   return CONNECTION_STATUS[status]?.description ?? '';
 }
 
-/** 인연 목록 필터 칩 순서 */
-export const CONNECTION_FILTERS: { key: ConnectionStatus | 'all'; label: string }[] = [
-  { key: 'all', label: '전체' },
-  { key: 'chatting', label: '대화 중' },
-  { key: 'meeting_scheduled', label: '만남 예정' },
-  { key: 'matched', label: '매칭 성공' },
-  { key: 'ended', label: '종료' },
+export type ConnectionFilterKey = 'all' | 'matched';
+
+/**
+ * 인연 목록 필터 칩.
+ *
+ * 둘뿐이다. 진행 중인 인연은 어차피 '전체'에 다 있고, 목록에서 따로 찾고 싶은
+ * 건 "만나기로 된 분"뿐이다. 상태별 세부는 각 행의 배지가 이미 보여준다.
+ *
+ * 어떤 상태도 칩에서 누락되지 않게 `statuses` 로 묶어 둔다 — 칩을 눌렀는데
+ * 어디에도 안 나오는 인연이 생기면 목록이 고장 난 것처럼 보인다.
+ */
+export const CONNECTION_FILTERS: {
+  key: ConnectionFilterKey;
+  label: string;
+  statuses: ConnectionStatus[] | null;
+}[] = [
+  { key: 'all', label: '전체', statuses: null },
+  {
+    key: 'matched',
+    label: '매칭',
+    statuses: ['meeting_scheduled', 'meeting_confirm_pending', 'matched'],
+  },
 ];
+
+export function matchesFilter(status: ConnectionStatus, key: ConnectionFilterKey): boolean {
+  const filter = CONNECTION_FILTERS.find((f) => f.key === key);
+  if (!filter || !filter.statuses) return true;
+  return filter.statuses.includes(status);
+}

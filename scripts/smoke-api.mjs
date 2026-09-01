@@ -451,7 +451,9 @@ async function main() {
 
   const connections = await a.expect('GET', '/connections', null, 'A connections');
   const conn = connections.find((c) => c.id === connectionId);
-  check('인연 상태는 mutual_heart', conn?.status === 'mutual_heart', conn?.status);
+  // 양쪽이 인사말을 주고받았으므로 이미 대화가 오간 상태다.
+  // (인사말 없이 하트만 오간 경우에는 mutual_heart 에 머문다)
+  check('양쪽 인사말이 오갔으면 chatting', conn?.status === 'chatting', conn?.status);
   check(
     'SEC.4 인연 목록에도 실명이 없다',
     !JSON.stringify(connections).includes('이영희')
@@ -474,7 +476,7 @@ async function main() {
     check('제3자는 인연 존재 여부도 알 수 없다', peek.status === 404, `status=${peek.status}`);
   }
 
-  console.log('\n[10] 부모님 의사 → 만남 일정');
+  console.log('\n[10] 부모님 의사 → 매칭 (양측이 있어야만 성립)');
   const early = await a.call('POST', `/connections/${connectionId}/meeting`, {
     meetAt: new Date(Date.now() - 3600_000).toISOString(),
     place: '카페',
@@ -482,15 +484,24 @@ async function main() {
   });
   check('의사 확인 전 일정 제안 거부', early.status === 400, `status=${early.status}`);
 
-  await a.expect('POST', `/connections/${connectionId}/parent-intent`, { intent: 'willing' }, 'A intent');
+  const oneIntent = await a.expect(
+    'POST',
+    `/connections/${connectionId}/parent-intent`,
+    { intent: 'willing' },
+    'A intent'
+  );
+  check("한쪽 의사만으로는 'parent_intent'", oneIntent.status === 'parent_intent', oneIntent.status);
+  check('한쪽 의사 시점에 matched 가 아니다', oneIntent.status !== 'matched');
+
   const afterIntent = await b.expect(
     'POST',
     `/connections/${connectionId}/parent-intent`,
     { intent: 'willing' },
     'B intent'
   );
-  check("양측 의사 확인 후 상태 'parent_intent'", afterIntent.status === 'parent_intent', afterIntent.status);
+  check('양측 의사 확인 → matched', afterIntent.status === 'matched', afterIntent.status);
 
+  console.log('\n[11] 만남 일정 — 매칭 이후 기록용');
   const soloBad = await a.call('POST', `/connections/${connectionId}/meeting`, {
     meetAt: new Date(Date.now() - 3600_000).toISOString(),
     place: '분당 카페',
@@ -516,21 +527,22 @@ async function main() {
   const accepted = await b.expect('POST', `/connections/${connectionId}/meeting/accept`, null, 'B accept');
   check('상대 수락 → accepted', accepted.status === 'accepted', accepted.status);
 
-  console.log('\n[11] 최종 매칭 — 양측 확인이 있어야만 성립');
+  // 매칭은 이미 성립했다. 일정 API 를 어떻게 부르든 그 상태를 되돌리지 않는다 —
+  // '매칭 성공'을 본 사용자에게 그게 취소된 것처럼 보이면 안 된다.
   const confirm1 = await a.expect('POST', `/connections/${connectionId}/meeting/confirm`, null, 'A confirm');
   check(
-    '한쪽만 확인 → meeting_confirm_pending (matched 아님)',
-    confirm1.connectionStatus === 'meeting_confirm_pending',
-    confirm1.connectionStatus
+    '한쪽 확인으로 만남은 confirm_pending',
+    confirm1.meeting.status === 'confirm_pending',
+    confirm1.meeting.status
   );
-  check('한쪽 확인 시점에 matched 가 아니다', confirm1.connectionStatus !== 'matched');
+  check('매칭 상태는 되돌아가지 않는다', confirm1.connectionStatus === 'matched', confirm1.connectionStatus);
 
   const dupeConfirm = await a.call('POST', `/connections/${connectionId}/meeting/confirm`);
   check('같은 사람의 중복 확인 거부', dupeConfirm.status === 400, `status=${dupeConfirm.status}`);
 
   const confirm2 = await b.expect('POST', `/connections/${connectionId}/meeting/confirm`, null, 'B confirm');
-  check('양측 확인 → matched', confirm2.connectionStatus === 'matched', confirm2.connectionStatus);
   check('만남 status=completed', confirm2.meeting.status === 'completed', confirm2.meeting.status);
+  check('여전히 matched', confirm2.connectionStatus === 'matched', confirm2.connectionStatus);
 
   console.log('\n[12] 사후 응답 비공개');
   const fb = await a.call('POST', `/connections/${connectionId}/meeting/feedback`, { response: 'continue' });

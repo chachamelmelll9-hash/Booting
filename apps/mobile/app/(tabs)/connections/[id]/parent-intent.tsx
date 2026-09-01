@@ -87,10 +87,12 @@ export default function ParentIntentScreen() {
       </View>
 
       {connection?.partnerRespondedIntent ? (
-        <Text style={styles.note}>상대측은 이미 답변을 보냈습니다.</Text>
+        <Text style={styles.note}>
+          상대측은 이미 답변을 보냈습니다. &lsquo;만나보고 싶다&rsquo;를 고르시면 매칭됩니다.
+        </Text>
       ) : (
         <Text style={styles.note}>
-          양측 모두 &lsquo;만나보고 싶다&rsquo;고 답해야 만남 일정을 잡을 수 있습니다.
+          양측 모두 &lsquo;만나보고 싶다&rsquo;고 답해야 매칭이 성립합니다.
         </Text>
       )}
 

@@ -2,7 +2,8 @@
 import { theme } from '@shared/config/colors';
 import {
   CONNECTION_FILTERS,
-  type ConnectionStatus,
+  type ConnectionFilterKey,
+  matchesFilter,
 } from '@shared/config/connectionStatus';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import {
@@ -13,13 +14,25 @@ import {
   SkeletonList,
 } from '@shared/ui';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function ConnectionsScreen() {
   const router = useRouter();
-  const [filter, setFilter] = useState<ConnectionStatus | 'all'>('all');
-  const { data: connections, isLoading, isError, refetch } = useConnections(filter);
+  const [filter, setFilter] = useState<ConnectionFilterKey>('all');
+
+  /**
+   * 목록은 항상 통째로 받아 화면에서 거른다.
+   *
+   * 칩 하나가 상태 여러 개를 묶고 있어서 서버 쿼리로 나누려면 상태 목록을
+   * 쿼리 문자열로 넘겨야 하는데, 인연은 많아야 수십 건이라 그럴 값어치가 없다.
+   * 칩을 바꿀 때마다 재요청도 사라진다.
+   */
+  const { data: all, isLoading, isError, refetch } = useConnections('all');
+  const connections = useMemo(
+    () => (all ?? []).filter((c) => matchesFilter(c.status, filter)),
+    [all, filter]
+  );
 
   return (
     <Screen>

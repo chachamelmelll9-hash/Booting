@@ -26,8 +26,13 @@ export class MatchService {
   ) {}
 
   /**
-   * 만남 확인 1건을 반영하고, 두 건이 모였을 때만 matched 로 전이한다.
-   * @returns 전이 후의 connection 상태
+   * 만남 확인 1건을 반영한다.
+   *
+   * 매칭 자체는 이제 부모님 의사 확인 단계에서 결정된다 — 여기서는 만남
+   * 기록(meetings.status)만 진행시킨다. `setStatus` 가 matched 를 되돌리지
+   * 않으므로, 이미 매칭된 인연은 상태가 그대로 유지된다.
+   *
+   * @returns 반영 후의 실제 connection 상태
    */
   async applyConfirmation(
     meetingId: string,
@@ -49,7 +54,7 @@ export class MatchService {
         .from('meetings')
         .update({ status: 'confirm_pending' })
         .eq('id', meetingId);
-      await this.connections.setStatus(connectionId, 'meeting_confirm_pending');
+      const status = await this.connections.setStatus(connectionId, 'meeting_confirm_pending');
 
       await this.notifications.publish({
         userId: partnerUserId,
@@ -59,20 +64,20 @@ export class MatchService {
       });
 
       this.logger.log(
-        `meeting ${meetingId}: ${confirmations}/2 confirmed — still meeting_confirm_pending`
+        `meeting ${meetingId}: ${confirmations}/2 confirmed — connection ${status}`
       );
-      return 'meeting_confirm_pending';
+      return status;
     }
 
     await client.from('meetings').update({ status: 'completed' }).eq('id', meetingId);
-    await this.connections.setStatus(connectionId, 'matched');
+    const status = await this.connections.setStatus(connectionId, 'matched');
 
     await this.notifications.publishMany([
       { userId, type: 'matched', connectionId, payload: { meetingId } },
       { userId: partnerUserId, type: 'matched', connectionId, payload: { meetingId } },
     ]);
 
-    this.logger.log(`meeting ${meetingId}: 2/2 confirmed — connection ${connectionId} matched`);
-    return 'matched';
+    this.logger.log(`meeting ${meetingId}: 2/2 confirmed — connection ${connectionId} ${status}`);
+    return status;
   }
 }

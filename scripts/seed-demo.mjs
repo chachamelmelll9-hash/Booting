@@ -563,6 +563,47 @@ async function main() {
     return;
   }
 
+  /**
+   * 시드 상대측 부모님이 "만나보고 싶다"를 미리 등록한다.
+   *
+   * 매칭은 **양측** 부모님 의사가 모여야 성립한다. 시드 계정은 앱을 쓰지 않으니
+   * 그대로 두면 데모에서 매칭 성공을 볼 방법이 없다. 상대측만 미리 채워 두면
+   * demo 가 한 번 누르는 순간 두 사람 조건이 충족돼 매칭된다 —
+   * 규칙을 느슨하게 만들지 않고 데모만 굴러가게 하는 방법이다.
+   */
+  if (process.argv.includes('--partner-intent')) {
+    const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const demo = list.users.find((u) => u.email === `demo@${DOMAIN}`);
+    if (!demo) throw new Error('demo 계정이 없습니다');
+
+    const { data: connections } = await admin
+      .from('connections')
+      .select('id, user_a_id, user_b_id, status')
+      .or(`user_a_id.eq.${demo.id},user_b_id.eq.${demo.id}`)
+      .neq('status', 'ended');
+
+    const rows = (connections ?? []).map((c) => ({
+      connection_id: c.id,
+      user_id: c.user_a_id === demo.id ? c.user_b_id : c.user_a_id,
+      intent: 'willing',
+      responded_at: new Date().toISOString(),
+    }));
+
+    if (!rows.length) {
+      console.log('진행 중인 인연이 없습니다. 먼저 하트를 주고받으세요.');
+      return;
+    }
+
+    const { error } = await admin
+      .from('parent_intents')
+      .upsert(rows, { onConflict: 'connection_id,user_id' });
+    if (error) throw new Error(`parent_intents: ${error.message}`);
+
+    console.log(`상대측 부모님 의사 ${rows.length}건 등록 완료.`);
+    console.log('→ 대화방에서 [부모님 의사 확인하기]를 누르면 바로 매칭 성공이 됩니다.');
+    return;
+  }
+
   // 앱에서 "안 된다"고 할 때 서버 쪽에서 같은 동작을 재현해 본다
   if (process.argv.includes('--diagnose')) {
     const res = await fetch(`${API}/auth/dev-login`, {

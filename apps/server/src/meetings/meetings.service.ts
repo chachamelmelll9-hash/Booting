@@ -56,7 +56,22 @@ export class MeetingsService {
       return this.connections.getOne(connectionId, userId);
     }
 
-    if (['mutual_heart', 'chatting'].includes(ctx.row.status)) {
+    /**
+     * 매칭은 여기서 결정된다 — **양측 부모님이 모두 만날 의사를 밝혔을 때만**.
+     *
+     * 한쪽이 눌렀다고 '매칭 성공'을 띄우면, 상대 부모님은 아직 아무 말도 하지
+     * 않았는데 성사된 것처럼 보인다. 이 두 사람 규칙은 이 앱에서 가장 오해가
+     * 비싼 지점이라 상태 하나에 그대로 박아 둔다.
+     */
+    const { data: intents } = await client
+      .from('parent_intents')
+      .select('user_id, intent')
+      .eq('connection_id', connectionId);
+
+    const willing = (intents ?? []).filter((i) => i.intent === 'willing');
+    if (willing.length >= 2) {
+      await this.connections.setStatus(connectionId, 'matched');
+    } else if (['mutual_heart', 'chatting'].includes(ctx.row.status)) {
       await this.connections.setStatus(connectionId, 'parent_intent');
     }
 

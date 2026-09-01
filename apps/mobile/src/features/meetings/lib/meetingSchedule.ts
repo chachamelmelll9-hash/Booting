@@ -5,7 +5,8 @@ export const PARENT_INTENT_LABELS: {
   label: string;
   hint: string;
 }[] = [
-  { key: 'willing', label: '만나보고 싶다고 하세요', hint: '만남 일정을 잡을 수 있습니다' },
+  // 양측이 모두 이걸 고르면 매칭이 성립한다 — 그 이후 약속은 대화로 정하시면 된다
+  { key: 'willing', label: '만나보고 싶다고 하세요', hint: '양측이 모두 답하면 매칭됩니다' },
   { key: 'thinking', label: '조금 더 생각해 보신대요', hint: '나중에 다시 여쭤볼 수 있습니다' },
   { key: 'declined', label: '만나지 않겠다고 하세요', hint: '대화가 종료됩니다' },
 ];
