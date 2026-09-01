@@ -20,11 +20,22 @@ const BADGE_LABELS: { key: keyof Badges; label: string }[] = [
 export function VerificationBadgeRow({
   badges,
   compact = false,
+  scope = 'public',
 }: {
   badges: Badges;
   compact?: boolean;
+  /**
+   * public — 남에게 보이는 카드·상세. 검수 상태는 빼고 신뢰 근거 3종만 보여준다.
+   * owner  — 내 프로필 상태 화면. 여기서는 검수 진행 여부가 실제 정보다.
+   */
+  scope?: 'public' | 'owner';
 }) {
-  const visible = compact ? BADGE_LABELS.filter((b) => badges[b.key]) : BADGE_LABELS;
+  // '검수 완료'는 내부 심사 상태다. 공개된 프로필은 이미 검수를 통과한 것이라
+  // 남에게 보여주면 중복이고, 운영 용어가 그대로 노출돼 어색하다.
+  const labels =
+    scope === 'owner' ? BADGE_LABELS : BADGE_LABELS.filter((b) => b.key !== 'review');
+
+  const visible = compact ? labels.filter((b) => badges[b.key]) : labels;
 
   return (
     <View style={styles.row}>

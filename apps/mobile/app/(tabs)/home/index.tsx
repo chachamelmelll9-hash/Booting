@@ -1,5 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
+  filterSummary,
   radiusLabel,
   useDiscoveryFeed,
   useHeartActions,
@@ -150,7 +151,9 @@ export default function HomeScreen() {
         <EmptyState
           icon="search"
           title="조건에 맞는 분이 더 없습니다"
-          description="거리나 나이 조건을 넓히면 더 많은 분을 만나실 수 있습니다."
+          // 지금 걸려 있는 조건을 그대로 보여준다 — 무엇 때문에 비었는지
+          // 알아야 사용자가 고칠 수 있다
+          description={`현재 조건: ${filterSummary(filter)}\n거리나 나이 조건을 넓히면 더 많은 분을 만나실 수 있습니다.`}
           cta={{ label: '조건 바꾸기', onPress: () => router.push('/(tabs)/home/filters') }}
           testID="home-empty"
         />

@@ -33,7 +33,24 @@ export class DiscoveryService {
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (!data) return { radiusKm: DEFAULT_RADIUS_KM, goals: [] };
+    if (!data) {
+      // 저장된 조건이 없으면 **이성**을 기본으로 잡는다.
+      // 성별 무관으로 두면 재혼·진지한 만남을 찾는 분에게 동성 프로필이 섞여
+      // 첫 화면부터 정리가 안 된 인상을 준다. 동성 친구 목적인 경우에는
+      // 추천 단계에서 이 값이 무시되므로(같은 성별 강제) 충돌하지 않는다.
+      const { data: me } = await this.supabase
+        .getClient()
+        .from('parent_profiles')
+        .select('gender')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      return {
+        targetGender: me?.gender === 'male' ? 'female' : me?.gender === 'female' ? 'male' : undefined,
+        radiusKm: DEFAULT_RADIUS_KM,
+        goals: [],
+      };
+    }
 
     return {
       targetGender: data.target_gender ?? undefined,

@@ -40,3 +40,37 @@ export const useDiscoveryFilterStore = create<FilterState>((set) => ({
 export function radiusLabel(km: number): string {
   return RADIUS_OPTIONS.find((o) => o.km === km)?.label ?? `${km}km`;
 }
+
+/**
+ * 현재 조건을 한 줄로. 추천이 비었을 때 **왜** 비었는지 보여주는 데 쓴다.
+ *
+ * "조건에 맞는 분이 없습니다"만 있으면 사용자는 앱이 고장난 줄 안다.
+ * 실제로 이번에도 `남성 · 50~60세` 조건에 해당자가 없어서 빈 화면이 나왔는데,
+ * 조건이 보이지 않으니 원인을 알 방법이 없었다.
+ */
+export function filterSummary(filter: DiscoveryFilter): string {
+  const parts: string[] = [];
+
+  parts.push(
+    filter.targetGender === 'male'
+      ? '남성'
+      : filter.targetGender === 'female'
+        ? '여성'
+        : '성별 무관'
+  );
+
+  if (filter.ageMin != null || filter.ageMax != null) {
+    parts.push(`${filter.ageMin ?? 50}~${filter.ageMax ?? 100}세`);
+  }
+
+  parts.push(radiusLabel(filter.radiusKm));
+
+  if (filter.maritalFilter) {
+    parts.push(filter.maritalFilter === 'bereaved' ? '사별' : '이혼');
+  }
+  if (filter.goals?.length) {
+    parts.push(`관계 목적 ${filter.goals.length}개`);
+  }
+
+  return parts.join(' · ');
+}

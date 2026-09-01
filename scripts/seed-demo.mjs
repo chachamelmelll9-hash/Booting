@@ -231,9 +231,155 @@ async function main() {
 
     const hearts = await admin.from('hearts').delete().eq('sender_user_id', demo.id).select('id');
     const passes = await admin.from('passes').delete().eq('user_id', demo.id).select('id');
+    // 저장된 조건도 지운다 → 서버 기본값(이성 · 30km)으로 돌아간다
+    const filters = await admin
+      .from('discovery_filters')
+      .delete()
+      .eq('user_id', demo.id)
+      .select('user_id');
+
     console.log(
-      `초기화: 하트 ${hearts.data?.length ?? 0}건, 넘김 ${passes.data?.length ?? 0}건 삭제`
+      `초기화: 하트 ${hearts.data?.length ?? 0}건, 넘김 ${passes.data?.length ?? 0}건, ` +
+        `저장된 조건 ${filters.data?.length ?? 0}건 삭제 (조건은 기본값으로 복귀)`
     );
+    return;
+  }
+
+  /**
+   * 시드 계정 전원이 demo 프로필에 하트를 보낸다.
+   *
+   * 그러면 demo 가 누르는 하트마다 서버가 역방향 하트를 찾아 **상호 하트**로
+   * 판정하고 인연을 만든다 — 매칭 이후 화면(대화·부모님 의사·만남)까지
+   * 한 번에 확인할 수 있다.
+   *
+   * 계정마다 로그인하면 Supabase 토큰 발급 제한에 걸리므로 service-role 로
+   * 하트 행만 직접 넣는다. 인연 생성은 demo 가 되보낼 때 서버가 정상 경로로 한다.
+   */
+  if (process.argv.includes('--heart-me')) {
+    const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const demo = list.users.find((u) => u.email === `demo@${DOMAIN}`);
+    if (!demo) throw new Error('demo 계정이 없습니다');
+
+    const { data: demoProfile } = await admin
+      .from('parent_profiles')
+      .select('id, status')
+      .eq('user_id', demo.id)
+      .maybeSingle();
+    if (!demoProfile) throw new Error('demo 계정에 부모님 프로필이 없습니다 (앱에서 먼저 등록하세요)');
+    if (demoProfile.status !== 'published') {
+      throw new Error(`프로필이 공개 상태가 아닙니다 (${demoProfile.status})`);
+    }
+
+    const seedUserIds = list.users
+      .filter((u) => u.email?.startsWith('seed.') && u.email.endsWith(`@${DOMAIN}`))
+      .map((u) => u.id);
+
+    const { error } = await admin.from('hearts').upsert(
+      seedUserIds.map((id) => ({
+        sender_user_id: id,
+        target_parent_profile_id: demoProfile.id,
+      })),
+      { onConflict: 'sender_user_id,target_parent_profile_id' }
+    );
+    if (error) throw new Error(`하트 삽입 실패: ${error.message}`);
+
+    console.log(`${seedUserIds.length}명이 demo 프로필에 하트를 보냈습니다.`);
+    console.log('→ 이제 앱에서 누구에게 하트를 눌러도 바로 상호 하트(대화 연결)가 됩니다.');
+    console.log('→ [관심] 탭에도 받은 하트가 쌓여 있습니다.');
+    return;
+  }
+
+  /**
+   * 인연 탭을 채운다 — 상태별로 하나씩.
+   *
+   * 하트만 넣어두면 [관심] 탭만 차고 [인연] 탭은 계속 비어서, 대화·부모님 의사·
+   * 만남 확인·최종 매칭 화면을 볼 방법이 없다. 실제 API 를 순서대로 호출해
+   * 서버가 정상 경로로 상태를 올리게 한다 (matched 전이도 서버가 판정한다).
+   *
+   *   1) 대화 연결 (mutual_heart)  — 하트만 주고받은 상태
+   *   2) 대화 중   (chatting)      — 메시지 오간 상태
+   *   3) 매칭 성공 (matched)       — 의사 확인 → 일정 → 양측 확인까지 완료
+   */
+  if (process.argv.includes('--scenarios')) {
+    const res = await fetch(`${API}/auth/dev-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    const session = await res.json();
+    if (!res.ok) throw new Error(`dev-login ${res.status} ${JSON.stringify(session)}`);
+    const demoToken = session.accessToken;
+
+    const demoProfile = await call(demoToken, 'GET', '/parent-profile');
+    if (demoProfile?.status !== 'published') {
+      throw new Error('demo 프로필이 공개 상태가 아닙니다 — 앱에서 등록을 끝내주세요');
+    }
+
+    // demo 조건에 맞는 상대 3명을 추천에서 고른다
+    const feed = await call(demoToken, 'GET', '/discovery');
+    const targets = feed.items.slice(0, 3);
+    if (targets.length < 3) {
+      throw new Error(`추천이 ${targets.length}명뿐입니다 — 조건을 넓히거나 시드를 더 만드세요`);
+    }
+
+    const states = ['대화 연결', '대화 중', '매칭 성공'];
+
+    for (const [index, target] of targets.entries()) {
+      // 상대 계정 토큰 (상대가 답해야 하는 단계가 있다)
+      const { data: owner } = await admin
+        .from('parent_profiles')
+        .select('user_id')
+        .eq('id', target.profileId)
+        .single();
+      const { data: userList } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const partnerEmail = userList.users.find((u) => u.id === owner.user_id)?.email;
+      const partner = await makeUser(admin, anon, partnerEmail);
+
+      // 상대는 이미 demo 에게 하트를 보내둔 상태(--heart-me) — demo 가 되보내면 상호 하트
+      const heart = await call(demoToken, 'POST', '/hearts', { targetProfileId: target.profileId });
+      const connectionId = heart.connectionId;
+      if (!connectionId) {
+        console.log(`  건너뜀: ${target.maskedName} (상호 하트가 아님 — --heart-me 를 먼저 실행하세요)`);
+        continue;
+      }
+
+      if (index >= 1) {
+        await call(demoToken, 'POST', `/connections/${connectionId}/messages`, {
+          body: '안녕하세요. 어머니 프로필 보고 연락드립니다.',
+        });
+        await call(partner.token, 'POST', `/connections/${connectionId}/messages`, {
+          body: '반갑습니다. 아버지께 말씀드려 보겠습니다.',
+        });
+      }
+
+      if (index >= 2) {
+        await call(demoToken, 'POST', `/connections/${connectionId}/parent-intent`, {
+          intent: 'willing',
+        });
+        await call(partner.token, 'POST', `/connections/${connectionId}/parent-intent`, {
+          intent: 'willing',
+        });
+
+        // 확인 버튼은 만남 시각이 지나야 열린다 → 어제로 잡는다
+        const meetAt = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+        await call(demoToken, 'POST', `/connections/${connectionId}/meeting`, {
+          meetAt,
+          place: '서울 송파구 롯데월드타워 1층 카페',
+          childAccompanied: true,
+        });
+        await call(partner.token, 'POST', `/connections/${connectionId}/meeting/accept`);
+        await call(demoToken, 'POST', `/connections/${connectionId}/meeting/confirm`);
+        const final = await call(partner.token, 'POST', `/connections/${connectionId}/meeting/confirm`);
+        console.log(`  ${target.maskedName}: 서버 판정 → ${final.connectionStatus}`);
+      }
+
+      console.log(`  ${target.maskedName} → ${states[index]}`);
+    }
+
+    const connections = await call(demoToken, 'GET', '/connections');
+    console.log(`\n인연 ${connections.length}건: ${connections.map((c) => `${c.partner.maskedName}(${c.status})`).join(', ')}`);
+    const received = await call(demoToken, 'GET', '/hearts/received');
+    console.log(`받은 관심 ${received.items.length}건`);
     return;
   }
 
