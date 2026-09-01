@@ -4,15 +4,22 @@ import { theme } from '@shared/config/colors';
 import { radius, spacing, typography } from '@shared/config/tokens';
 import { StyleSheet, Text, View } from 'react-native';
 
+/**
+ * '검수 완료'는 여기 없다.
+ *
+ * 내부 심사 상태이지 사용자에게 주는 정보가 아니다. 공개된 프로필은 이미
+ * 검수를 통과한 것이라 남에게는 중복이고, 내 프로필 화면에서도 '공개 중'이라는
+ * 상태 표시가 같은 말을 이미 하고 있다. 운영 용어를 화면에 그대로 내보내면
+ * 사용자는 자기가 뭘 더 해야 하는지 헷갈린다.
+ */
 const BADGE_LABELS: { key: keyof Badges; label: string }[] = [
   { key: 'child', label: '자녀 인증' },
   { key: 'family', label: '가족관계' },
   { key: 'consent', label: '부모님 동의' },
-  { key: 'review', label: '검수 완료' },
 ];
 
 /**
- * 인증 배지 4종.
+ * 인증 배지 3종.
  *
  * 이 앱에서 신뢰의 근거는 사진이 아니라 배지다 — 특히 '부모님 동의'는
  * 당사자가 자기 프로필을 올렸다는 유일한 표시라 항상 함께 보여준다.
@@ -20,22 +27,11 @@ const BADGE_LABELS: { key: keyof Badges; label: string }[] = [
 export function VerificationBadgeRow({
   badges,
   compact = false,
-  scope = 'public',
 }: {
   badges: Badges;
   compact?: boolean;
-  /**
-   * public — 남에게 보이는 카드·상세. 검수 상태는 빼고 신뢰 근거 3종만 보여준다.
-   * owner  — 내 프로필 상태 화면. 여기서는 검수 진행 여부가 실제 정보다.
-   */
-  scope?: 'public' | 'owner';
 }) {
-  // '검수 완료'는 내부 심사 상태다. 공개된 프로필은 이미 검수를 통과한 것이라
-  // 남에게 보여주면 중복이고, 운영 용어가 그대로 노출돼 어색하다.
-  const labels =
-    scope === 'owner' ? BADGE_LABELS : BADGE_LABELS.filter((b) => b.key !== 'review');
-
-  const visible = compact ? labels.filter((b) => badges[b.key]) : labels;
+  const visible = compact ? BADGE_LABELS.filter((b) => badges[b.key]) : BADGE_LABELS;
 
   return (
     <View style={styles.row}>

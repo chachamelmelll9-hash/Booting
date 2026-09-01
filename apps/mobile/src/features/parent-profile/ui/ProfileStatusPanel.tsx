@@ -59,7 +59,7 @@ export function ProfileStatusPanel({ profile }: { profile: ParentProfile }) {
       ) : null}
 
       <View style={styles.badges}>
-        <VerificationBadgeRow badges={profile.badges} scope="owner" />
+        <VerificationBadgeRow badges={profile.badges} />
       </View>
     </View>
   );
