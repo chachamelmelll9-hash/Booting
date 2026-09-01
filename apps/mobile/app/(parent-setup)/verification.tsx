@@ -92,12 +92,14 @@ export default function VerificationScreen() {
                 variant="secondary"
                 testID="verify-send-code"
                 onPress={() => {
-                  if (!/^01[016789]\d{7,8}$/.test(phone)) {
-                    toast.show({ message: '휴대폰 번호 형식을 확인해주세요' });
+                  // TODO-04 개발 스텁: 실 SMS 연동 전까지는 숫자면 통과시킨다.
+                  // 실제 문자를 받을 수 없는 환경에서 형식 검사가 등록을 막는다.
+                  if (!/^\d{4,15}$/.test(phone)) {
+                    toast.show({ message: '숫자로 입력해주세요' });
                     return;
                   }
                   setCodeSent(true);
-                  toast.show({ message: '인증번호를 전송했습니다' });
+                  toast.show({ message: '인증번호를 전송했습니다 (개발용: 아무 숫자나 입력)' });
                 }}
               />
             ) : (
