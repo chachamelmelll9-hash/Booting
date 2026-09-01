@@ -12,12 +12,22 @@ export const unstable_settings = {
   initialRouteName: 'home',
 };
 
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={26} {...props} />;
+/**
+ * 탭 아이콘은 모듈 스코프에서 만든다.
+ * 렌더 안에서 정의하면 매 렌더마다 새 컴포넌트 타입이 되어 React 가 탭
+ * 서브트리를 통째로 버리고 다시 만든다 (react/no-unstable-nested-components).
+ */
+function tabIcon(name: React.ComponentProps<typeof FontAwesome>['name']) {
+  function TabBarIcon({ color }: { color: string }) {
+    return <FontAwesome name={name} size={26} color={color} />;
+  }
+  return TabBarIcon;
 }
+
+const HomeIcon = tabIcon('home');
+const HeartIcon = tabIcon('heart');
+const ConnectionsIcon = tabIcon('comments');
+const ProfileIcon = tabIcon('user');
 
 /**
  * 탭 4개: 홈 / 관심 / 인연 / 내 정보.
@@ -60,7 +70,7 @@ export default function TabLayout() {
         options={{
           title: '홈',
           tabBarAccessibilityLabel: '홈',
-          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+          tabBarIcon: HomeIcon,
         }}
       />
       <Tabs.Screen
@@ -70,7 +80,7 @@ export default function TabLayout() {
           href: published ? undefined : null,
           tabBarAccessibilityLabel: '관심',
           tabBarBadge: heartBadge,
-          tabBarIcon: ({ color }) => <TabBarIcon name="heart" color={color} />,
+          tabBarIcon: HeartIcon,
         }}
       />
       <Tabs.Screen
@@ -79,7 +89,7 @@ export default function TabLayout() {
           title: '인연',
           href: published ? undefined : null,
           tabBarAccessibilityLabel: '인연',
-          tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
+          tabBarIcon: ConnectionsIcon,
         }}
       />
       <Tabs.Screen
@@ -87,7 +97,7 @@ export default function TabLayout() {
         options={{
           title: '내 정보',
           tabBarAccessibilityLabel: '내 정보',
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+          tabBarIcon: ProfileIcon,
         }}
       />
       <Tabs.Screen name="notifications" options={{ href: null, title: '알림' }} />
