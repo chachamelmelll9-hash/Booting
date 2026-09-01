@@ -1,17 +1,28 @@
 import { useAuthStore } from '@features/auth';
 import { deleteAccountApi,logoutApi } from '@features/auth/api';
+import { useParentProfile } from '@features/parent-profile';
 import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { screenStyles } from '@shared/config/styles';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Alert, Pressable, StyleSheet,Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet,Text, View } from 'react-native';
+
+const PARENT_STATUS_LABEL: Record<string, string> = {
+  draft: '작성 중',
+  consent_pending: '동의 대기',
+  review: '검수 중',
+  published: '공개 중',
+  hidden: '공개 중단',
+  rejected: '검수 반려',
+};
 
 export default function ProfileScreen() {
   const { t } = useTranslation('ui');
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
+  const { data: parentProfile } = useParentProfile();
 
   const logoutMutation = useMutation({
     mutationFn: () => logoutApi(),
@@ -71,14 +82,62 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={screenStyles.paddedContainer}>
-      <Text style={screenStyles.title}>{t('profile')}</Text>
+    <ScrollView
+      style={screenStyles.paddedContainer}
+      contentContainerStyle={styles.scrollContent}
+    >
+      <Text style={screenStyles.title}>내 정보</Text>
 
       {user && (
         <View style={styles.userInfo}>
           <Text style={styles.email}>{user.email}</Text>
         </View>
       )}
+
+      {/* 부모님 프로필이 이 앱의 중심이라 가장 위에 둔다 */}
+      <View style={styles.menuSection}>
+        <Text style={styles.sectionTitle}>부모님</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="부모님 프로필"
+          style={styles.menuItem}
+          testID="profile-parent-entry"
+          onPress={() => router.push('/(tabs)/profile/parent')}
+        >
+          <Text style={styles.menuItemText}>부모님 프로필</Text>
+          <Text style={styles.menuItemStatus}>
+            {parentProfile
+              ? (PARENT_STATUS_LABEL[parentProfile.status] ?? parentProfile.status)
+              : '미등록'}
+          </Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.menuSection}>
+        <Text style={styles.sectionTitle}>안전</Text>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="차단 목록"
+          style={styles.menuItem}
+          testID="profile-blocked-entry"
+          onPress={() => router.push('/(tabs)/profile/blocked')}
+        >
+          <Text style={styles.menuItemText}>차단 목록</Text>
+          <Text style={styles.menuItemArrow}>→</Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="신고 내역"
+          style={[styles.menuItem, styles.menuItemSpaced]}
+          testID="profile-reports-entry"
+          onPress={() => router.push('/(tabs)/profile/reports')}
+        >
+          <Text style={styles.menuItemText}>신고 내역</Text>
+          <Text style={styles.menuItemArrow}>→</Text>
+        </Pressable>
+      </View>
 
       <View style={styles.menuSection}>
         <Text style={styles.sectionTitle}>{t('preferences')}</Text>
@@ -125,11 +184,17 @@ export default function ProfileScreen() {
             : t('delete_account', { ns: 'auth' })}
         </Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContent: { paddingBottom: 48 },
+  menuItemSpaced: { marginTop: 8 },
+  menuItemStatus: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
   userInfo: {
     marginTop: 16,
     marginBottom: 24,

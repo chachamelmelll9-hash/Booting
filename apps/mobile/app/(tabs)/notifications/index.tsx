@@ -1,116 +1,114 @@
-import React from 'react';
-import { Text, View, FlatList, StyleSheet, Pressable } from 'react-native';
-import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
-
-import { screenStyles } from '@shared/config/styles';
-
-// Sample notification data - replace with real data from your backend
-const SAMPLE_NOTIFICATIONS = [
-  {
-    id: '1',
-    type: 'account',
-    title: 'Welcome!',
-    message: 'Your account has been created successfully.',
-    timestamp: new Date().toISOString(),
-    read: false,
-  },
-  {
-    id: '2',
-    type: 'system',
-    title: 'System Update',
-    message: 'A new version of the app is available.',
-    timestamp: new Date(Date.now() - 3600000).toISOString(),
-    read: true,
-  },
-  {
-    id: '3',
-    type: 'general',
-    title: 'Notification Example',
-    message: 'This is a placeholder notification. Replace with your own data.',
-    timestamp: new Date(Date.now() - 7200000).toISOString(),
-    read: true,
-  },
-];
+import {
+  notificationHref,
+  notificationTitle,
+  useMarkAllRead,
+  useNotifications,
+} from '@features/notifications';
+import { theme } from '@shared/config/colors';
+import { radius, spacing, typography } from '@shared/config/tokens';
+import { AppButton, EmptyState, Screen, SkeletonList } from '@shared/ui';
+import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function NotificationsScreen() {
-  const { t } = useTranslation('mobile');
+  const router = useRouter();
+  const notifications = useNotifications();
+  const markAllRead = useMarkAllRead();
 
-  const renderNotification = ({ item }: { item: typeof SAMPLE_NOTIFICATIONS[0] }) => (
-    <Pressable style={[styles.notificationCard, !item.read && styles.unread]}>
-      <View style={styles.notificationHeader}>
-        <Text style={styles.notificationType}>{item.type.toUpperCase()}</Text>
-        <Text style={styles.timestamp}>
-          {new Date(item.timestamp).toLocaleDateString()}
-        </Text>
-      </View>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.message}>{item.message}</Text>
-    </Pressable>
+  const items = useMemo(
+    () => notifications.data?.pages.flatMap((page) => page.items) ?? [],
+    [notifications.data]
   );
 
+  if (notifications.isLoading) {
+    return (
+      <Screen>
+        <SkeletonList rows={4} />
+      </Screen>
+    );
+  }
+
+  if (!items.length) {
+    return (
+      <Screen>
+        <EmptyState
+          icon="bell-o"
+          title="알림이 없습니다"
+          description="관심을 받거나 대화가 연결되면 여기에 표시됩니다."
+          testID="notifications-empty"
+        />
+      </Screen>
+    );
+  }
+
   return (
-    <View style={screenStyles.paddedContainer}>
-      <Text style={screenStyles.title}>{t('notifications.title')}</Text>
+    <Screen>
+      <View style={styles.toolbar}>
+        <AppButton
+          label="모두 읽음"
+          variant="ghost"
+          fullWidth={false}
+          loading={markAllRead.isPending}
+          onPress={() => markAllRead.mutate()}
+        />
+      </View>
+
       <FlatList
-        data={SAMPLE_NOTIFICATIONS}
-        renderItem={renderNotification}
+        data={items}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>No notifications yet</Text>
-        }
+        contentContainerStyle={styles.list}
+        onEndReached={() => {
+          if (notifications.hasNextPage && !notifications.isFetchingNextPage) {
+            void notifications.fetchNextPage();
+          }
+        }}
+        renderItem={({ item }) => {
+          const href = notificationHref(item);
+          return (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={notificationTitle(item.type)}
+              disabled={!href}
+              onPress={() => href && router.push(href as never)}
+              style={({ pressed }) => [
+                styles.row,
+                !item.read && styles.rowUnread,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.title}>{notificationTitle(item.type)}</Text>
+              <Text style={styles.date}>{formatRelative(item.createdAt)}</Text>
+            </Pressable>
+          );
+        }}
       />
-    </View>
+    </Screen>
   );
 }
 
+function formatRelative(iso: string): string {
+  const diffMinutes = Math.floor((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (diffMinutes < 1) return '방금';
+  if (diffMinutes < 60) return `${diffMinutes}분 전`;
+  const hours = Math.floor(diffMinutes / 60);
+  if (hours < 24) return `${hours}시간 전`;
+  return `${Math.floor(hours / 24)}일 전`;
+}
+
 const styles = StyleSheet.create({
-  listContainer: {
-    marginTop: 16,
-  },
-  notificationCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+  toolbar: { alignItems: 'flex-end' },
+  list: { gap: spacing.xs, paddingBottom: spacing.lg },
+  row: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    padding: 16,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: '#10B981',
+    borderColor: theme.colors.border,
+    padding: spacing.md,
+    gap: 2,
   },
-  unread: {
-    backgroundColor: '#D1FAE5',
-    borderLeftColor: '#059669',
-  },
-  notificationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  notificationType: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#10B981',
-  },
-  timestamp: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  message: {
-    fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
-    marginTop: 40,
-  },
+  rowUnread: { borderColor: theme.colors.primary, backgroundColor: theme.colors.primarySurface },
+  title: { ...typography.body, color: theme.colors.text },
+  date: { ...typography.micro, color: theme.colors.textMuted },
+  pressed: { opacity: 0.85 },
 });

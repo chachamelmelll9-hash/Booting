@@ -9,7 +9,11 @@ const HEADER_OPTIONS = {
 export default function ProfileLayout() {
   return (
     <Stack screenOptions={HEADER_OPTIONS}>
-      <Stack.Screen name="index" options={{ title: 'Profile' }} />
+      <Stack.Screen name="index" options={{ title: '내 정보' }} />
+      {/* 부팅 화면 */}
+      <Stack.Screen name="parent" options={{ title: '부모님 프로필' }} />
+      <Stack.Screen name="blocked" options={{ title: '차단 목록' }} />
+      <Stack.Screen name="reports" options={{ title: '신고 내역' }} />
       <Stack.Screen name="info" options={{ title: 'Profile Info' }} />
       <Stack.Screen
         name="notification-settings"

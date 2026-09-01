@@ -26,7 +26,7 @@ export class AuthenticationError extends Error {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   skipAuth?: boolean;
   /** @internal 401 갱신 후 재시도 여부 — 무한 재귀 방지용 */
@@ -98,8 +98,19 @@ export async function serverFetch<T>(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.message ?? `HTTP ${response.status}`);
+    // 서버는 도메인 에러를 { code, message } 로 내려준다. 화면이 코드로 분기할 수
+    // 있도록 code 를 잃지 않고 실어 보낸다.
+    const failure = new Error(error.message ?? `HTTP ${response.status}`) as Error & {
+      code?: string;
+      status?: number;
+    };
+    failure.code = error.code;
+    failure.status = response.status;
+    throw failure;
   }
+
+  // 204 No Content 에는 본문이 없다 — json() 을 부르면 파싱 에러가 난다
+  if (response.status === 204) return undefined as T;
 
   return response.json();
 }

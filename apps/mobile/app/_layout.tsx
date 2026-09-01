@@ -14,6 +14,7 @@ import {
 import { AuthColors } from '@shared/config/colors';
 import { initSentry, isSentryEnabled, Sentry } from '@shared/lib/sentry';
 import { queryClient } from '@shared/query';
+import { ToastProvider } from '@shared/ui';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router';
@@ -146,16 +147,32 @@ function RootLayoutNav() {
         <AnalyticsProvider>
           <QueryClientProvider client={queryClient}>
             <ThemeProvider value={DefaultTheme}>
-              <Stack>
-                <Stack.Screen name="index" options={{ headerShown: false }} />
-                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              </Stack>
-              {!isInitialized && (
-                <View style={layoutStyles.loadingOverlay}>
-                  <ActivityIndicator size="large" color={AuthColors.primary} />
-                </View>
-              )}
+              <ToastProvider>
+                <Stack>
+                  <Stack.Screen name="index" options={{ headerShown: false }} />
+                  <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                  {/* 탭 밖의 흐름 — 등록 플로우와 전역 모달 3종 */}
+                  <Stack.Screen name="(parent-setup)" options={{ headerShown: false }} />
+                  <Stack.Screen
+                    name="profile/[id]"
+                    options={{ title: '프로필', presentation: 'modal' }}
+                  />
+                  <Stack.Screen
+                    name="matched/[id]"
+                    options={{ title: '대화 연결', presentation: 'modal' }}
+                  />
+                  <Stack.Screen
+                    name="report/[id]"
+                    options={{ title: '신고하기', presentation: 'modal' }}
+                  />
+                </Stack>
+                {!isInitialized && (
+                  <View style={layoutStyles.loadingOverlay}>
+                    <ActivityIndicator size="large" color={AuthColors.primary} />
+                  </View>
+                )}
+              </ToastProvider>
             </ThemeProvider>
           </QueryClientProvider>
         </AnalyticsProvider>
