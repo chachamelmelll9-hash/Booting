@@ -8,6 +8,7 @@ import { domainError, ERROR_CODES } from '../common/constants/errors';
 import { calcAge, formatRegion } from '../common/privacy';
 import {
   MAX_RELATIONSHIP_GOALS,
+  MIN_PROFILE_PHOTOS,
   PARENT_MIN_AGE,
   RelationshipGoal,
 } from '../common/types';
@@ -316,7 +317,7 @@ export class ParentProfileService {
     // 제출 필수 항목. 화면 검증과 같은 목록이지만 여기가 진짜 관문이다 —
     // 클라이언트를 우회해 PATCH → submit 을 직접 부르는 경로도 여기서 막힌다.
     const missing: string[] = [];
-    if (!photos.length) missing.push('photos');
+    if (photos.length < MIN_PROFILE_PHOTOS) missing.push('photos');
     if (!row.intro_by_child) missing.push('introByChild');
     if (!row.desired_partner) missing.push('desiredPartner');
     if (!goals.length) missing.push('goals');

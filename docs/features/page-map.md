@@ -394,7 +394,7 @@ app/
 | GET | /api/parent-profile | 홈, 마이페이지, 상태 | 프로필 등록 & 동의 | 내 부모님 프로필 + 상태 |
 | POST | /api/parent-profile | 프로필 작성 | 프로필 등록 & 동의 | 생성 (draft) |
 | PATCH | /api/parent-profile | 프로필 작성·수정 | 프로필 등록 & 동의 | 섹션 저장 / 임시저장 |
-| POST | /api/parent-profile/photos | 프로필 작성 | 프로필 등록 & 동의 | 사진 업로드 (최대 5장) |
+| POST | /api/parent-profile/photos | 프로필 작성 | 프로필 등록 & 동의 | 사진 등록 (최소 3장 / 최대 5장). 파일 자체는 클라이언트가 Storage 에 직접 올리고 경로만 보낸다 |
 | DELETE | /api/parent-profile/photos/:id | 프로필 작성 | 프로필 등록 & 동의 | 사진 삭제 |
 | POST | /api/parent-profile/consent | 부모님 동의 | 프로필 등록 & 동의 | 문자 발송 / 대면 동의 기록 |
 | POST | /api/parent-profile/consent/revoke | 부모님 프로필 상태 | 프로필 등록 & 동의 | 동의 철회 → 즉시 비공개 |

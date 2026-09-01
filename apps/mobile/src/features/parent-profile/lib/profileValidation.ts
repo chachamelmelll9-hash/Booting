@@ -1,3 +1,5 @@
+import { MIN_PROFILE_PHOTOS } from '@shared/config/profileOptions';
+
 import type { ProfileDraft } from '../model/useProfileDraftStore';
 
 /** 부모님 최소 연령 (TODO-02) */
@@ -79,17 +81,22 @@ export function validateDetails(draft: ProfileDraft): DraftErrors {
   const errors: DraftErrors = {};
   const required: [keyof ProfileDraft, string][] = [
     ['childrenCount', '자녀 수를 입력해주세요'],
-    ['livingWith', '동거 가족을 입력해주세요'],
     ['religion', '종교를 입력해주세요'],
     ['occupation', '직업 또는 은퇴 전 직업을 입력해주세요'],
     ['drinking', '음주 여부를 입력해주세요'],
-    ['smoking', '흡연 여부를 입력해주세요'],
+    ['smoking', '흡연 여부를 선택해주세요'],
     ['hobbies', '취미를 하나 이상 입력해주세요'],
   ];
 
   for (const [field, message] of required) {
     if (!String(draft[field] ?? '').trim()) errors[field] = message;
   }
+
+  // 동거 가족은 복수 선택이라 문자열 검사로는 잡히지 않는다
+  if (!draft.livingWith.length) {
+    errors.livingWith = '동거 가족을 하나 이상 선택해주세요';
+  }
+
   return errors;
 }
 
@@ -102,7 +109,7 @@ export function hasErrors(errors: DraftErrors): boolean {
  * 서버가 항목을 추가하면 여기에도 추가한다 — 없으면 코드값이 그대로 노출된다.
  */
 export const MISSING_LABEL: Record<string, string> = {
-  photos: '사진 1장 이상',
+  photos: `사진 ${MIN_PROFILE_PHOTOS}장 이상`,
   introByChild: '부모님 소개',
   desiredPartner: '만나고 싶은 분',
   goals: '관계 목적',

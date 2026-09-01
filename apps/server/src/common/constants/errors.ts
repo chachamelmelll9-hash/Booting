@@ -64,7 +64,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   goals_max: '관계 목적은 최대 2개까지 선택할 수 있습니다',
   goals_undecided_alone: '아직 모르겠음은 단독으로만 선택할 수 있습니다',
   photos_max: '사진은 최대 5장까지 등록할 수 있습니다',
-  photo_required: '사진을 최소 1장 등록해주세요',
+  photo_required: '사진을 최소 3장 등록해주세요',
   profile_incomplete: '필수 항목을 모두 입력해주세요',
 
   heart_already_sent: '이미 관심을 보낸 프로필입니다',

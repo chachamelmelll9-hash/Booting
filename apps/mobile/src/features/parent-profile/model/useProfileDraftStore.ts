@@ -12,7 +12,8 @@ export interface ProfileDraft {
   goals: RelationshipGoal[];
 
   childrenCount: string;
-  livingWith: string;
+  /** 복수 선택 — 저장 시 쉼표로 합친다 */
+  livingWith: string[];
   religion: string;
   occupation: string;
   drinking: string;
@@ -34,7 +35,7 @@ const EMPTY: ProfileDraft = {
   maritalSince: '',
   goals: [],
   childrenCount: '',
-  livingWith: '',
+  livingWith: [],
   religion: '',
   occupation: '',
   drinking: '',

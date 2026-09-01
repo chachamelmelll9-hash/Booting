@@ -37,7 +37,7 @@ const PROFILES = [
     desired: '함께 산책하며 이야기 나눌 수 있는 분이면 좋겠습니다.',
     message: '건강하게 오래 걸을 수 있는 사람이면 좋겠습니다.',
     children: '2명',
-    livingWith: '혼자 지내십니다',
+    livingWith: '혼자 거주',
     occupation: '은퇴 (주부)',
     hobbies: ['산책', '텃밭'],
   },
@@ -53,7 +53,7 @@ const PROFILES = [
     desired: '여행을 함께 다닐 수 있는 분을 찾습니다.',
     message: '자주 웃는 사람이 좋습니다.',
     children: '1명',
-    livingWith: '자녀와 함께',
+    livingWith: '자녀와 거주, 부모와 거주',
     occupation: '은퇴 (약사)',
     hobbies: ['사진', '여행'],
   },
@@ -69,7 +69,7 @@ const PROFILES = [
     desired: '천천히 알아가고 싶습니다.',
     message: '서두르지 않았으면 합니다.',
     children: '3명',
-    livingWith: '혼자 지내십니다',
+    livingWith: '혼자 거주',
     occupation: '은퇴 (공무원)',
     hobbies: ['서예', '독서'],
   },
@@ -141,17 +141,23 @@ async function verify(token, userId, phoneSuffix) {
   });
 }
 
-async function uploadPhoto(url, anonKey, token, userId) {
-  const objectPath = `${userId}/primary.png`;
+/** 사진은 최소 3장이 필수라 시드도 3장을 올린다 */
+async function uploadPhotos(url, anonKey, token, userId, count = 3) {
   const client = createClient(url, anonKey, {
     auth: { autoRefreshToken: false, persistSession: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
-  const { error } = await client.storage
-    .from('parent-photos')
-    .upload(objectPath, PLACEHOLDER_PNG, { contentType: 'image/png', upsert: true });
-  if (error) throw new Error(`photo upload: ${error.message}`);
-  return objectPath;
+
+  const paths = [];
+  for (let i = 0; i < count; i += 1) {
+    const objectPath = `${userId}/photo-${i + 1}.png`;
+    const { error } = await client.storage
+      .from('parent-photos')
+      .upload(objectPath, PLACEHOLDER_PNG, { contentType: 'image/png', upsert: true });
+    if (error) throw new Error(`photo upload: ${error.message}`);
+    paths.push(objectPath);
+  }
+  return paths;
 }
 
 async function main() {
@@ -218,11 +224,13 @@ async function main() {
       });
     }
 
-    const photoPath = await uploadPhoto(url, anonKey, token, userId);
-    await call(token, 'POST', '/parent-profile/photos', {
-      storagePath: photoPath,
-      isPrimary: true,
-    });
+    const photoPaths = await uploadPhotos(url, anonKey, token, userId);
+    for (const [index, photoPath] of photoPaths.entries()) {
+      await call(token, 'POST', '/parent-profile/photos', {
+        storagePath: photoPath,
+        isPrimary: index === 0,
+      });
+    }
 
     await call(token, 'PATCH', '/parent-profile', {
       introByChild: spec.intro,

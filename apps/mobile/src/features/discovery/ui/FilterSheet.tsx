@@ -112,6 +112,11 @@ export function FilterSheet({ initial, onApply, onReset, saving = false }: Props
             mode="select"
             onChange={(goals) => patch({ goals })}
           />
+          {filter.goals?.includes('same_sex_friend') ? (
+            <Text style={styles.goalNotice}>
+              동성 친구를 선택하시면 같은 성별의 동성 친구를 찾는 분만 추천됩니다.
+            </Text>
+          ) : null}
         </FormSection>
 
         <Text style={styles.note}>
@@ -176,6 +181,14 @@ const styles = StyleSheet.create({
   ageRow: { flexDirection: 'row', gap: spacing.sm },
   ageField: { flex: 1 },
   note: { ...typography.caption, color: theme.colors.textTertiary, marginBottom: spacing.sm },
+  goalNotice: {
+    ...typography.caption,
+    color: theme.colors.primaryDark,
+    backgroundColor: theme.colors.primarySurface,
+    padding: spacing.xs,
+    borderRadius: radius.md,
+    marginTop: spacing.xs,
+  },
   actions: { gap: spacing.xs, paddingTop: spacing.sm },
   pressed: { opacity: 0.8 },
 });

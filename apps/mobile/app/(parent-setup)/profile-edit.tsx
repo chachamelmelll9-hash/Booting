@@ -13,6 +13,13 @@ import {
   validateIntro,
 } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
+import {
+  LIVING_WITH_OPTIONS,
+  MIN_PROFILE_PHOTOS,
+  parseLivingWith,
+  serializeLivingWith,
+  SMOKING_OPTIONS,
+} from '@shared/config/profileOptions';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import {
   AppButton,
@@ -61,7 +68,7 @@ export default function ProfileEditScreen() {
       maritalSince: profile.maritalSince ?? '',
       goals: profile.goals,
       childrenCount: profile.childrenCount ?? '',
-      livingWith: profile.livingWith ?? '',
+      livingWith: parseLivingWith(profile.livingWith),
       religion: profile.religion ?? '',
       occupation: profile.occupation ?? '',
       drinking: profile.drinking ?? '',
@@ -116,14 +123,14 @@ export default function ProfileEditScreen() {
       toast.show({ message: '입력하지 않은 항목이 있습니다' });
       return;
     }
-    if ((profile?.photos.length ?? 0) === 0) {
-      toast.show({ message: '사진을 최소 1장 등록해주세요' });
+    if ((profile?.photos.length ?? 0) < MIN_PROFILE_PHOTOS) {
+      toast.show({ message: `사진을 최소 ${MIN_PROFILE_PHOTOS}장 등록해주세요` });
       return;
     }
 
     const details = {
       childrenCount: draft.childrenCount || undefined,
-      livingWith: draft.livingWith || undefined,
+      livingWith: serializeLivingWith(draft.livingWith) || undefined,
       religion: draft.religion || undefined,
       occupation: draft.occupation || undefined,
       drinking: draft.drinking || undefined,
@@ -239,11 +246,20 @@ export default function ProfileEditScreen() {
           onChange={(goals) => set({ goals })}
           onRejected={(reason) => toast.show({ message: reason })}
         />
+        {/* 동성 친구는 추천 결과가 통째로 달라지므로 고른 즉시 알려준다 */}
+        {draft.goals.includes('same_sex_friend') ? (
+          <Text style={styles.goalNotice} testID="same-sex-notice">
+            동성 친구를 선택하시면 같은 성별의 동성 친구를 찾는 분만 추천됩니다.
+          </Text>
+        ) : null}
       </FormSection>
 
       <Text style={styles.section}>사진 (필수)</Text>
-      {(profile?.photos.length ?? 0) === 0 ? (
-        <Text style={styles.requiredNote}>사진을 최소 1장 등록해주세요</Text>
+      {(profile?.photos.length ?? 0) < MIN_PROFILE_PHOTOS ? (
+        <Text style={styles.requiredNote}>
+          사진을 최소 {MIN_PROFILE_PHOTOS}장 등록해주세요 (현재{' '}
+          {profile?.photos.length ?? 0}장)
+        </Text>
       ) : null}
       <PhotoUploader
         photos={profile?.photos ?? []}
@@ -286,14 +302,29 @@ export default function ProfileEditScreen() {
           invalid={!!errors.childrenCount}
         />
       </FormSection>
-      <FormSection label="동거 가족" required error={errors.livingWith}>
-        <TextField
-          value={draft.livingWith}
-          onChangeText={(v) => set({ livingWith: v })}
-          placeholder="예: 혼자 지내십니다"
-          maxLength={50}
-          invalid={!!errors.livingWith}
-        />
+      <FormSection
+        label="동거 가족"
+        required
+        helper="해당하는 항목을 모두 선택해주세요"
+        error={errors.livingWith}
+      >
+        <View style={styles.row}>
+          {LIVING_WITH_OPTIONS.map((option) => (
+            <Chip
+              key={option}
+              label={option}
+              selected={draft.livingWith.includes(option)}
+              testID={`living-${option}`}
+              onPress={() =>
+                set({
+                  livingWith: draft.livingWith.includes(option)
+                    ? draft.livingWith.filter((v) => v !== option)
+                    : [...draft.livingWith, option],
+                })
+              }
+            />
+          ))}
+        </View>
       </FormSection>
       <FormSection label="종교" required error={errors.religion}>
         <TextField
@@ -323,13 +354,17 @@ export default function ProfileEditScreen() {
         />
       </FormSection>
       <FormSection label="흡연" required error={errors.smoking}>
-        <TextField
-          value={draft.smoking}
-          onChangeText={(v) => set({ smoking: v })}
-          placeholder="예: 비흡연"
-          maxLength={20}
-          invalid={!!errors.smoking}
-        />
+        <View style={styles.row}>
+          {SMOKING_OPTIONS.map((option) => (
+            <Chip
+              key={option}
+              label={option}
+              selected={draft.smoking === option}
+              testID={`smoking-${option}`}
+              onPress={() => set({ smoking: option })}
+            />
+          ))}
+        </View>
       </FormSection>
       <FormSection label="취미" required helper="쉼표로 구분해주세요" error={errors.hobbies}>
         <TextField
@@ -429,6 +464,14 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: theme.colors.error,
     marginBottom: spacing.xs,
+  },
+  goalNotice: {
+    ...typography.caption,
+    color: theme.colors.primaryDark,
+    backgroundColor: theme.colors.primarySurface,
+    padding: spacing.xs,
+    borderRadius: radius.md,
+    marginTop: spacing.xs,
   },
   row: { flexDirection: 'row', gap: spacing.xs },
   chip: {

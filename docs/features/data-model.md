@@ -7,7 +7,7 @@
 | User | 앱 사용자 = **성인 자녀** (공통) | id, created_at | (공통) |
 | ChildVerification | 자녀의 본인인증·가족관계 인증 상태 | id, user_id, phone_verified_at, family_doc_status(pending/approved/rejected), family_verified_at, reject_reason, created_at | parent-profile-consent |
 | ParentProfile | 등록된 부모님 프로필 (자녀 1명당 1건) | id, user_id, display_name, gender, birth_date, region_code, marital_status(bereaved/divorced), marital_since, children_count, living_with, religion, occupation, retired_occupation, economically_active, drinking, smoking, hobbies[], motto, intro_by_child, desired_partner, parent_message, status(draft/consent_pending/review/published/hidden), published_at, last_active_at, created_at | parent-profile-consent, profile-discovery |
-| ParentPhoto | 부모님 사진 (최대 5장, 대표 1장) | id, parent_profile_id, storage_path, is_primary, sort_order, created_at | parent-profile-consent, profile-discovery |
+| ParentPhoto | 부모님 사진 (**최소 3장**, 최대 5장, 대표 1장) | id, parent_profile_id, storage_path, is_primary, sort_order, created_at | parent-profile-consent, profile-discovery |
 | ParentConsent | 부모님의 등록·공개 동의와 철회 이력 | id, parent_profile_id, method(sms/in_person), parent_name, consented_at, revoked_at, created_at | parent-profile-consent |
 | SajuInfo | 사주 정보 (선택 입력, 공개 여부 선택) | id, parent_profile_id, birth_date, calendar_type(solar/lunar), birth_time, birth_time_unknown, is_public, created_at | parent-profile-consent, profile-discovery |
 | RelationshipGoal | 관계 목적 (프로필당 최대 2개) | id, parent_profile_id, goal(remarriage/serious/travel_hobby/same_sex_friend/meal_walk/undecided) | parent-profile-consent, profile-discovery |

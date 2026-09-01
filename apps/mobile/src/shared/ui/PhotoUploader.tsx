@@ -1,18 +1,27 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import type { Photo } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
+import { MAX_PROFILE_PHOTOS, MIN_PROFILE_PHOTOS } from '@shared/config/profileOptions';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface Props {
   photos: Photo[];
+  min?: number;
   max?: number;
   onAdd: () => void;
   onRemove: (photoId: string) => void;
   busy?: boolean;
 }
 
-export function PhotoUploader({ photos, max = 5, onAdd, onRemove, busy = false }: Props) {
+export function PhotoUploader({
+  photos,
+  min = MIN_PROFILE_PHOTOS,
+  max = MAX_PROFILE_PHOTOS,
+  onAdd,
+  onRemove,
+  busy = false,
+}: Props) {
   return (
     <View>
       <View style={styles.grid}>
@@ -51,7 +60,7 @@ export function PhotoUploader({ photos, max = 5, onAdd, onRemove, busy = false }
         ) : null}
       </View>
       <Text style={styles.counter}>
-        {photos.length} / {max}장 · 첫 장이 대표 사진입니다
+        {photos.length} / {max}장 (최소 {min}장) · 첫 장이 대표 사진입니다
       </Text>
     </View>
   );

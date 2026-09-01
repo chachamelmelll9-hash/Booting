@@ -79,8 +79,20 @@ export const DEFAULT_RADIUS_KM = 30; // TODO-06
 /** 부모님 최소 연령 (TODO-02) */
 export const PARENT_MIN_AGE = 50;
 
-/** 프로필 사진 최대 장수 */
+/** 프로필 사진 장수. 1장만으로는 상대가 판단할 근거가 없다 */
+export const MIN_PROFILE_PHOTOS = 3;
 export const MAX_PROFILE_PHOTOS = 5;
+
+/** 동거 가족 선택지 (복수 선택, 쉼표로 합쳐 저장) */
+export const LIVING_WITH_OPTIONS = [
+  '혼자 거주',
+  '자녀와 거주',
+  '형제와 거주',
+  '부모와 거주',
+] as const;
+
+/** 흡연 선택지 (단일 선택) */
+export const SMOKING_OPTIONS = ['비흡연', '흡연'] as const;
 
 /** 관계 목적 최대 선택 수 */
 export const MAX_RELATIONSHIP_GOALS = 2;

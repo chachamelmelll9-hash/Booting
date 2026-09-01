@@ -118,7 +118,8 @@ apps/mobile/
           parentProfile.api.ts
           parentProfile.queries.ts
         lib/
-          profileValidation.ts               — 만 50세, 관계 목적 2개, 사진 5장
+          profileValidation.ts               — 만 50세, 관계 목적 2개, 사진 3~5장,
+                                               가족·생활 7항목 필수
           maritalStatus.ts                   — 사별/이혼/별거 판정과 차단 사유
         index.ts
 

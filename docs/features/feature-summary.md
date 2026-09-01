@@ -22,7 +22,7 @@
 - **Journey Steps**: 발견 → 진입(원칙 안내 + 자격 확인) → 입력(인증) → 입력(부모님 동의) → 입력(프로필 작성) → 대기·결과(승인·검수·공개) → 이탈(공개 중단·철회)
 - **Key Screens**: `/(tabs)/home`(빈 상태), `/parent/onboarding`, `/parent/verification`, `/parent/consent`, `/parent/profile/edit`, `/parent/profile/preview`, `/parent/profile/status`
 - **Core Data**: ChildVerification, ParentProfile, ParentPhoto, ParentConsent, SajuInfo, RelationshipGoal, ProfileReview
-- **Key Decisions**: 부모님 1명(TODO-07) / 만 50세 이상(TODO-02) / 휴대폰 없으면 자녀 단말 대면 동의(TODO-04) / 가족관계 심사는 MVP 자동 승인이되 상태 기계는 실심사 교체 가능하게 유지(TODO-05) / 사주는 선택 입력 + 공개 여부 선택, 궁합은 P2(TODO-13) / 사진 최대 5장·대표 1장 필수 / 부모님 최종 승인 없이는 어떤 경로로도 공개되지 않는다
+- **Key Decisions**: 부모님 1명(TODO-07) / 만 50세 이상(TODO-02) / 휴대폰 없으면 자녀 단말 대면 동의(TODO-04) / 가족관계 심사는 MVP 자동 승인이되 상태 기계는 실심사 교체 가능하게 유지(TODO-05) / 사주는 선택 입력 + 공개 여부 선택, 궁합은 P2(TODO-13) / 사진 **최소 3장**·최대 5장·대표 1장 필수 / 가족·생활 정보 7항목(자녀 수·동거 가족·종교·직업·음주·흡연·취미) 모두 필수 / 동거 가족은 4개 보기 복수 선택, 흡연은 비흡연/흡연 단일 선택 / 부모님 최종 승인 없이는 어떤 경로로도 공개되지 않는다
 
 ### 조건 기반 추천 & 탐색
 
@@ -32,7 +32,7 @@
 - **Journey Steps**: 발견(홈=추천 피드) → 진입(조건 설정) → 입력·선택(스와이프·하트·넘기기) → 결과(상세 프로필) → 후속(신고·차단) → 이탈
 - **Key Screens**: `/(tabs)/home`, `/(tabs)/home/filters`, `/profile/[id]`, `/report/[id]`
 - **Core Data**: ParentProfile, ParentPhoto, RelationshipGoal, SajuInfo, DiscoveryFilter, Heart, Pass, Block, Report
-- **Key Decisions**: 실시간 GPS 대신 설정된 생활권 사용 / 하트는 확인 다이얼로그 없이 즉시 전송(중복만 차단) / 넘기기 되돌리기 미제공 / 스와이프 전용 조작 금지 — 하트·넘기기는 버튼으로도 제공 / 상세에서 가장 먼저 읽혀야 할 것은 자녀가 쓴 소개글 / '동성 친구' 선택 시 동성 프로필 포함
+- **Key Decisions**: 실시간 GPS 대신 설정된 생활권 사용 / 하트는 확인 다이얼로그 없이 즉시 전송(중복만 차단) / 넘기기 되돌리기 미제공 / 스와이프 전용 조작 금지 — 하트·넘기기는 버튼으로도 제공 / 상세에서 가장 먼저 읽혀야 할 것은 자녀가 쓴 소개글 / **'동성 친구' 선택 시 같은 성별이면서 동성 친구를 찾는 프로필만 추천** (성별 필터보다 우선), 반대로 목적이 '동성 친구' 하나뿐인 프로필은 이성에게 추천되지 않는다
 
 ### 하트 & 대화 연결
 

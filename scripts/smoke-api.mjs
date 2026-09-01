@@ -252,18 +252,31 @@ async function main() {
     [a, profileA, '아버지는 조용한 산책과 바둑을 좋아하십니다.'],
     [b, profileB, '어머니는 텃밭 가꾸기와 트로트를 좋아하십니다.'],
   ]) {
-    const objectPath = `${client.userId}/primary.png`;
-    const { error: uploadError } = await storage(client.token)
-      .storage.from('parent-photos')
-      .upload(objectPath, pngBytes, { contentType: 'image/png', upsert: true });
-    if (uploadError) throw new Error(`${client.name} photo upload: ${uploadError.message}`);
+    // 사진 최소 3장이 제출 조건이다
+    for (let i = 0; i < 3; i += 1) {
+      const objectPath = `${client.userId}/photo-${i + 1}.png`;
+      const { error: uploadError } = await storage(client.token)
+        .storage.from('parent-photos')
+        .upload(objectPath, pngBytes, { contentType: 'image/png', upsert: true });
+      if (uploadError) throw new Error(`${client.name} photo upload: ${uploadError.message}`);
 
-    await client.expect(
-      'POST',
-      '/parent-profile/photos',
-      { storagePath: objectPath, isPrimary: true },
-      `${client.name} add photo`
-    );
+      await client.expect(
+        'POST',
+        '/parent-profile/photos',
+        { storagePath: objectPath, isPrimary: i === 0 },
+        `${client.name} add photo ${i + 1}`
+      );
+
+      // 2장까지는 아직 부족해야 한다 (최소 3장)
+      if (client === a && i === 1) {
+        const partial = await a.expect('GET', '/parent-profile', null, 'A partial');
+        check(
+          '사진 2장이면 아직 제출 불가 (최소 3장)',
+          partial.missing.includes('photos'),
+          JSON.stringify(partial.missing)
+        );
+      }
+    }
     await client.expect(
       'PATCH',
       '/parent-profile',
@@ -272,7 +285,7 @@ async function main() {
         desiredPartner: '대화가 잘 통하는 분이면 좋겠습니다.',
         parentMessage: '건강하게 함께 걸을 수 있는 분을 찾습니다.',
         childrenCount: '2명',
-        livingWith: '자녀와 함께',
+        livingWith: '자녀와 거주',
         religion: '무교',
         occupation: '은퇴 (교사)',
         drinking: '가끔',
