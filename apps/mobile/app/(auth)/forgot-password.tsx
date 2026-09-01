@@ -1,12 +1,13 @@
-import { AuthStyles } from '@features/auth';
-import { resetPasswordApi } from '@features/auth/api';
-import { parseAuthError } from '@features/auth/lib/auth-errors';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+﻿import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import {
   type ForgotPasswordFormData,
   forgotPasswordSchema,
 } from '@chachamelmelll9-hash-service/supabase';
+import { AuthStyles } from '@features/auth';
+import { resetPasswordApi } from '@features/auth/api';
+import { parseAuthError } from '@features/auth/lib/auth-errors';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { EMAIL_KEYBOARD_TYPE } from '@shared/lib';
 import { ControlledInput, FormButton } from '@shared/ui';
 import { useMutation } from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
@@ -111,7 +112,8 @@ export default function ForgotPasswordScreen() {
               name="email"
               label={t('email')}
               placeholder={t('email_placeholder')}
-              keyboardType="email-address"
+              keyboardType={EMAIL_KEYBOARD_TYPE}
+          autoCapitalize="none"
               autoComplete="email"
             />
 

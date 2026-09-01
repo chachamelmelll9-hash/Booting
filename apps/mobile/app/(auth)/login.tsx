@@ -1,13 +1,14 @@
+﻿import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+import { type LoginFormData,loginSchema } from '@chachamelmelll9-hash-service/supabase';
 import { AuthStyles,useAuthStore } from '@features/auth';
-import { loginApi } from '@features/auth/api';
+import { devLoginApi,loginApi } from '@features/auth/api';
 import { signInWithApple } from '@features/auth/lib/appleAuth';
 import { parseAuthError } from '@features/auth/lib/auth-errors';
 import { signInWithKakao } from '@features/auth/lib/kakaoAuth';
 import { saveLastLoginMethod } from '@features/auth/lib/lastLoginMethod';
 import { saveTokens, saveUser } from '@features/auth/lib/tokenStorage';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
-import { type LoginFormData,loginSchema } from '@chachamelmelll9-hash-service/supabase';
+import { EMAIL_KEYBOARD_TYPE } from '@shared/lib';
 import {
   ControlledInput,
   ControlledPasswordInput,
@@ -64,6 +65,29 @@ export default function LoginScreen() {
         await saveLastLoginMethod('email');
         setAuth(result.data.user);
         router.replace('/(tabs)/home');
+      }
+    },
+  });
+
+  /**
+   * 개발용 즉시 로그인 (__DEV__ 빌드에서만 버튼이 보인다).
+   * 서버가 고정 계정을 만들고 자녀 인증까지 끝난 세션을 준다.
+   */
+  const devLoginMutation = useMutation({
+    mutationFn: () => devLoginApi(),
+    onSuccess: async (result) => {
+      if (result.success) {
+        await saveTokens({
+          accessToken: result.data.accessToken,
+          refreshToken: result.data.refreshToken,
+          expiresAt: result.data.expiresAt,
+        });
+        await saveUser(result.data.user);
+        await saveLastLoginMethod('email');
+        setAuth(result.data.user);
+        router.replace('/(tabs)/home');
+      } else {
+        setSocialError(result.error.message);
       }
     },
   });
@@ -214,7 +238,8 @@ export default function LoginScreen() {
           name="email"
           label={t('email')}
           placeholder={t('email_placeholder')}
-          keyboardType="email-address"
+          keyboardType={EMAIL_KEYBOARD_TYPE}
+          autoCapitalize="none"
           autoComplete="email"
           testID="login-email-input"
         />
@@ -233,6 +258,17 @@ export default function LoginScreen() {
           onPress={handleSubmit(onSubmit)}
           loading={isSubmitting || loginMutation.isPending}
         />
+
+        {/* 개발 빌드에서만 보인다. 릴리스 번들에는 아예 포함되지 않는다. */}
+        {__DEV__ ? (
+          <FormButton
+            testID="dev-login-button"
+            title="개발용 바로 시작 (회원가입 없이)"
+            variant="secondary"
+            onPress={() => devLoginMutation.mutate()}
+            loading={devLoginMutation.isPending}
+          />
+        ) : null}
       </View>
 
       {/* Links */}

@@ -85,6 +85,16 @@ export async function loginApi(
   return authFetch<LoginResponse>('/auth/login', { email, password });
 }
 
+/**
+ * 개발용 즉시 로그인.
+ *
+ * 고정 계정을 서버가 (없으면) 만들고 자녀 인증까지 끝난 상태로 세션을 준다.
+ * production 서버는 403 을 돌려준다.
+ */
+export async function devLoginApi(): Promise<ApiResult<LoginResponse>> {
+  return authFetch<LoginResponse>('/auth/dev-login', {});
+}
+
 export async function signUpApi(
   email: string,
   password: string

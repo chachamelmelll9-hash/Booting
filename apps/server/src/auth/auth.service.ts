@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -158,6 +159,56 @@ export class AuthService {
         email: data.user.email,
       },
     };
+  }
+
+  /**
+   * 개발용 즉시 로그인.
+   *
+   * 고정 계정을 (없으면) 만들고 자녀 인증까지 끝난 상태로 맞춘 뒤 세션을 준다.
+   * 에뮬레이터에서 매번 이메일·비밀번호를 치고 인증 단계를 지나느라 정작
+   * 검증하려는 화면까지 가지 못하는 문제를 없앤다.
+   *
+   * **production 에서는 호출 자체가 막힌다** — 열려 있으면 아무나 계정을
+   * 얻는 통로가 된다.
+   */
+  async devLogin(): Promise<LoginResponse> {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException({
+        code: 'not_available',
+        message: '사용할 수 없는 기능입니다',
+      });
+    }
+
+    const email = process.env.DEV_LOGIN_EMAIL || 'demo@seed.booting.app';
+    const password = process.env.DEV_LOGIN_PASSWORD || 'BootingDemo123!';
+    const client = this.supabaseService.getClient();
+
+    const { error: createError } = await client.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
+    // 이미 있으면 그대로 쓴다
+    if (createError && !/already/i.test(createError.message)) {
+      this.logger.warn(`dev login createUser: ${createError.message}`);
+    }
+
+    const session = await this.login(email, password);
+
+    // 자녀 인증은 통과한 상태로 둔다 (인증 화면을 다시 지나지 않게)
+    await client.from('child_verifications').upsert(
+      {
+        user_id: session.user.id,
+        phone: '01000000000',
+        phone_verified_at: new Date().toISOString(),
+        family_doc_status: 'approved',
+        family_verified_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id' }
+    );
+
+    this.logger.log(`dev login issued for ${email}`);
+    return session;
   }
 
   async signUp(email: string, password: string): Promise<SignUpResponse> {

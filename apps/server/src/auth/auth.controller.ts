@@ -18,6 +18,16 @@ export class AuthController {
     return this.authService.login(dto.email, dto.password);
   }
 
+  /**
+   * 개발용 즉시 로그인. production 에서는 서비스가 403 을 던진다.
+   * 에뮬레이터 테스트에서 로그인·인증 단계를 건너뛰기 위한 통로다.
+   */
+  @Post('dev-login')
+  @HttpCode(HttpStatus.OK)
+  async devLogin() {
+    return this.authService.devLogin();
+  }
+
   @Post('signup')
   @Throttle(STRICT_THROTTLE)
   @HttpCode(HttpStatus.CREATED)

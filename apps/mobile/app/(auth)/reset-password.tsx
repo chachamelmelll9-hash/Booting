@@ -1,6 +1,6 @@
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { AuthStyles } from '@features/auth';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { supabase } from '@shared/lib/supabase';
 import { ControlledPasswordInput, FormButton } from '@shared/ui';
 import { useMutation } from '@tanstack/react-query';

@@ -1,10 +1,11 @@
+﻿import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+import { type SignupFormData,signupSchema } from '@chachamelmelll9-hash-service/supabase';
 import { AuthStyles,useAuthStore } from '@features/auth';
 import { signUpApi } from '@features/auth/api';
 import { parseAuthError } from '@features/auth/lib/auth-errors';
 import { saveTokens, saveUser } from '@features/auth/lib/tokenStorage';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
-import { type SignupFormData,signupSchema } from '@chachamelmelll9-hash-service/supabase';
+import { EMAIL_KEYBOARD_TYPE } from '@shared/lib';
 import {
   ControlledInput,
   ControlledPasswordInput,
@@ -111,7 +112,8 @@ export default function SignupScreen() {
             name="email"
             label={t('email')}
             placeholder={t('email_placeholder')}
-            keyboardType="email-address"
+            keyboardType={EMAIL_KEYBOARD_TYPE}
+          autoCapitalize="none"
             autoComplete="email"
             testID="signup-email-input"
           />

@@ -1,5 +1,6 @@
 export {
   deleteAccountApi,
+  devLoginApi,
   loginApi,
   logoutApi,
   oauthCallbackApi,
