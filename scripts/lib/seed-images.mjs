@@ -98,23 +98,24 @@ function mix(a, b, t) {
  * 실제 사진으로 보고 싶으면 `assets/seed-photos/{male,female}/` 에 직접
  * 넣으면 시드가 그걸 우선 사용한다 (seed-demo.mjs 참고).
  *
- * `variant` 로 같은 사람의 사진 3장이 서로 달라 보이게 한다 — 캐러셀을
- * 넘겼는지 확인하려면 장마다 달라야 한다.
+ * 형태는 **머리 원 + 어깨 타원**뿐이다. 머리카락·목·옷깃까지 그려 봤는데,
+ * 사람처럼 보이려다 만 도형이 오히려 눈에 걸린다. 자리표시자는 자리표시자로
+ * 읽히는 편이 낫다.
+ *
+ * 인물은 항상 **가운데**에 둔다. 장마다 위치를 흔들면 카드를 넘길 때 사람이
+ * 좌우로 튀어 보여서 읽기 불편하다. `variant` 는 색과 크기만 바꾼다 —
+ * 캐러셀이 넘어갔다는 건 그것만으로 충분히 보인다.
  */
 export function makePortrait(seed, variant = 0, width = 600, height = 800) {
   const hue = (hueOf(seed) + variant * 14) % 360;
   const top = hsl(hue, 0.45, 0.88 - variant * 0.04);
   const bottom = hsl((hue + 26) % 360, 0.40, 0.70 - variant * 0.04);
-  const cloth = hsl(hue, 0.30, 0.34 + variant * 0.03);
-  const collar = hsl(hue, 0.26, 0.44 + variant * 0.03);
-  const skin = hsl((hue + 20) % 360, 0.30, 0.62);
-  const hair = hsl(hue, 0.22, 0.26 + variant * 0.02);
+  const figure = hsl(hue, 0.30, 0.38 + variant * 0.03);
 
-  const cx = width / 2 + (variant - 1) * width * 0.025;
-  const headR = width * (0.165 + variant * 0.01);
-  const headY = height * (0.38 - variant * 0.015);
-  const hairR = headR * 1.14;
-  const shoulderRx = width * (0.45 + variant * 0.03);
+  const cx = width / 2;
+  const headR = width * (0.165 + variant * 0.008);
+  const headY = height * 0.38;
+  const shoulderRx = width * (0.45 + variant * 0.02);
   const shoulderRy = height * 0.40;
   const shoulderY = height * 1.0;
 
@@ -143,26 +144,9 @@ export function makePortrait(seed, variant = 0, width = 600, height = 800) {
           );
 
           const dHead = Math.hypot(px - cx, py - headY);
-          const dHair = Math.hypot(px - cx, py - (headY - headR * 0.18));
           const body = Math.hypot((px - cx) / shoulderRx, (py - shoulderY) / shoulderRy);
 
-          let color = bg;
-          // 목 — 머리와 어깨가 떨어져 있으면 사람이 아니라 도형 두 개로 보인다
-          if (Math.abs(px - cx) < headR * 0.42 && py > headY && py < shoulderY - shoulderRy) {
-            color = skin;
-          }
-          if (body <= 1) color = cloth;
-          // 옷깃: 어깨 맨 윗부분에만 얹는다 (아래까지 내려오면 줄무늬가 된다)
-          if (
-            body <= 1 &&
-            py < shoulderY - shoulderRy + headR * 0.5 &&
-            Math.abs(px - cx) < headR * 0.95
-          ) {
-            color = collar;
-          }
-          // 머리카락은 정수리 쪽만 — 원을 통째로 칠하면 헬멧처럼 보인다
-          if (dHair <= hairR && py < headY - headR * 0.1) color = hair;
-          if (dHead <= headR) color = skin;
+          const color = dHead <= headR || body <= 1 ? figure : bg;
 
           r += color[0];
           g += color[1];
