@@ -21,16 +21,10 @@ export default function ProfileLayout() {
       />
       <Stack.Screen name="app-settings" options={{ title: 'App Settings' }} />
       {/* Nested Stacks (WebView Entry + Internal) */}
-      <Stack.Screen
-        name="statistics"
-        options={{ headerShown: false }}
-      />
+      {/* statistics / device 는 템플릿 잔재였다 — 파일이 없어 매 렌더마다
+          "No route named ... exists" 경고가 떴다 */}
       <Stack.Screen
         name="help"
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="device"
         options={{ headerShown: false }}
       />
       <Stack.Screen

@@ -86,15 +86,20 @@ export class DiscoveryService {
     const { data: me } = await this.supabase
       .getClient()
       .from('parent_profiles')
-      .select('region_code')
+      .select('region_code, gender')
       .eq('id', myProfileId)
       .single();
+
+    // 내 부모님이 고른 목적은 추천 규칙의 입력이다 (동성 친구 등)
+    const myGoalsMap = await this.repository.goalsFor([myProfileId]);
 
     const filter = await this.getFilter(userId);
     const rows = await this.repository.findCandidates({
       userId,
       myProfileId,
       myRegionCode: me?.region_code ?? '',
+      myGender: (me?.gender as 'male' | 'female') ?? 'male',
+      myGoals: myGoalsMap.get(myProfileId) ?? [],
       filter,
       cursor,
       limit,

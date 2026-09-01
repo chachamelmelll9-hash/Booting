@@ -68,6 +68,54 @@ export function validateIntro(draft: ProfileDraft): DraftErrors {
   return errors;
 }
 
+/**
+ * 가족·생활 정보 검증.
+ *
+ * 전부 필수다. 이 항목들이 비면 상세 화면이 이름과 사진만 남아, 상대 자녀가
+ * 부모님을 판단할 근거가 없어진다. 서버도 같은 항목을 `missing` 으로 막는다.
+ * (자녀 수·동거 가족은 필수로 **입력**하되 검색 조건으로는 쓰지 않는다 — PRD)
+ */
+export function validateDetails(draft: ProfileDraft): DraftErrors {
+  const errors: DraftErrors = {};
+  const required: [keyof ProfileDraft, string][] = [
+    ['childrenCount', '자녀 수를 입력해주세요'],
+    ['livingWith', '동거 가족을 입력해주세요'],
+    ['religion', '종교를 입력해주세요'],
+    ['occupation', '직업 또는 은퇴 전 직업을 입력해주세요'],
+    ['drinking', '음주 여부를 입력해주세요'],
+    ['smoking', '흡연 여부를 입력해주세요'],
+    ['hobbies', '취미를 하나 이상 입력해주세요'],
+  ];
+
+  for (const [field, message] of required) {
+    if (!String(draft[field] ?? '').trim()) errors[field] = message;
+  }
+  return errors;
+}
+
 export function hasErrors(errors: DraftErrors): boolean {
   return Object.keys(errors).length > 0;
+}
+
+/**
+ * 서버 `missing` 코드 → 화면 문구.
+ * 서버가 항목을 추가하면 여기에도 추가한다 — 없으면 코드값이 그대로 노출된다.
+ */
+export const MISSING_LABEL: Record<string, string> = {
+  photos: '사진 1장 이상',
+  introByChild: '부모님 소개',
+  desiredPartner: '만나고 싶은 분',
+  goals: '관계 목적',
+  childrenCount: '자녀 수',
+  livingWith: '동거 가족',
+  religion: '종교',
+  occupation: '직업 / 은퇴 전 직업',
+  drinking: '음주',
+  smoking: '흡연',
+  hobbies: '취미',
+  consent: '부모님 동의',
+};
+
+export function missingLabel(key: string): string {
+  return MISSING_LABEL[key] ?? key;
 }

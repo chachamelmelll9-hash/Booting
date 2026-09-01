@@ -15,10 +15,10 @@ export type ProfileStatus =
   | 'hidden'
   | 'rejected';
 
+/** '가벼운 만남'은 제외한다 (사용자 결정, 2026-09-01) */
 export type RelationshipGoal =
   | 'remarriage'
   | 'serious'
-  | 'casual'
   | 'travel_hobby'
   | 'same_sex_friend'
   | 'meal_walk'
@@ -27,7 +27,6 @@ export type RelationshipGoal =
 export const RELATIONSHIP_GOALS: RelationshipGoal[] = [
   'remarriage',
   'serious',
-  'casual',
   'travel_hobby',
   'same_sex_friend',
   'meal_walk',

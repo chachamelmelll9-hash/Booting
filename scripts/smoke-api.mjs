@@ -219,7 +219,7 @@ async function main() {
     check('없는 지역 코드 거부', tooYoung.status === 400, `status=${tooYoung.status}`);
 
     const tooManyGoals = await a.call('PATCH', '/parent-profile', {
-      goals: ['serious', 'casual', 'travel_hobby'],
+      goals: ['serious', 'travel_hobby', 'meal_walk'],
     });
     check('관계 목적 3개 거부', tooManyGoals.status === 400, `status=${tooManyGoals.status}`);
 
@@ -274,6 +274,7 @@ async function main() {
         childrenCount: '2명',
         livingWith: '자녀와 함께',
         religion: '무교',
+        occupation: '은퇴 (교사)',
         drinking: '가끔',
         smoking: '비흡연',
         economicallyActive: false,
@@ -328,6 +329,37 @@ async function main() {
   check('SEC.3 증명서 경로 없음', !raw.includes('family.pdf'));
   check('상세에서만 보이는 자녀 수는 포함', detail.childrenCount === '2명', detail.childrenCount);
   check('자녀 수는 필터 항목에 없다', !('childrenCount' in (await a.expect('GET', '/discovery/filters', null, 'filters'))));
+
+  console.log('\n[7.5] 동성 친구 규칙');
+  {
+    // A(남) 목적을 '동성 친구'로 바꾸면 이성(B)은 추천에서 사라져야 한다
+    await a.expect('PATCH', '/parent-profile', { goals: ['same_sex_friend'] }, 'A → same_sex');
+    const sameSexFeed = await a.expect('GET', '/discovery', null, 'A feed (same_sex)');
+    check(
+      '동성 친구 목적이면 이성 프로필이 안 나온다',
+      !sameSexFeed.items.some((i) => i.profileId === profileB.id),
+      `items=${sameSexFeed.items.length}`
+    );
+
+    // 목적을 되돌리면 다시 나온다
+    await a.expect('PATCH', '/parent-profile', { goals: ['serious', 'meal_walk'] }, 'A restore');
+    const normalFeed = await a.expect('GET', '/discovery', null, 'A feed (normal)');
+    check(
+      '목적을 되돌리면 이성 프로필이 다시 나온다',
+      normalFeed.items.some((i) => i.profileId === profileB.id)
+    );
+
+    // 반대 방향: 목적이 '동성 친구' 하나뿐인 분은 이성 추천에서 빠진다
+    await b.expect('PATCH', '/parent-profile', { goals: ['same_sex_friend'] }, 'B → same_sex only');
+    const excluded = await a.expect('GET', '/discovery', null, 'A feed (B same_sex only)');
+    check(
+      "목적이 '동성 친구'뿐인 분은 이성에게 추천되지 않는다",
+      !excluded.items.some((i) => i.profileId === profileB.id),
+      `items=${excluded.items.length}`
+    );
+
+    await b.expect('PATCH', '/parent-profile', { goals: ['serious'] }, 'B restore');
+  }
 
   console.log('\n[8] 하트 → 상호 하트 → 대화');
   const heart1 = await a.expect('POST', '/hearts', { targetProfileId: profileB.id }, 'A heart B');

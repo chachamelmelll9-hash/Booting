@@ -10,7 +10,7 @@
 | ParentPhoto | 부모님 사진 (최대 5장, 대표 1장) | id, parent_profile_id, storage_path, is_primary, sort_order, created_at | parent-profile-consent, profile-discovery |
 | ParentConsent | 부모님의 등록·공개 동의와 철회 이력 | id, parent_profile_id, method(sms/in_person), parent_name, consented_at, revoked_at, created_at | parent-profile-consent |
 | SajuInfo | 사주 정보 (선택 입력, 공개 여부 선택) | id, parent_profile_id, birth_date, calendar_type(solar/lunar), birth_time, birth_time_unknown, is_public, created_at | parent-profile-consent, profile-discovery |
-| RelationshipGoal | 관계 목적 (프로필당 최대 2개) | id, parent_profile_id, goal(remarriage/serious/casual/travel_hobby/same_sex_friend/meal_walk/undecided) | parent-profile-consent, profile-discovery |
+| RelationshipGoal | 관계 목적 (프로필당 최대 2개) | id, parent_profile_id, goal(remarriage/serious/travel_hobby/same_sex_friend/meal_walk/undecided) | parent-profile-consent, profile-discovery |
 | ProfileReview | 운영 검수 결과 | id, parent_profile_id, status(pending/approved/rejected), reject_reason, reviewed_at, created_at | parent-profile-consent |
 | DiscoveryFilter | 자녀가 저장한 추천 조건 | id, user_id, target_gender, age_min, age_max, region_code, radius_km(10/30/50/null=전국), marital_filter(bereaved/divorced/any), goals[], religion, drinking, smoking, economically_active, updated_at | profile-discovery |
 | Heart | 하트 (관심 보내기) | id, sender_user_id, target_parent_profile_id, created_at | profile-discovery, heart-conversation |

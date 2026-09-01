@@ -4,6 +4,8 @@ import { radius, spacing, typography } from '@shared/config/tokens';
 import { VerificationBadgeRow } from '@shared/ui/VerificationBadgeRow';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { missingLabel } from '../lib/profileValidation';
+
 const STATUS_TEXT: Record<ParentProfile['status'], { title: string; body: string }> = {
   draft: {
     title: '작성 중',
@@ -50,7 +52,7 @@ export function ProfileStatusPanel({ profile }: { profile: ParentProfile }) {
           <Text style={styles.missingTitle}>남은 항목</Text>
           {profile.missing.map((key) => (
             <Text key={key} style={styles.missingItem}>
-              · {MISSING_LABEL[key] ?? key}
+              · {missingLabel(key)}
             </Text>
           ))}
         </View>
@@ -62,14 +64,6 @@ export function ProfileStatusPanel({ profile }: { profile: ParentProfile }) {
     </View>
   );
 }
-
-const MISSING_LABEL: Record<string, string> = {
-  photos: '사진 1장 이상',
-  introByChild: '부모님 소개',
-  desiredPartner: '만나고 싶은 분',
-  goals: '관계 목적',
-  consent: '부모님 동의',
-};
 
 const styles = StyleSheet.create({
   panel: {

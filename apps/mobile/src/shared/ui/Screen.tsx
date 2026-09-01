@@ -50,6 +50,9 @@ export function Screen({
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
+          // 한 번 밀면 화면이 통째로 지나가 버려서 어디를 보고 있었는지 놓친다.
+          // 감속을 빠르게 해 플링 거리를 줄인다 — 긴 폼(프로필 작성)에서 특히 중요하다.
+          decelerationRate="fast"
         >
           {body}
         </ScrollView>

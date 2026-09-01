@@ -116,6 +116,9 @@ export function FilterSheet({ initial, onApply, onReset, saving = false }: Props
 
         <Text style={styles.note}>
           자녀 수와 동거 가족은 조건으로 고르지 않습니다. 프로필 상세에서 확인하실 수 있습니다.
+          {'\n\n'}
+          부모님 관계 목적에 &lsquo;동성 친구&rsquo;가 있으면 같은 성별의 동성 친구를 찾는
+          분만 추천해드립니다. 이때는 위의 성별 조건이 적용되지 않습니다.
         </Text>
       </ScrollView>
 

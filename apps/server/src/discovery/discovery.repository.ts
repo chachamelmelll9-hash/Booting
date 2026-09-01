@@ -8,6 +8,10 @@ export interface CandidateQuery {
   userId: string;
   myProfileId: string;
   myRegionCode: string;
+  /** 내 부모님 성별 — 동성 친구 규칙 판정에 쓴다 */
+  myGender: 'male' | 'female';
+  /** 내 부모님이 고른 관계 목적 */
+  myGoals: string[];
   filter: DiscoveryFilterDto;
   cursor?: string;
   limit: number;
@@ -55,7 +59,32 @@ export class DiscoveryRepository {
 
     const f = q.filter;
 
-    if (f.targetGender) query = query.eq('gender', f.targetGender);
+    /**
+     * 동성 친구 규칙.
+     *
+     * '동성 친구'는 이성 교제가 아니다. 그래서 이 목적을 고른 분에게 이성
+     * 프로필을 보여주면 안 되고, 반대로 재혼·진지한 만남을 찾는 분에게
+     * "동성 친구만" 찾는 분을 보여줘도 안 된다. 양쪽 다 서로에게 헛걸음이다.
+     *
+     * 규칙은 대칭이다:
+     *   - 내 목적에 동성 친구가 있으면 → 같은 성별 + 상대도 동성 친구 목적
+     *   - 없으면 → 목적이 '동성 친구' 하나뿐인 분은 제외
+     * 성별 조건은 사용자 필터(targetGender)보다 우선한다 — 목적이 더 강한 신호다.
+     */
+    const wantsSameSexFriend = q.myGoals.includes('same_sex_friend');
+
+    if (wantsSameSexFriend) {
+      query = query.eq('gender', q.myGender);
+      const sameSexSeekers = await this.profileIdsWithGoal('same_sex_friend');
+      if (!sameSexSeekers.length) return [];
+      query = query.in('id', sameSexSeekers);
+    } else {
+      const sameSexOnly = await this.profileIdsWithOnlyGoal('same_sex_friend');
+      if (sameSexOnly.length) {
+        query = query.not('id', 'in', `(${sameSexOnly.join(',')})`);
+      }
+      if (f.targetGender) query = query.eq('gender', f.targetGender);
+    }
     if (f.maritalFilter) query = query.eq('marital_status', f.maritalFilter);
     if (f.religion) query = query.eq('religion', f.religion);
     if (f.drinking) query = query.eq('drinking', f.drinking);
@@ -87,6 +116,33 @@ export class DiscoveryRepository {
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     return data ?? [];
+  }
+
+  /** 해당 목적을 가진 프로필 id */
+  private async profileIdsWithGoal(goal: string): Promise<string[]> {
+    const { data } = await this.supabase
+      .getClient()
+      .from('relationship_goals')
+      .select('parent_profile_id')
+      .eq('goal', goal);
+    return [...new Set((data ?? []).map((r) => r.parent_profile_id as string))];
+  }
+
+  /** 목적이 그것 **하나뿐인** 프로필 id (다른 목적을 함께 고른 사람은 제외되지 않는다) */
+  private async profileIdsWithOnlyGoal(goal: string): Promise<string[]> {
+    const client = this.supabase.getClient();
+    const { data } = await client.from('relationship_goals').select('parent_profile_id, goal');
+
+    const byProfile = new Map<string, string[]>();
+    for (const row of data ?? []) {
+      const list = byProfile.get(row.parent_profile_id) ?? [];
+      list.push(row.goal);
+      byProfile.set(row.parent_profile_id, list);
+    }
+
+    return [...byProfile.entries()]
+      .filter(([, goals]) => goals.length === 1 && goals[0] === goal)
+      .map(([profileId]) => profileId);
   }
 
   /** 여러 프로필의 관계 목적을 한 번에 (N+1 방지) */

@@ -313,11 +313,20 @@ export class ParentProfileService {
       review: review?.status === 'approved',
     };
 
+    // 제출 필수 항목. 화면 검증과 같은 목록이지만 여기가 진짜 관문이다 —
+    // 클라이언트를 우회해 PATCH → submit 을 직접 부르는 경로도 여기서 막힌다.
     const missing: string[] = [];
     if (!photos.length) missing.push('photos');
     if (!row.intro_by_child) missing.push('introByChild');
     if (!row.desired_partner) missing.push('desiredPartner');
     if (!goals.length) missing.push('goals');
+    if (!row.children_count) missing.push('childrenCount');
+    if (!row.living_with) missing.push('livingWith');
+    if (!row.religion) missing.push('religion');
+    if (!row.occupation && !row.retired_occupation) missing.push('occupation');
+    if (!row.drinking) missing.push('drinking');
+    if (!row.smoking) missing.push('smoking');
+    if (!row.hobbies?.length) missing.push('hobbies');
     if (!badges.consent) missing.push('consent');
 
     return {

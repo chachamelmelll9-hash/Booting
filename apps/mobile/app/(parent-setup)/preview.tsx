@@ -1,4 +1,5 @@
 import {
+  missingLabel,
   useParentProfile,
   useParentProfileMutations,
   useProfileDraftStore,
@@ -102,7 +103,7 @@ export default function PreviewScreen() {
           <Text style={styles.missingTitle}>공개하려면 아래 항목이 필요합니다</Text>
           {profile.missing.map((key) => (
             <Text key={key} style={styles.missingItem}>
-              · {MISSING_LABEL[key] ?? key}
+              · {missingLabel(key)}
             </Text>
           ))}
           <AppButton
@@ -129,14 +130,6 @@ function maskName(name: string): string {
   const chars = Array.from(trimmed);
   return chars[0] + 'O'.repeat(Math.max(chars.length - 1, 1));
 }
-
-const MISSING_LABEL: Record<string, string> = {
-  photos: '사진 1장 이상',
-  introByChild: '부모님 소개',
-  desiredPartner: '만나고 싶은 분',
-  goals: '관계 목적',
-  consent: '부모님 동의',
-};
 
 const styles = StyleSheet.create({
   title: { ...typography.title, color: theme.colors.text, marginTop: spacing.md },

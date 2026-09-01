@@ -6,6 +6,12 @@ import { useHeartsUnreadCount } from '@features/hearts';
 import { theme } from '@shared/config/colors';
 import { useClientOnlyValue } from '@shared/lib';
 
+// Expo Router 는 탭 초기 화면을 파일 시스템 순서(알파벳)로 고른다 —
+// 지정하지 않으면 connections 가 먼저 잡혀 앱이 '인연' 탭으로 열린다.
+export const unstable_settings = {
+  initialRouteName: 'home',
+};
+
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;

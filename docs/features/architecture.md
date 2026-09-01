@@ -558,7 +558,8 @@ DiscoveryItemDto & {
 -- 열거형: 문구가 아니라 코드값으로 저장한다 (표시 문구는 클라이언트 config 단일 소스)
 create type marital_status  as enum ('bereaved','divorced');
 create type profile_status  as enum ('draft','consent_pending','review','published','hidden','rejected');
-create type relationship_goal as enum ('remarriage','serious','casual','travel_hobby','same_sex_friend','meal_walk','undecided');
+-- '가벼운 만남'(casual)은 사용자 결정으로 제외 (2026-09-01, 마이그레이션 20260901120000)
+create type relationship_goal as enum ('remarriage','serious','travel_hobby','same_sex_friend','meal_walk','undecided');
 create type connection_status as enum ('mutual_heart','chatting','parent_intent','meeting_scheduled','meeting_confirm_pending','matched','ended');
 create type parent_intent_kind as enum ('willing','thinking','declined');
 create type meeting_feedback_kind as enum ('continue','friends','thinking','no_more');

@@ -9,6 +9,7 @@ import {
   useParentProfileMutations,
   useProfileDraftStore,
   validateBasics,
+  validateDetails,
   validateIntro,
 } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
@@ -75,13 +76,48 @@ export default function ProfileEditScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile?.id]);
 
-  const save = async () => {
+  /**
+   * 프로필 행을 확보한다.
+   *
+   * 사진은 프로필에 딸린 자원이라 프로필이 있어야 올릴 수 있는데, 사진이
+   * 필수라 저장도 사진 없이는 통과하지 못한다 — 그대로 두면 서로를 기다리는
+   * 교착이 된다. 그래서 사진을 처음 추가할 때 기본 정보만으로 프로필을
+   * 조용히 만들어 둔다 (사용자에게 "먼저 저장하세요"를 요구하지 않는다).
+   */
+  const ensureProfile = async () => {
+    if (profile) return profile;
+
     const basicErrors = validateBasics(draft);
-    const introErrors = validateIntro(draft);
-    const all = { ...basicErrors, ...introErrors };
+    setErrors(basicErrors);
+    if (hasErrors(basicErrors)) {
+      toast.show({ message: '사진을 올리려면 기본 정보를 먼저 입력해주세요' });
+      return null;
+    }
+
+    return create.mutateAsync({
+      displayName: draft.displayName.trim(),
+      gender: draft.gender as 'male' | 'female',
+      birthDate: draft.birthDate,
+      regionCode: draft.regionCode,
+      maritalStatus: draft.maritalStatus as 'bereaved' | 'divorced',
+      maritalSince: draft.maritalSince || undefined,
+      goals: draft.goals,
+    });
+  };
+
+  const save = async () => {
+    const all = {
+      ...validateBasics(draft),
+      ...validateDetails(draft),
+      ...validateIntro(draft),
+    };
     setErrors(all);
     if (hasErrors(all)) {
       toast.show({ message: '입력하지 않은 항목이 있습니다' });
+      return;
+    }
+    if ((profile?.photos.length ?? 0) === 0) {
+      toast.show({ message: '사진을 최소 1장 등록해주세요' });
       return;
     }
 
@@ -205,22 +241,26 @@ export default function ProfileEditScreen() {
         />
       </FormSection>
 
-      <Text style={styles.section}>사진</Text>
+      <Text style={styles.section}>사진 (필수)</Text>
+      {(profile?.photos.length ?? 0) === 0 ? (
+        <Text style={styles.requiredNote}>사진을 최소 1장 등록해주세요</Text>
+      ) : null}
       <PhotoUploader
         photos={profile?.photos ?? []}
         busy={uploading || addPhoto.isPending}
         onAdd={async () => {
-          if (!profile) {
-            toast.show({ message: '기본 정보를 먼저 저장해주세요' });
-            return;
-          }
           if (!user?.id) return;
           try {
             setUploading(true);
+            const target = await ensureProfile();
+            if (!target) return;
             const image = await pickImage();
             if (!image) return;
             const path = await uploadToStorage('parent-photos', user.id, image);
-            addPhoto.mutate({ storagePath: path, isPrimary: (profile.photos?.length ?? 0) === 0 });
+            addPhoto.mutate({
+              storagePath: path,
+              isPrimary: (target.photos?.length ?? 0) === 0,
+            });
           } catch (error) {
             toast.show({ message: (error as Error).message });
           } finally {
@@ -232,29 +272,72 @@ export default function ProfileEditScreen() {
 
       <Text style={styles.section}>가족·생활</Text>
       <Text style={styles.sectionNote}>
-        자녀 수와 동거 가족은 검색 조건으로 쓰이지 않고 상세 화면에서만 보입니다.
+        모두 필수 항목입니다. 자녀 수와 동거 가족은 검색 조건으로 쓰이지 않고 상세
+        화면에서만 보입니다.
       </Text>
 
-      <FormSection label="자녀 수">
-        <TextField value={draft.childrenCount} onChangeText={(v) => set({ childrenCount: v })} placeholder="예: 2명" maxLength={20} />
+      <FormSection label="자녀 수" required error={errors.childrenCount}>
+        <TextField
+          testID="profile-children"
+          value={draft.childrenCount}
+          onChangeText={(v) => set({ childrenCount: v })}
+          placeholder="예: 2명"
+          maxLength={20}
+          invalid={!!errors.childrenCount}
+        />
       </FormSection>
-      <FormSection label="동거 가족">
-        <TextField value={draft.livingWith} onChangeText={(v) => set({ livingWith: v })} placeholder="예: 혼자 지내십니다" maxLength={50} />
+      <FormSection label="동거 가족" required error={errors.livingWith}>
+        <TextField
+          value={draft.livingWith}
+          onChangeText={(v) => set({ livingWith: v })}
+          placeholder="예: 혼자 지내십니다"
+          maxLength={50}
+          invalid={!!errors.livingWith}
+        />
       </FormSection>
-      <FormSection label="종교">
-        <TextField value={draft.religion} onChangeText={(v) => set({ religion: v })} placeholder="예: 무교" maxLength={30} />
+      <FormSection label="종교" required error={errors.religion}>
+        <TextField
+          value={draft.religion}
+          onChangeText={(v) => set({ religion: v })}
+          placeholder="예: 무교"
+          maxLength={30}
+          invalid={!!errors.religion}
+        />
       </FormSection>
-      <FormSection label="직업 / 은퇴 전 직업">
-        <TextField value={draft.occupation} onChangeText={(v) => set({ occupation: v })} placeholder="예: 은퇴 (교사)" maxLength={50} />
+      <FormSection label="직업 / 은퇴 전 직업" required error={errors.occupation}>
+        <TextField
+          value={draft.occupation}
+          onChangeText={(v) => set({ occupation: v })}
+          placeholder="예: 은퇴 (교사)"
+          maxLength={50}
+          invalid={!!errors.occupation}
+        />
       </FormSection>
-      <FormSection label="음주">
-        <TextField value={draft.drinking} onChangeText={(v) => set({ drinking: v })} placeholder="예: 가끔" maxLength={20} />
+      <FormSection label="음주" required error={errors.drinking}>
+        <TextField
+          value={draft.drinking}
+          onChangeText={(v) => set({ drinking: v })}
+          placeholder="예: 가끔"
+          maxLength={20}
+          invalid={!!errors.drinking}
+        />
       </FormSection>
-      <FormSection label="흡연">
-        <TextField value={draft.smoking} onChangeText={(v) => set({ smoking: v })} placeholder="예: 비흡연" maxLength={20} />
+      <FormSection label="흡연" required error={errors.smoking}>
+        <TextField
+          value={draft.smoking}
+          onChangeText={(v) => set({ smoking: v })}
+          placeholder="예: 비흡연"
+          maxLength={20}
+          invalid={!!errors.smoking}
+        />
       </FormSection>
-      <FormSection label="취미" helper="쉼표로 구분해주세요">
-        <TextField value={draft.hobbies} onChangeText={(v) => set({ hobbies: v })} placeholder="예: 산책, 바둑, 등산" />
+      <FormSection label="취미" required helper="쉼표로 구분해주세요" error={errors.hobbies}>
+        <TextField
+          value={draft.hobbies}
+          onChangeText={(v) => set({ hobbies: v })}
+          placeholder="예: 산책, 바둑, 등산"
+          invalid={!!errors.hobbies}
+        />
       </FormSection>
 
       <Text style={styles.section}>소개</Text>
@@ -341,6 +424,11 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: theme.colors.textTertiary,
     marginBottom: spacing.sm,
+  },
+  requiredNote: {
+    ...typography.caption,
+    color: theme.colors.error,
+    marginBottom: spacing.xs,
   },
   row: { flexDirection: 'row', gap: spacing.xs },
   chip: {

@@ -9,7 +9,6 @@
 export type RelationshipGoal =
   | 'remarriage'
   | 'serious'
-  | 'casual'
   | 'travel_hobby'
   | 'same_sex_friend'
   | 'meal_walk'
@@ -22,9 +21,12 @@ export const RELATIONSHIP_GOALS: {
 }[] = [
   { key: 'remarriage', label: '재혼', hint: '함께 살아갈 배우자를 찾습니다' },
   { key: 'serious', label: '진지한 만남', hint: '결혼 전제는 아니지만 오래 만나고 싶습니다' },
-  { key: 'casual', label: '가벼운 만남', hint: '부담 없이 알아가고 싶습니다' },
   { key: 'travel_hobby', label: '여행·취미 친구', hint: '함께 다닐 사람이 필요합니다' },
-  { key: 'same_sex_friend', label: '동성 친구', hint: '이성 교제가 아닌 친구를 찾습니다' },
+  {
+    key: 'same_sex_friend',
+    label: '동성 친구',
+    hint: '같은 성별의 동성 친구를 찾는 분만 추천됩니다',
+  },
   { key: 'meal_walk', label: '식사·산책 친구', hint: '가까운 동네에서 자주 볼 사람을 찾습니다' },
   { key: 'undecided', label: '아직 모르겠음', hint: '천천히 정하고 싶습니다' },
 ];
