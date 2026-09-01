@@ -65,13 +65,13 @@ export default function ConnectionsScreen() {
       ) : isError ? (
         <EmptyState
           icon="exclamation-circle"
-          title="인연 목록을 불러오지 못했습니다"
+          title="매칭 목록을 불러오지 못했습니다"
           cta={{ label: '다시 시도', onPress: () => void refetch() }}
         />
       ) : !connections?.length ? (
         <EmptyState
           icon="comments-o"
-          title={filter === 'all' ? '아직 연결된 인연이 없습니다' : '해당 상태의 인연이 없습니다'}
+          title={filter === 'all' ? '아직 연결된 분이 없습니다' : '아직 매칭된 분이 없습니다'}
           description={
             filter === 'all'
               ? '서로 관심을 보내면 자녀분끼리 대화를 시작할 수 있습니다.'

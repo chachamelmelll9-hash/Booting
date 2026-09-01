@@ -86,9 +86,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="connections"
         options={{
-          title: '인연',
+          title: '매칭',
           href: published ? undefined : null,
-          tabBarAccessibilityLabel: '인연',
+          tabBarAccessibilityLabel: '매칭',
           tabBarIcon: ConnectionsIcon,
         }}
       />

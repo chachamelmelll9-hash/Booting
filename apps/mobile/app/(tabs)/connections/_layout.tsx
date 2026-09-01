@@ -19,7 +19,7 @@ export default function ConnectionsLayout() {
         headerShadowVisible: false,
       }}
     >
-      <Stack.Screen name="index" options={{ title: '인연' }} />
+      <Stack.Screen name="index" options={{ title: '매칭' }} />
       <Stack.Screen name="[id]" options={{ headerShown: false }} />
     </Stack>
   );

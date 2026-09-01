@@ -25,7 +25,7 @@ function BackToConnections() {
     <Pressable
       testID="chat-back"
       accessibilityRole="button"
-      accessibilityLabel="인연 목록으로"
+      accessibilityLabel="매칭 목록으로"
       hitSlop={8}
       onPress={() => router.navigate('/(tabs)/connections')}
       style={({ pressed }) => [
