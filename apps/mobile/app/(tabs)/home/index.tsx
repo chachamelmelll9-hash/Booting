@@ -13,15 +13,14 @@ import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import {
   BootingLogo,
   EmptyState,
-  HeartActionBar,
-  ParentProfileCard,
+  ProfileDeck,
   Screen,
   SkeletonList,
   useToast,
 } from '@shared/ui';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 /**
  * 홈 — 추천 피드.
@@ -107,18 +106,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <Screen
-      footer={
-        current ? (
-          <HeartActionBar
-            onHeart={onHeart}
-            onPass={onPass}
-            onDetail={() => router.push(`/profile/${current.profileId}`)}
-            busy={sendHeart.isPending || pass.isPending}
-          />
-        ) : undefined
-      }
-    >
+    <Screen>
       <Header unreadCount={unread?.count ?? 0} />
 
       <Pressable
@@ -158,17 +146,16 @@ export default function HomeScreen() {
           testID="home-empty"
         />
       ) : (
-        <ScrollView style={styles.deck} showsVerticalScrollIndicator={false}>
-          <ParentProfileCard
-            profile={current}
-            variant="deck"
-            onPress={() => router.push(`/profile/${current.profileId}`)}
-            testID="discovery-card"
-          />
-          <Text style={styles.counter}>
-            {index + 1}번째 · 남은 추천 {Math.max(cards.length - index - 1, 0)}명
-          </Text>
-        </ScrollView>
+        <ProfileDeck
+          profiles={cards}
+          index={index}
+          busy={sendHeart.isPending || pass.isPending}
+          note={`${index + 1}번째 · 남은 추천 ${Math.max(cards.length - index - 1, 0)}명`}
+          testID="home-deck"
+          onDetail={() => router.push(`/profile/${current.profileId}`)}
+          onHeart={onHeart}
+          onPass={onPass}
+        />
       )}
     </Screen>
   );
@@ -228,12 +215,4 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   filterChipText: { ...typography.caption, color: theme.colors.primaryDark },
-  deck: { flex: 1 },
-  counter: {
-    ...typography.caption,
-    color: theme.colors.textTertiary,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
-  },
 });

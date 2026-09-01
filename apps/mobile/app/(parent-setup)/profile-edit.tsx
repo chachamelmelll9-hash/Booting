@@ -16,6 +16,7 @@ import {
 } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
 import {
+  ECONOMIC_OPTIONS,
   LIVING_WITH_OPTIONS,
   MIN_PROFILE_PHOTOS,
   parseLivingWith,
@@ -92,10 +93,17 @@ export default function ProfileEditScreen() {
       maritalStatus: profile.maritalStatus,
       maritalSince: profile.maritalSince ?? '',
       goals: profile.goals,
+      heightCm: profile.heightCm ? String(profile.heightCm) : '',
       childrenCount: profile.childrenCount ?? '',
       livingWith: parseLivingWith(profile.livingWith),
       religion: profile.religion ?? '',
       occupation: profile.occupation ?? '',
+      economicStatus:
+        profile.economicallyActive === true
+          ? 'active'
+          : profile.economicallyActive === false
+            ? 'retired'
+            : '',
       drinking: profile.drinking ?? '',
       smoking: profile.smoking ?? '',
       hobbies: profile.hobbies.join(', '),
@@ -154,6 +162,10 @@ export default function ProfileEditScreen() {
     }
 
     const details = {
+      heightCm: draft.heightCm ? Number(draft.heightCm) : undefined,
+      economicallyActive: draft.economicStatus
+        ? draft.economicStatus === 'active'
+        : undefined,
       childrenCount: draft.childrenCount || undefined,
       livingWith: serializeLivingWith(draft.livingWith) || undefined,
       religion: draft.religion || undefined,
@@ -299,6 +311,18 @@ export default function ProfileEditScreen() {
         화면에서만 보입니다.
       </Text>
 
+      <FormSection label="키" required helper="cm 단위 숫자만" error={errors.heightCm}>
+        <TextField
+          testID="profile-height"
+          value={draft.heightCm}
+          onChangeText={(v) => set({ heightCm: v.replace(/\D/g, '') })}
+          placeholder="예: 168"
+          keyboardType="number-pad"
+          maxLength={3}
+          invalid={!!errors.heightCm}
+        />
+      </FormSection>
+
       <FormSection label="자녀 수" required error={errors.childrenCount}>
         <TextField
           testID="profile-children"
@@ -342,14 +366,38 @@ export default function ProfileEditScreen() {
           invalid={!!errors.religion}
         />
       </FormSection>
-      <FormSection label="직업 / 은퇴 전 직업" required error={errors.occupation}>
+      <FormSection
+        label="직업"
+        required
+        helper="은퇴하셨으면 은퇴 전 직업을 적어주세요"
+        error={errors.occupation}
+      >
         <TextField
           value={draft.occupation}
           onChangeText={(v) => set({ occupation: v })}
-          placeholder="예: 은퇴 (교사)"
+          placeholder="예: 교사"
           maxLength={50}
           invalid={!!errors.occupation}
         />
+      </FormSection>
+
+      <FormSection
+        label="경제 활동"
+        required
+        helper="은퇴를 고르시면 상세에 '교사 (은퇴)'처럼 표시됩니다"
+        error={errors.economicStatus}
+      >
+        <View style={styles.row}>
+          {ECONOMIC_OPTIONS.map((option) => (
+            <Chip
+              key={option.key}
+              label={option.label}
+              selected={draft.economicStatus === option.key}
+              testID={`economic-${option.key}`}
+              onPress={() => set({ economicStatus: option.key })}
+            />
+          ))}
+        </View>
       </FormSection>
       <FormSection label="음주" required error={errors.drinking}>
         <TextField

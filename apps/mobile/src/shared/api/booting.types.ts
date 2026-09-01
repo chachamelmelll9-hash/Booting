@@ -61,6 +61,7 @@ export interface ParentProfile {
   region: string;
   maritalStatus: MaritalStatus;
   maritalSince: string | null;
+  heightCm: number | null;
   childrenCount: string | null;
   livingWith: string | null;
   religion: string | null;
@@ -118,6 +119,8 @@ export interface DiscoveryItem {
 export interface PublicProfile extends DiscoveryItem {
   photoUrls: string[];
   maritalSince: string | null;
+  /** 키(cm). 상세에서만 노출 */
+  heightCm: number | null;
   introByChild: string;
   desiredPartner: string;
   parentMessage: string;

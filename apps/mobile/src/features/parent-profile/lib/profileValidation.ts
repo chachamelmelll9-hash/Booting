@@ -82,7 +82,8 @@ export function validateDetails(draft: ProfileDraft): DraftErrors {
   const required: [keyof ProfileDraft, string][] = [
     ['childrenCount', '자녀 수를 입력해주세요'],
     ['religion', '종교를 입력해주세요'],
-    ['occupation', '직업 또는 은퇴 전 직업을 입력해주세요'],
+    ['occupation', '직업을 입력해주세요'],
+    ['economicStatus', '경제 활동 여부를 선택해주세요'],
     ['drinking', '음주 여부를 입력해주세요'],
     ['smoking', '흡연 여부를 선택해주세요'],
     ['hobbies', '취미를 하나 이상 입력해주세요'],
@@ -97,8 +98,20 @@ export function validateDetails(draft: ProfileDraft): DraftErrors {
     errors.livingWith = '동거 가족을 하나 이상 선택해주세요';
   }
 
+  // 키는 숫자 + 범위까지 본다. 자유 입력이면 "170cm" / "1.7" 이 그대로 들어온다
+  const height = Number(draft.heightCm);
+  if (!draft.heightCm.trim()) {
+    errors.heightCm = '키를 입력해주세요';
+  } else if (!Number.isInteger(height) || height < MIN_HEIGHT_CM || height > MAX_HEIGHT_CM) {
+    errors.heightCm = `키는 ${MIN_HEIGHT_CM}~${MAX_HEIGHT_CM} 사이 숫자로 입력해주세요`;
+  }
+
   return errors;
 }
+
+/** 서버 DTO·DB CHECK 와 같은 범위 */
+export const MIN_HEIGHT_CM = 120;
+export const MAX_HEIGHT_CM = 220;
 
 export function hasErrors(errors: DraftErrors): boolean {
   return Object.keys(errors).length > 0;
@@ -113,6 +126,7 @@ export const MISSING_LABEL: Record<string, string> = {
   introByChild: '부모님 소개',
   desiredPartner: '만나고 싶은 분',
   goals: '관계 목적',
+  heightCm: '키',
   childrenCount: '자녀 수',
   livingWith: '동거 가족',
   religion: '종교',

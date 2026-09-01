@@ -64,6 +64,8 @@ export interface DiscoveryItemDto {
 export interface PublicProfileDto extends DiscoveryItemDto {
   photoUrls: string[];
   maritalSince: string | null;
+  /** 키(cm). 카드에는 넣지 않고 상세에서만 보여준다 */
+  heightCm: number | null;
   introByChild: string;
   desiredPartner: string;
   parentMessage: string;

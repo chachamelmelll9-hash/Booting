@@ -1,5 +1,6 @@
 import { useHeartActions, usePublicProfile } from '@features/discovery';
 import { theme } from '@shared/config/colors';
+import { formatOccupation } from '@shared/config/profileOptions';
 import { radius, spacing, typography } from '@shared/config/tokens';
 import {
   AppButton,
@@ -131,17 +132,15 @@ export default function PublicProfileScreen() {
       ) : null}
 
       <Section title="생활">
+        <Detail label="키" value={profile.heightCm ? `${profile.heightCm}cm` : null} />
         <Detail label="종교" value={profile.religion} />
-        <Detail label="직업" value={profile.occupation ?? profile.retiredOccupation} />
+        {/* 경제 활동은 별도 줄로 두지 않는다 — 직업 문구에 (은퇴)로 합쳐 넣는다 */}
         <Detail
-          label="경제 활동"
-          value={
-            profile.economicallyActive === null
-              ? null
-              : profile.economicallyActive
-                ? '하고 계십니다'
-                : '하지 않으십니다'
-          }
+          label="직업"
+          value={formatOccupation(
+            profile.occupation ?? profile.retiredOccupation,
+            profile.economicallyActive
+          )}
         />
         <Detail label="음주" value={profile.drinking} />
         <Detail label="흡연" value={profile.smoking} />

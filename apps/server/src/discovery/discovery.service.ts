@@ -229,6 +229,7 @@ export class DiscoveryService {
       ...base,
       photoUrls: photos.map((p) => p.url),
       maritalSince: row.marital_since,
+      heightCm: row.height_cm,
       introByChild: row.intro_by_child ?? '',
       desiredPartner: row.desired_partner ?? '',
       parentMessage: row.parent_message ?? '',

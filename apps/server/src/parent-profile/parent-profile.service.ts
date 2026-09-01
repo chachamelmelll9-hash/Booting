@@ -104,6 +104,7 @@ export class ParentProfileService {
       displayName: 'display_name',
       regionCode: 'region_code',
       maritalSince: 'marital_since',
+      heightCm: 'height_cm',
       childrenCount: 'children_count',
       livingWith: 'living_with',
       religion: 'religion',
@@ -321,6 +322,7 @@ export class ParentProfileService {
     if (!row.intro_by_child) missing.push('introByChild');
     if (!row.desired_partner) missing.push('desiredPartner');
     if (!goals.length) missing.push('goals');
+    if (!row.height_cm) missing.push('heightCm');
     if (!row.children_count) missing.push('childrenCount');
     if (!row.living_with) missing.push('livingWith');
     if (!row.religion) missing.push('religion');
@@ -340,6 +342,7 @@ export class ParentProfileService {
       region,
       maritalStatus: row.marital_status,
       maritalSince: row.marital_since,
+      heightCm: row.height_cm,
       childrenCount: row.children_count,
       livingWith: row.living_with,
       religion: row.religion,

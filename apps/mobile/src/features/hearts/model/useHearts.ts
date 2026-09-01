@@ -40,3 +40,24 @@ export function useSendHeartBack() {
     },
   });
 }
+
+/**
+ * 받은 관심을 넘긴다.
+ *
+ * 넘김을 기록해야 목록에서도 사라지고 추천에도 다시 안 뜬다.
+ * 기록하지 않으면 넘긴 사람이 홈에서 또 나온다.
+ */
+export function usePassReceivedHeart() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: heartsApi.pass,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: bootingKeys.heartsReceived }),
+        queryClient.invalidateQueries({ queryKey: bootingKeys.heartsUnread }),
+        queryClient.invalidateQueries({ queryKey: bootingKeys.discovery }),
+      ]);
+    },
+  });
+}

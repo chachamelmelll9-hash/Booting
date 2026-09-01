@@ -107,13 +107,18 @@ const PROFILES = [
     '어머니는 아침마다 호수공원을 걸으십니다. 부지런한 분이세요.',
     '가까운 곳에서 자주 볼 분이면 충분합니다.', '2명', '혼자 거주', '보험설계사', ['걷기', '요리']],
 ].map(
-  ([
-    tag, displayName, gender, birthDate, regionCode, maritalStatus, goals,
-    intro, desired, children, livingWith, occupation, hobbies,
-  ]) => ({
+  (
+    [
+      tag, displayName, gender, birthDate, regionCode, maritalStatus, goals,
+      intro, desired, children, livingWith, occupation, hobbies,
+    ],
+    index
+  ) => ({
     tag, displayName, gender, birthDate, regionCode, maritalStatus, goals,
     intro, desired, children, livingWith, occupation, hobbies,
     message: desired,
+    // 키는 성별별로 현실적인 범위 안에서 흩어 놓는다 (필터·표기 확인용)
+    heightCm: gender === 'male' ? 166 + (index % 9) : 152 + (index % 9),
   })
 );
 
@@ -260,19 +265,63 @@ async function main() {
     const demo = list.users.find((u) => u.email === `demo@${DOMAIN}`);
     if (!demo) throw new Error('demo 계정이 없습니다');
 
+    // gender 를 반드시 함께 읽는다 — 빠뜨리면 아래 성별 조건이 통째로 무력화된다
     const { data: demoProfile } = await admin
       .from('parent_profiles')
-      .select('id, status')
+      .select('id, status, gender')
       .eq('user_id', demo.id)
       .maybeSingle();
     if (!demoProfile) throw new Error('demo 계정에 부모님 프로필이 없습니다 (앱에서 먼저 등록하세요)');
     if (demoProfile.status !== 'published') {
       throw new Error(`프로필이 공개 상태가 아닙니다 (${demoProfile.status})`);
     }
+    if (!demoProfile.gender) throw new Error('demo 프로필에 성별이 없습니다');
 
-    const seedUserIds = list.users
-      .filter((u) => u.email?.startsWith('seed.') && u.email.endsWith(`@${DOMAIN}`))
-      .map((u) => u.id);
+    /**
+     * 보내는 쪽을 추천 규칙과 같은 기준으로 고른다.
+     *
+     * 전원이 보내게 두면 여성 부모님 계정의 [관심] 탭에 여성 프로필이 쌓인다 —
+     * 실제로는 그 사람들에게 이 프로필이 추천되지도 않았을 텐데 하트만 와 있는
+     * 셈이라 앞뒤가 안 맞는다.
+     *   - 동성 친구 목적이면 → 같은 성별 + 동성 친구 목적인 사람만
+     *   - 그 외             → 이성만, 그리고 목적이 '동성 친구' 하나뿐인 사람은 제외
+     */
+    const { data: demoGoalRows } = await admin
+      .from('relationship_goals')
+      .select('goal')
+      .eq('parent_profile_id', demoProfile.id);
+    const demoWantsSameSex = (demoGoalRows ?? []).some((g) => g.goal === 'same_sex_friend');
+
+    const { data: candidates } = await admin
+      .from('parent_profiles')
+      .select('id, user_id, gender')
+      .eq('status', 'published')
+      .neq('id', demoProfile.id);
+
+    const { data: allGoals } = await admin
+      .from('relationship_goals')
+      .select('parent_profile_id, goal');
+    const goalsByProfile = new Map();
+    for (const row of allGoals ?? []) {
+      goalsByProfile.set(row.parent_profile_id, [
+        ...(goalsByProfile.get(row.parent_profile_id) ?? []),
+        row.goal,
+      ]);
+    }
+
+    const seedUserIds = (candidates ?? [])
+      .filter((c) => {
+        const goals = goalsByProfile.get(c.id) ?? [];
+        const sameSexOnly = goals.length === 1 && goals[0] === 'same_sex_friend';
+        if (demoWantsSameSex) {
+          return c.gender === demoProfile.gender && goals.includes('same_sex_friend');
+        }
+        return c.gender !== demoProfile.gender && !sameSexOnly;
+      })
+      .map((c) => c.user_id);
+
+    // 기존에 잘못 들어간 하트(성별 안 맞는 것 포함)를 먼저 지운다
+    await admin.from('hearts').delete().eq('target_parent_profile_id', demoProfile.id);
 
     const { error } = await admin.from('hearts').upsert(
       seedUserIds.map((id) => ({
@@ -283,7 +332,10 @@ async function main() {
     );
     if (error) throw new Error(`하트 삽입 실패: ${error.message}`);
 
-    console.log(`${seedUserIds.length}명이 demo 프로필에 하트를 보냈습니다.`);
+    const genderLabel = demoProfile.gender === 'female' ? '남성' : '여성';
+    console.log(
+      `${seedUserIds.length}명(${demoWantsSameSex ? '동성 친구' : genderLabel})이 demo 프로필에 하트를 보냈습니다.`
+    );
     console.log('→ 이제 앱에서 누구에게 하트를 눌러도 바로 상호 하트(대화 연결)가 됩니다.');
     console.log('→ [관심] 탭에도 받은 하트가 쌓여 있습니다.');
     return;
@@ -450,8 +502,27 @@ async function main() {
     await verify(token, userId, phoneSuffix++);
 
     const existing = await call(token, 'GET', '/parent-profile');
+
+    /**
+     * 이미 공개된 프로필도 내용은 다시 맞춘다.
+     *
+     * 예전에는 통째로 건너뛰었는데, 그러면 시드 스펙에 항목을 추가해도
+     * (예: 키) 기존 프로필에는 영영 반영되지 않는다 — 새 항목이 전부 null 인
+     * 데이터가 남아 화면에서 빈칸으로 보인다.
+     */
     if (existing?.status === 'published') {
-      console.log(`  이미 있음: ${spec.displayName}`);
+      await call(token, 'PATCH', '/parent-profile', {
+        heightCm: spec.heightCm,
+        occupation: spec.occupation,
+        childrenCount: spec.children,
+        livingWith: spec.livingWith,
+        hobbies: spec.hobbies,
+        religion: '무교',
+        drinking: '가끔',
+        smoking: '비흡연',
+        economicallyActive: false,
+      });
+      console.log(`  갱신: ${spec.displayName} (키 ${spec.heightCm}cm)`);
       continue;
     }
 
@@ -482,6 +553,7 @@ async function main() {
       livingWith: spec.livingWith,
       hobbies: spec.hobbies,
       religion: '무교',
+      heightCm: spec.heightCm,
       occupation: spec.occupation,
       drinking: '가끔',
       smoking: '비흡연',

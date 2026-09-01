@@ -6,10 +6,13 @@ import {
   IsBoolean,
   IsDateString,
   IsIn,
+  IsInt,
   IsOptional,
   IsString,
   Matches,
+  Max,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
 
@@ -68,6 +71,14 @@ export class UpdateParentProfileDto {
   @IsOptional() @IsString() @MinLength(2) @MaxLength(20) displayName?: string;
   @IsOptional() @IsString() regionCode?: string;
   @IsOptional() @IsDateString() maritalSince?: string;
+
+  /** 키(cm). 사람 키로 가능한 범위만 받는다 — DB CHECK 와 같은 범위다 */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(120)
+  @Max(220)
+  heightCm?: number;
 
   @IsOptional() @IsString() @MaxLength(20) childrenCount?: string;
   @IsOptional() @IsString() @MaxLength(50) livingWith?: string;
@@ -164,6 +175,7 @@ export interface ParentProfileDto {
   region: string;
   maritalStatus: MaritalStatus;
   maritalSince: string | null;
+  heightCm: number | null;
   childrenCount: string | null;
   livingWith: string | null;
   religion: string | null;

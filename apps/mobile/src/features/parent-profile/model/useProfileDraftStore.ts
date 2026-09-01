@@ -11,11 +11,15 @@ export interface ProfileDraft {
   maritalSince: string;
   goals: RelationshipGoal[];
 
+  /** 키(cm). 입력은 문자열로 받고 저장할 때 숫자로 바꾼다 */
+  heightCm: string;
   childrenCount: string;
   /** 복수 선택 — 저장 시 쉼표로 합친다 */
   livingWith: string[];
   religion: string;
   occupation: string;
+  /** '' | 'active' | 'retired' — 직업 표기에 (은퇴)를 붙일지 정한다 */
+  economicStatus: string;
   drinking: string;
   smoking: string;
   hobbies: string;
@@ -34,10 +38,12 @@ const EMPTY: ProfileDraft = {
   maritalStatus: null,
   maritalSince: '',
   goals: [],
+  heightCm: '',
   childrenCount: '',
   livingWith: [],
   religion: '',
   occupation: '',
+  economicStatus: '',
   drinking: '',
   smoking: '',
   hobbies: '',

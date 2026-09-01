@@ -10,6 +10,7 @@ export { FormSection, TextField } from './FormSection';
 export { HeartActionBar } from './HeartActionBar';
 export { ParentProfileCard } from './ParentProfileCard';
 export { PhotoUploader } from './PhotoUploader';
+export { ProfileDeck } from './ProfileDeck';
 export { RelationshipGoalChips } from './RelationshipGoalChips';
 export { SafetyNotice } from './SafetyNotice';
 export { Screen } from './Screen';
