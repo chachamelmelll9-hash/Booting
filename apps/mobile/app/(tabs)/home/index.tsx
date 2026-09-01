@@ -10,6 +10,7 @@ import { nextSetupStep, useParentProfile, useVerification } from '@features/pare
 import { theme } from '@shared/config/colors';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import {
+  BootingLogo,
   EmptyState,
   HeartActionBar,
   ParentProfileCard,
@@ -175,7 +176,7 @@ function Header({ unreadCount }: { unreadCount: number }) {
   const router = useRouter();
   return (
     <View style={styles.header}>
-      <Text style={styles.brand}>부팅</Text>
+      <BootingLogo />
       <Pressable
         testID="header-notifications"
         accessibilityRole="button"
@@ -198,7 +199,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     minHeight: HIT_SIZE + 4,
   },
-  brand: { ...typography.title, color: theme.colors.text },
   bell: {
     width: HIT_SIZE,
     height: HIT_SIZE,

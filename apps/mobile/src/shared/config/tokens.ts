@@ -63,11 +63,25 @@ export const motion = {
 /** 터치 목표 최소 크기 (iOS HIG 44pt / Material 48dp) */
 export const HIT_SIZE = 44;
 
-/** 상태 배지 색 */
+/** 상태 배지 색 — 민트/슬레이트 팔레트에 맞춘다 */
 export const statusTone = {
-  neutral: { bg: '#F3F4F6', fg: '#374151' },
-  active: { bg: '#ECFDF5', fg: '#059669' },
+  neutral: { bg: '#F1F5F9', fg: '#334155' },
+  active: { bg: '#F0FDFA', fg: '#0D9488' },
   pending: { bg: '#FFFBEB', fg: '#B45309' },
-  success: { bg: '#ECFDF5', fg: '#047857' },
-  muted: { bg: '#F9FAFB', fg: '#9CA3AF' },
+  success: { bg: '#CCFBF1', fg: '#0F766E' },
+  muted: { bg: '#F8FAFC', fg: '#94A3B8' },
+} as const;
+
+/**
+ * 카드 그림자. 진한 그림자는 촌스럽다 — 거의 안 보일 만큼 얕게 깔고
+ * 경계는 테두리로 잡는다.
+ */
+export const elevation = {
+  card: {
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
 } as const;

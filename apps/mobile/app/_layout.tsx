@@ -19,7 +19,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ActivityIndicator, StyleSheet,View } from 'react-native';
 import mobileAds from 'react-native-google-mobile-ads';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -117,6 +117,19 @@ function RootLayoutNav() {
   const { isAuthenticated, isInitialized } = useAuth();
   const router = useRouter();
   const segments = useSegments();
+  const previousAuth = useRef<boolean | null>(null);
+
+  // 로그인 상태가 바뀌면 서버 캐시를 통째로 비운다.
+  //
+  // 비우지 않으면 다음 사용자가 이전 사용자의 캐시를 그대로 본다 — 이 앱에서는
+  // 남의 부모님 프로필·인증 상태·대화 목록이 잠깐이라도 보인다는 뜻이라
+  // 단순한 신선도 문제가 아니라 프라이버시 문제다.
+  useEffect(() => {
+    if (previousAuth.current !== null && previousAuth.current !== isAuthenticated) {
+      queryClient.clear();
+    }
+    previousAuth.current = isAuthenticated;
+  }, [isAuthenticated]);
   // 루트 네비게이터가 마운트되기 전에 router.replace 를 호출하면 앱이 렌더 단계에서 죽는다:
   //   "Attempted to navigate before mounting the Root Layout component."
   // 정적 검사(lint/tsc/build)로는 잡히지 않는 런타임 계약이라 실기기 기동으로만 드러난다.

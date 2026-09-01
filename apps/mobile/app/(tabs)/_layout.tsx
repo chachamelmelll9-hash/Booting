@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
 
@@ -16,7 +16,7 @@ function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
-  return <FontAwesome size={26} style={{ marginBottom: -3 }} {...props} />;
+  return <FontAwesome size={26} {...props} />;
 }
 
 /**
@@ -38,8 +38,12 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.tabBarBg,
           borderTopColor: theme.colors.tabBarBorder,
+          height: 60,
+          paddingTop: 6,
         },
-        tabBarLabelStyle: { fontSize: 12 },
+        // 아이콘만으로 충분한 4개 탭이라 라벨을 감춘다.
+        // title 은 남겨둔다 — 화면 리더가 읽는 이름이자 헤더 제목이다.
+        tabBarShowLabel: false,
         headerStyle: { backgroundColor: theme.colors.background },
         headerTintColor: theme.colors.text,
         headerShown: useClientOnlyValue(false, false),
@@ -49,6 +53,7 @@ export default function TabLayout() {
         name="home"
         options={{
           title: '홈',
+          tabBarAccessibilityLabel: '홈',
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
         }}
       />
@@ -56,6 +61,7 @@ export default function TabLayout() {
         name="hearts"
         options={{
           title: '관심',
+          tabBarAccessibilityLabel: '관심',
           tabBarBadge: heartBadge,
           tabBarIcon: ({ color }) => <TabBarIcon name="heart" color={color} />,
         }}
@@ -64,6 +70,7 @@ export default function TabLayout() {
         name="connections"
         options={{
           title: '인연',
+          tabBarAccessibilityLabel: '인연',
           tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
         }}
       />
@@ -71,6 +78,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: '내 정보',
+          tabBarAccessibilityLabel: '내 정보',
           tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />

@@ -1,8 +1,9 @@
+﻿import { theme } from '@shared/config/colors';
 import { Stack } from 'expo-router';
 
 const HEADER_OPTIONS = {
-  headerStyle: { backgroundColor: '#F9FAFB' },
-  headerTintColor: '#111827',
+  headerStyle: { backgroundColor: theme.colors.background },
+  headerTintColor: theme.colors.text,
   headerShadowVisible: false,
 } as const;
 

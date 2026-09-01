@@ -1,4 +1,4 @@
-import { useAuthStore } from '@features/auth';
+﻿import { useAuthStore } from '@features/auth';
 import { deleteAccountApi,logoutApi } from '@features/auth/api';
 import { useParentProfile } from '@features/parent-profile';
 import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   menuItemSpaced: { marginTop: 8 },
   menuItemStatus: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#64748B',
   },
   userInfo: {
     marginTop: 16,
@@ -202,11 +202,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#E2E8F0',
   },
   email: {
     fontSize: 16,
-    color: '#111827',
+    color: '#0F172A',
   },
   menuSection: {
     marginBottom: 32,
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: '#334155',
     marginBottom: 12,
     textTransform: 'uppercase',
   },
@@ -226,20 +226,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#E2E8F0',
   },
   menuItemText: {
     fontSize: 16,
-    color: '#111827',
+    color: '#0F172A',
   },
   menuItemArrow: {
     fontSize: 18,
-    color: '#10B981',
+    color: '#0D9488',
   },
   signOutButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#EF4444',
+    borderColor: '#E11D48',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   signOutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#EF4444',
+    color: '#E11D48',
   },
   deleteAccountButton: {
     marginTop: 12,
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   deleteAccountText: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: '#94A3B8',
     textDecorationLine: 'underline',
   },
 });

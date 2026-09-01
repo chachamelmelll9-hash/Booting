@@ -7,7 +7,13 @@ import {
 } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
 import { radius, spacing, typography } from '@shared/config/tokens';
-import { AppButton, Screen, StepProgressBar } from '@shared/ui';
+import {
+  AppButton,
+  BootingLogo,
+  BootingTagline,
+  Screen,
+  StepProgressBar,
+} from '@shared/ui';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -16,7 +22,7 @@ const INTRO_POINTS = [
   '부모님은 앱을 설치하실 필요가 없습니다. 자녀분이 대신 등록하고 대화합니다.',
   '부모님 동의 없이는 프로필이 공개되지 않습니다.',
   '실명·생년월일·연락처는 상대에게 공개되지 않습니다.',
-  '전면 무료이며 광고가 없습니다.',
+  '전면 무료입니다.',
 ];
 
 /**
@@ -53,7 +59,10 @@ export default function OnboardingScreen() {
     >
       <StepProgressBar current={1} total={5} label="서비스 안내" />
 
-      <Text style={styles.title}>부모님의 새로운 인연,{'\n'}자녀분이 시작해주세요</Text>
+      <View style={styles.hero}>
+        <BootingLogo size="lg" />
+        <BootingTagline size="lg" />
+      </View>
 
       <View style={styles.points}>
         {INTRO_POINTS.map((point) => (
@@ -101,8 +110,8 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { ...typography.display, color: theme.colors.text, marginTop: spacing.md },
-  points: { marginTop: spacing.lg, gap: spacing.xs },
+  hero: { marginTop: spacing.lg, gap: spacing.xs },
+  points: { marginTop: spacing.xl, gap: spacing.xs },
   point: { flexDirection: 'row', gap: spacing.xs },
   bullet: { ...typography.body, color: theme.colors.primary },
   pointText: { ...typography.body, color: theme.colors.textSecondary, flex: 1 },

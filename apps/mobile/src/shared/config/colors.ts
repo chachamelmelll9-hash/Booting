@@ -1,35 +1,45 @@
+/**
+ * 부팅 컬러 팔레트 — 민트 액센트 + 슬레이트 중립색.
+ *
+ * 민트(teal)를 고른 이유: 초록(emerald)은 성공·확인 신호로 이미 쓰이는 색이라
+ * 브랜드 색으로 쓰면 "완료됨"처럼 읽힌다. 민트는 차분하면서 의료·돌봄 톤이
+ * 있어 40~60대 자녀가 부모님 일을 다루는 화면에 어울린다.
+ *
+ * 중립색을 gray 가 아니라 slate(살짝 푸른 회색)로 맞춘 이유: 따뜻한 회색 위의
+ * 민트는 탁해 보인다. 같은 온도의 중립색이어야 액센트가 선명하게 남는다.
+ */
 export const theme = {
   colors: {
-    // Emerald accent — matches landing page
-    primary: '#10B981',        // emerald-500
-    primaryDark: '#059669',    // emerald-600
-    primaryLight: '#D1FAE5',   // emerald-100
-    primarySurface: '#ECFDF5', // emerald-50
+    // Mint accent
+    primary: '#14B8A6',        // teal-500
+    primaryDark: '#0D9488',    // teal-600
+    primaryLight: '#CCFBF1',   // teal-100
+    primarySurface: '#F0FDFA', // teal-50
 
-    // Neutrals — Tailwind gray scale (aligned with landing page)
-    background: '#F9FAFB',     // gray-50
+    // Neutrals — slate (민트와 같은 쿨 톤)
+    background: '#F8FAFC',     // slate-50
     surface: '#FFFFFF',        // white
-    surfaceSecondary: '#F3F4F6', // gray-100
+    surfaceSecondary: '#F1F5F9', // slate-100
 
-    text: '#111827',           // gray-900
-    textSecondary: '#374151',  // gray-700 (landing body text)
-    textTertiary: '#6B7280',   // gray-500
-    textMuted: '#9CA3AF',      // gray-400
+    text: '#0F172A',           // slate-900
+    textSecondary: '#334155',  // slate-700
+    textTertiary: '#64748B',   // slate-500
+    textMuted: '#94A3B8',      // slate-400
 
-    border: '#E5E7EB',        // gray-200
-    borderFocused: '#10B981',  // emerald-500
-    divider: '#F3F4F6',       // gray-100
+    border: '#E2E8F0',        // slate-200
+    borderFocused: '#14B8A6',  // teal-500
+    divider: '#F1F5F9',       // slate-100
 
-    // Semantic
-    error: '#EF4444',
-    errorBg: '#FEF2F2',
-    success: '#10B981',
-    successBg: '#ECFDF5',
-    warning: '#F59E0B',
-    warningBg: '#FFFBEB',
+    // Semantic — 성공은 브랜드색과 구분되게 살짝 더 진한 민트를 쓴다
+    error: '#E11D48',         // rose-600 (붉은 경고, 민트와 대비가 크다)
+    errorBg: '#FFF1F2',       // rose-50
+    success: '#0D9488',       // teal-600
+    successBg: '#F0FDFA',     // teal-50
+    warning: '#D97706',       // amber-600
+    warningBg: '#FFFBEB',     // amber-50
 
-    disabled: '#D1D5DB',      // gray-300
-    placeholder: '#9CA3AF',   // gray-400
+    disabled: '#CBD5E1',      // slate-300
+    placeholder: '#94A3B8',   // slate-400
 
     // Social
     kakao: '#FEE500',
@@ -37,10 +47,10 @@ export const theme = {
     apple: '#000000',
 
     // Tab bar
-    tabActive: '#10B981',
-    tabInactive: '#9CA3AF',   // gray-400
+    tabActive: '#0D9488',
+    tabInactive: '#94A3B8',   // slate-400
     tabBarBg: '#FFFFFF',
-    tabBarBorder: '#F3F4F6',  // gray-100
+    tabBarBorder: '#F1F5F9',  // slate-100
   },
   spacing: {
     xs: 4,

@@ -1,6 +1,6 @@
 import type { DiscoveryItem } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
-import { radius, spacing, typography } from '@shared/config/tokens';
+import { elevation, radius, spacing, typography } from '@shared/config/tokens';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { RelationshipGoalChips } from './RelationshipGoalChips';
@@ -97,6 +97,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: theme.colors.border,
+    ...elevation.card,
   },
   cardDeck: {},
   cardList: { flexDirection: 'row', alignItems: 'center', padding: spacing.sm },

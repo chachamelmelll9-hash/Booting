@@ -1,10 +1,11 @@
 import { StyleSheet } from 'react-native';
 
+// 템플릿 화면(설정 20여 개)이 공유하는 값 — colors.ts 의 민트/슬레이트와 맞춘다
 export const STYLE_COLORS = {
-  background: '#F9FAFB', // gray-50
-  textPrimary: '#111827', // gray-900
-  textSecondary: '#374151', // gray-700
-  linkGreen: '#10B981', // emerald-500
+  background: '#F8FAFC', // slate-50
+  textPrimary: '#0F172A', // slate-900
+  textSecondary: '#334155', // slate-700
+  linkGreen: '#0D9488', // teal-600 (민트)
 } as const;
 
 export const STYLE_ALIGN = {
