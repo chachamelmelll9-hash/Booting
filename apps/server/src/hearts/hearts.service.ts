@@ -249,18 +249,9 @@ export class HeartsService {
     const page = hasMore ? rows.slice(0, limit) : rows;
     if (!page.length) return { items: [], nextCursor: null };
 
-    // 차단한 상대의 하트는 보이지 않아야 한다
-    const senderIds = page.map((r) => r.sender_user_id);
-    const { data: blocks } = await client
-      .from('blocks')
-      .select('user_id, blocked_user_id')
-      .or(`user_id.eq.${userId},blocked_user_id.eq.${userId}`);
-    const blocked = new Set<string>();
-    for (const b of blocks ?? []) {
-      blocked.add(b.user_id === userId ? b.blocked_user_id : b.user_id);
-    }
-
-    const visible = page.filter((r) => !blocked.has(r.sender_user_id));
+    const excluded = await this.hiddenSenderIds(userId);
+    const visible = page.filter((r) => !excluded.has(r.sender_user_id));
+    const senderIds = visible.map((r) => r.sender_user_id);
 
     const { data: profiles } = await client
       .from('parent_profiles')
@@ -300,13 +291,61 @@ export class HeartsService {
     };
   }
 
-  async unreadCount(myProfileId: string): Promise<number> {
-    const { count } = await this.supabase
-      .getClient()
+  async unreadCount(userId: string, myProfileId: string): Promise<number> {
+    const client = this.supabase.getClient();
+
+    // 목록에서 빠지는 하트는 배지에서도 빠져야 한다. 안 그러면 '관심 3'을 보고
+    // 들어갔더니 목록이 비어 있는, 고칠 방법이 없는 배지가 남는다.
+    const excluded = await this.hiddenSenderIds(userId);
+
+    let query = client
       .from('hearts')
       .select('id', { count: 'exact', head: true })
       .eq('target_parent_profile_id', myProfileId)
       .is('read_at', null);
+    if (excluded.size) {
+      query = query.not('sender_user_id', 'in', `(${[...excluded].join(',')})`);
+    }
+
+    const { count } = await query;
     return count ?? 0;
+  }
+
+  /**
+   * 받은 관심에서 빼야 할 상대들.
+   *
+   * 두 가지다:
+   *   - 차단한(또는 나를 차단한) 상대
+   *   - **이미 인연이 된 상대** — 상호 하트가 성립하는 순간 그 관계는 '인연'
+   *     탭으로 옮겨간다. 받은 관심에 그대로 남아 있으면 이미 대화 중인 사람에게
+   *     아직 답할 게 남은 것처럼 보이고, 같은 사람에게 관심을 또 보내라고
+   *     권하는 꼴이 된다 (서버는 중복 하트를 거부하므로 누르면 에러만 난다).
+   *
+   * 인연이 끝난(ended) 경우에도 되살리지 않는다 — 끝낸 관계를 받은 관심함에
+   * 되돌려 놓는 건 끝냈다는 결정을 무르는 일이다.
+   */
+  private async hiddenSenderIds(userId: string): Promise<Set<string>> {
+    const client = this.supabase.getClient();
+    const hidden = new Set<string>();
+
+    const { data: blocks } = await client
+      .from('blocks')
+      .select('user_id, blocked_user_id')
+      .or(`user_id.eq.${userId},blocked_user_id.eq.${userId}`);
+    for (const block of blocks ?? []) {
+      hidden.add(block.user_id === userId ? block.blocked_user_id : block.user_id);
+    }
+
+    const { data: connections } = await client
+      .from('connections')
+      .select('user_a_id, user_b_id')
+      .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`);
+    for (const connection of connections ?? []) {
+      hidden.add(
+        connection.user_a_id === userId ? connection.user_b_id : connection.user_a_id
+      );
+    }
+
+    return hidden;
   }
 }

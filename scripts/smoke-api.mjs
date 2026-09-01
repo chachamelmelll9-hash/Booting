@@ -438,8 +438,16 @@ async function main() {
     );
   }
 
+  // 인연이 되면 그 관계는 '인연' 탭으로 옮겨간다 — 받은 관심에 남아 있으면
+  // 이미 대화 중인 사람에게 아직 답할 게 남은 것처럼 보인다
   const received = await b.expect('GET', '/hearts/received', null, 'B received');
-  check('받은 하트 목록에 A가 있다', received.items.some((i) => i.profile.profileId === profileA.id));
+  check(
+    '인연이 된 상대는 받은 관심에서 빠진다',
+    !received.items.some((i) => i.profile.profileId === profileA.id),
+    JSON.stringify(received.items.map((i) => i.profile.nickname))
+  );
+  const unread = await b.expect('GET', '/hearts/unread-count', null, 'B unread');
+  check('받은 관심 배지도 같이 빠진다', unread.count === 0, `count=${unread.count}`);
 
   const connections = await a.expect('GET', '/connections', null, 'A connections');
   const conn = connections.find((c) => c.id === connectionId);

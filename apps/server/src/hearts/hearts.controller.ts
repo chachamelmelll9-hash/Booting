@@ -41,8 +41,8 @@ export class HeartsController {
   }
 
   @Get('unread-count')
-  async unreadCount(@Req() req: { parentProfileId: string }) {
-    return { count: await this.hearts.unreadCount(req.parentProfileId) };
+  async unreadCount(@User('id') userId: string, @Req() req: { parentProfileId: string }) {
+    return { count: await this.hearts.unreadCount(userId, req.parentProfileId) };
   }
 }
 
