@@ -66,10 +66,21 @@ export class ConnectionsService {
   async list(userId: string, status?: ConnectionStatus): Promise<ConnectionDto[]> {
     const client = this.supabase.getClient();
 
+    /**
+     * 종료된 인연은 목록에 싣지 않는다.
+     *
+     * 대화 나가기·차단·신고로 끝난 관계는 되돌릴 수 없고 방에 들어가도 할 수
+     * 있는 게 없다. "대화 종료" 카드로 남겨 두면 목록이 무덤이 되고, 진행 중인
+     * 인연이 그 사이에 묻힌다.
+     *
+     * 상태 문구(`ended`)는 지우지 않는다 — 방 안에 있는 동안 상대가 나가면
+     * 그 자리에서 알려 줘야 한다.
+     */
     let query = client
       .from('connections')
       .select('*')
       .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`)
+      .neq('status', 'ended')
       .order('updated_at', { ascending: false });
     if (status) query = query.eq('status', status);
 
@@ -80,12 +91,11 @@ export class ConnectionsService {
     if (!rows.length) return [];
 
     /**
-     * 차단한(= 신고한) 상대와의 대화는 목록에서 아예 지운다.
+     * 차단한(= 신고한) 상대와의 대화도 지운다.
      *
-     * `status='ended'` 로만 바꿔 두면 "대화 종료" 카드로 목록에 계속 남는다.
-     * 신고한 사람 입장에서는 신고가 아무 일도 하지 않은 것으로 보인다.
-     * 차단당한 쪽에서도 사라져야 한다 — 한쪽에만 남으면 상대가 왜 답이 없는지
-     * 모른 채 계속 말을 건다.
+     * 차단은 인연을 `ended` 로 끝내니 위 필터에 이미 걸리지만, 어떤 이유로
+     * 인연이 살아 있어도 차단한 상대는 목록에 보이면 안 된다. 차단당한 쪽에서도
+     * 사라져야 한다 — 한쪽에만 남으면 상대가 왜 답이 없는지 모른 채 계속 말을 건다.
      */
     const [mine, theirs] = await Promise.all([
       client.from('blocks').select('blocked_user_id').eq('user_id', userId),

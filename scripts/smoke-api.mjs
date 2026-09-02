@@ -575,6 +575,14 @@ async function main() {
   const reportedDetail = await a.call('GET', `/profiles/${profileB.id}`);
   check('신고한 상대 프로필 접근 403', reportedDetail.status === 403, `status=${reportedDetail.status}`);
 
+  // 종료된 인연은 목록에서 사라진다 ('대화 종료' 카드로도 남지 않는다)
+  const listAfterReport = await a.expect('GET', '/connections', null, 'A connections after report');
+  check(
+    '종료된 인연은 목록에 없다',
+    !listAfterReport.some((c) => c.id === connectionId),
+    JSON.stringify(listAfterReport.map((c) => c.status))
+  );
+
   const block = await a.expect('POST', '/blocks', { targetProfileId: profileB.id }, 'A block');
   check('차단 등록', !!block.id);
   const afterBlock = await a.expect('GET', `/connections/${connectionId}`, null, 'A conn after block');
