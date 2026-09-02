@@ -1,5 +1,5 @@
-import { useSavedMutations, useSavedProfiles } from '@features/hearts';
 import { useHeartActions } from '@features/discovery';
+import { useSavedMutations, useSavedProfiles, useSavedSeenStore } from '@features/hearts';
 import { theme } from '@shared/config/colors';
 import { radius, spacing, typography } from '@shared/config/tokens';
 import {
@@ -11,8 +11,8 @@ import {
   SkeletonList,
   useToast,
 } from '@shared/ui';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 /**
@@ -28,9 +28,22 @@ export default function SavedScreen() {
   const { data: saved, isLoading, isError, refetch } = useSavedProfiles();
   const { unsave } = useSavedMutations();
   const { sendHeart } = useHeartActions();
+  const markSeen = useSavedSeenStore((s) => s.markSeen);
   const [composeFor, setComposeFor] = useState<string | null>(null);
 
   const target = saved?.find((item) => item.profile.profileId === composeFor);
+
+  /**
+   * 이 화면을 보고 나가면 헤더 배지를 끈다.
+   *
+   * 들어오자마자 끄지 않는 이유는 알림 화면과 같다 — 새로 담긴 게 뭔지
+   * 확인하기도 전에 표시가 사라지면 왜 떴는지 알 수가 없다.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      return () => markSeen();
+    }, [markSeen])
+  );
 
   if (isLoading) {
     return (

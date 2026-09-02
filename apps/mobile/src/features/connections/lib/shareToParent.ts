@@ -38,13 +38,13 @@ export function parentShareMessage(profile: DiscoveryItem): string {
  * 그 뒤 `shareText({ text, link })` 또는 카카오 개발자 콘솔의 피드 템플릿 ID로
  * `shareCustom` 을 호출한다.
  *
- * @returns 사용자가 실제로 공유했으면 true, 시트를 닫았으면 false
+ * @returns 사용자가 앱을 골라 공유 흐름으로 넘어갔으면 true, 시트를 닫았으면 false.
+ *          **보냈다는 뜻이 아니다** — 안드로이드는 고른 앱 안에서 실제로 보냈는지
+ *          알려주지 않는다. 그래서 호출부가 돌아온 뒤에 사용자에게 직접 확인받는다.
  */
 export async function shareProfileToParent(profile: DiscoveryItem): Promise<boolean> {
   const result = await Share.share({
     message: parentShareMessage(profile),
   });
-  // dismissedAction 은 사용자가 아무 앱도 고르지 않고 닫은 경우다.
-  // 그때까지 '공유 완료'로 표시하면 보내지 않은 걸 보냈다고 기록하게 된다.
   return result.action === Share.sharedAction;
 }
