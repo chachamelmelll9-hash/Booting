@@ -206,7 +206,7 @@
 
 - **Route**: `app/(tabs)/notifications/index.tsx` (탭바에서 `href: null`)
 - **Type**: Stack
-- **Triggered From**: 홈 헤더 종 아이콘
+- **Triggered From**: (앱 안 진입점 없음 — 푸시 딥링크용으로 라우트만 유지)
 - **Source Feature**: 하트 & 대화 연결 / 첫 만남 & 최종 매칭 확정
 - **Reuse**: Existing — 알림 타입만 교체
 

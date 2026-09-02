@@ -6,7 +6,6 @@ import {
   useHeartActions,
   useHydratedFilter,
 } from '@features/discovery';
-import { useNotificationsUnread } from '@features/notifications';
 import { nextSetupStep, useParentProfile, useVerification } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
@@ -36,7 +35,6 @@ export default function HomeScreen() {
   const { data: verification } = useVerification();
   const { data: profile, isLoading: profileLoading } = useParentProfile();
   const { filter } = useHydratedFilter();
-  const { data: unread } = useNotificationsUnread();
 
   const setupStep = nextSetupStep(verification, profile);
   const ready = setupStep === 'done';
@@ -105,7 +103,7 @@ export default function HomeScreen() {
   if (!ready) {
     return (
       <Screen>
-        <Header unreadCount={unread?.count ?? 0} />
+        <Header />
         <EmptyState
           icon="user-plus"
           title="부모님 프로필을 먼저 등록해주세요"
@@ -121,7 +119,7 @@ export default function HomeScreen() {
 
   return (
     <Screen>
-      <Header unreadCount={unread?.count ?? 0} />
+      <Header />
 
       <Pressable
         testID="filter-chip"
@@ -183,22 +181,17 @@ export default function HomeScreen() {
   );
 }
 
-function Header({ unreadCount }: { unreadCount: number }) {
-  const router = useRouter();
+/**
+ * 홈 헤더 — 워드마크만 둔다.
+ *
+ * 종 아이콘을 걷어냈다. 알림으로 오는 일(새 관심·새 대화)은 이미 관심·매칭
+ * 탭 배지가 같은 자리에서 알려 준다. 같은 사실을 두 곳에서 빨갛게 알리면
+ * 어느 쪽을 눌러야 하는지가 매번 질문이 된다.
+ */
+function Header() {
   return (
     <View style={styles.header}>
       <BootingLogo />
-      <Pressable
-        testID="header-notifications"
-        accessibilityRole="button"
-        accessibilityLabel={`알림${unreadCount ? ` ${unreadCount}건` : ''}`}
-        onPress={() => router.push('/(tabs)/notifications')}
-        style={styles.bell}
-        hitSlop={8}
-      >
-        <FontAwesome name="bell-o" size={20} color={theme.colors.textSecondary} />
-        {unreadCount > 0 ? <View style={styles.dot} /> : null}
-      </Pressable>
     </View>
   );
 }
@@ -209,21 +202,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: HIT_SIZE + 4,
-  },
-  bell: {
-    width: HIT_SIZE,
-    height: HIT_SIZE,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dot: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.error,
   },
   filterChip: {
     alignSelf: 'flex-start',
