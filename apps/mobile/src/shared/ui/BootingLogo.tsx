@@ -10,7 +10,8 @@ interface Props {
  * 부팅 워드마크.
  *
  * 배경 도형 없이 글자만 둔다 — 알약 배지를 두면 로고가 아니라 버튼처럼 보인다.
- * 둥근 인상은 굵은 두께 + 좁은 자간 + 소문자로 낸다.
+ * 첫 글자만 대문자로 세운다: 홈 탭 아이콘이 대문자 `B` 라, 워드마크가 소문자면
+ * 같은 브랜드의 글자 두 개가 서로 다른 모양으로 보인다.
  *
  * (진짜 라운드 서체를 쓰려면 폰트 파일이 필요하다. Android 기본 폰트에는
  *  라운드 산세리프가 없어서 fontFamily 만으로는 바꿀 수 없다.)
@@ -18,7 +19,7 @@ interface Props {
 export function BootingLogo({ size = 'md' }: Props) {
   return (
     <Text style={[styles.mark, size === 'lg' && styles.markLg]} accessibilityRole="header">
-      booting
+      Booting
     </Text>
   );
 }
