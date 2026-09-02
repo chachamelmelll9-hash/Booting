@@ -70,7 +70,6 @@ app/
   |     |-- index.tsx                 (마이페이지 — 항목 추가)
   |     |-- parent.tsx                (부모님 프로필 상태 / 공개 중단)
   |     |-- parent-edit.tsx           (부모님 프로필 수정)
-  |     |-- blocked.tsx               (차단한 사용자)
   |     |-- reports.tsx               (신고 내역)
   |     |-- app-settings.tsx / notification-settings.tsx / info.tsx      [재사용]
   |     |-- account/ · app-info/ · help/ · notifications/ · preferences/ · support/  [재사용]
@@ -206,8 +205,8 @@ app/
 - **Purpose**: 부모님 프로필 상태와 계정·안전 설정으로 가는 허브
 - **Source Feature**: 부모님 프로필 등록 & 동의 (+ 공통)
 - **Data Source**: Server API
-- **Navigation**: From Tab bar / To `parent`, `blocked`, `reports`, 기존 설정 화면들 / Back N/A
-- **Reuse**: Existing `app/(tabs)/profile/index.tsx` — 상단에 부모님 프로필 카드와 `차단한 사용자`·`신고 내역` 항목 추가
+- **Navigation**: From Tab bar / To `parent`, `reports`, 기존 설정 화면들 / Back N/A
+- **Reuse**: Existing `app/(tabs)/profile/index.tsx` — 상단에 부모님 프로필 카드와 `신고 내역` 항목 추가
 
 #### 12. 부모님 프로필 상태
 - **Route**: `app/(tabs)/profile/parent.tsx`
@@ -227,14 +226,9 @@ app/
 - **Navigation**: From 부모님 프로필 상태 / To `(parent-setup)/preview`(재승인이 필요한 변경 시) / Back 부모님 프로필 상태
 - **Reuse**: New — 폼 컴포넌트는 `(parent-setup)/profile-edit`와 공유
 
-#### 14. 차단한 사용자
-- **Route**: `app/(tabs)/profile/blocked.tsx`
-- **Type**: Stack
-- **Purpose**: 차단 목록을 보고 해제한다
-- **Source Feature**: 조건 기반 추천 & 탐색 / 하트 & 대화 연결
-- **Data Source**: Server API
-- **Navigation**: From 마이페이지 / To 없음 / Back 마이페이지
-- **Reuse**: New
+> **14. 차단한 사용자 — 화면 없음.** `내 정보`의 차단 목록 항목과 `blocked.tsx`를
+> 걷어냈다. 차단 API(`/blocks`)는 서버에 그대로 있고 discovery 제외 집합이 계속
+> 쓰지만, 앱에서 차단 목록을 열어 해제하는 경로는 없다.
 
 #### 15. 신고 내역
 - **Route**: `app/(tabs)/profile/reports.tsx`
@@ -385,7 +379,7 @@ app/
                                                        v
                                                   [feedback (비공개)]
 
-[Tab 내 정보] --> [parent 상태] --> [parent-edit] / [blocked] / [reports] / 기존 설정
+[Tab 내 정보] --> [parent 상태] --> [parent-edit] / [reports] / 기존 설정
 ```
 
 ## Server Endpoints Required
@@ -411,10 +405,10 @@ app/
 | POST | /api/hearts | 추천 피드, 받은 하트 | 하트 & 대화 연결 | 하트 전송 (상호 여부 응답) |
 | GET | /api/hearts/received | 받은 하트 | 하트 & 대화 연결 | 받은 하트 목록 |
 | POST | /api/passes | 추천 피드 | 추천 & 탐색 | 넘김 기록 |
-| POST | /api/blocks | 상세, 채팅방 | 추천 & 탐색 | 차단 |
-| GET | /api/blocks | 차단한 사용자 | 추천 & 탐색 | 차단 목록 |
-| DELETE | /api/blocks/:id | 차단한 사용자 | 추천 & 탐색 | 차단 해제 |
-| POST | /api/reports | 신고 | 추천 & 탐색 | 신고 접수 |
+| POST | /api/blocks | 신고 화면 | 추천 & 탐색 | 차단 |
+| GET | /api/blocks | (앱 화면 없음) | 추천 & 탐색 | 차단 목록 |
+| DELETE | /api/blocks/:id | (앱 화면 없음) | 추천 & 탐색 | 차단 해제 |
+| POST | /api/reports | 신고 화면, 채팅방 ⋯ 메뉴 | 추천 & 탐색 | 신고 접수 |
 | GET | /api/reports | 신고 내역 | 추천 & 탐색 | 내 신고 이력 |
 | GET | /api/connections | 인연 목록 | 하트 & 대화 연결 | 상태별 인연 목록 |
 | GET | /api/connections/:id/messages | 채팅방 | 하트 & 대화 연결 | 메시지 페이지네이션 |

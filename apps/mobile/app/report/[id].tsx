@@ -1,7 +1,7 @@
-import { useSafetyMutations } from '@features/safety';
+import { ReportReasonPicker, useSafetyMutations } from '@features/safety';
 import { theme } from '@shared/config/colors';
 import { REPORT_REASONS } from '@shared/config/safetyRules';
-import { radius, spacing, typography } from '@shared/config/tokens';
+import { spacing, typography } from '@shared/config/tokens';
 import {
   AppButton,
   DestructiveConfirmDialog,
@@ -12,7 +12,7 @@ import {
 } from '@shared/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 /**
  * 신고 · 차단.
@@ -66,28 +66,7 @@ export default function ReportScreen() {
       <Text style={styles.title}>무엇이 문제였나요?</Text>
 
       <View style={styles.reasons}>
-        {REPORT_REASONS.map((option) => {
-          const on = reason === option.key;
-          return (
-            <Pressable
-              key={option.key}
-              testID={`report-${option.key}`}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: on }}
-              accessibilityLabel={option.label}
-              onPress={() => setReason(option.key)}
-              style={({ pressed }) => [
-                styles.reason,
-                on && styles.reasonSelected,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={[styles.reasonText, on && styles.reasonTextSelected]}>
-                {option.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+        <ReportReasonPicker reasons={REPORT_REASONS} selected={reason} onSelect={setReason} />
       </View>
 
       <FormSection label="자세한 내용" helper="선택 사항입니다">
@@ -126,17 +105,6 @@ export default function ReportScreen() {
 
 const styles = StyleSheet.create({
   title: { ...typography.title, color: theme.colors.text, marginTop: spacing.md },
-  reasons: { gap: spacing.xs, marginTop: spacing.md, marginBottom: spacing.md },
-  reason: {
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    backgroundColor: theme.colors.surface,
-  },
-  reasonSelected: { borderColor: theme.colors.primary, backgroundColor: theme.colors.primarySurface },
-  reasonText: { ...typography.body, color: theme.colors.text },
-  reasonTextSelected: { color: theme.colors.primaryDark, fontWeight: '600' },
+  reasons: { marginTop: spacing.md, marginBottom: spacing.md },
   footer: { gap: spacing.xxs },
-  pressed: { opacity: 0.85 },
 });

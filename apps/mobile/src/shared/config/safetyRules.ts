@@ -29,11 +29,43 @@ export const CHILD_ACCOMPANY_RECOMMENDATION =
 
 /** 신고 사유 — 서버 REPORT_REASONS 와 키가 일치해야 한다 */
 export const REPORT_REASONS: { key: string; label: string }[] = [
+  { key: 'money_request', label: '금전 요구' },
+  { key: 'inappropriate_behavior', label: '부적절한 언행' },
+  { key: 'scam_suspicion', label: '사기 의심' },
   { key: 'fake_profile', label: '허위 프로필' },
   { key: 'inappropriate_photo', label: '부적절한 사진' },
-  { key: 'abusive_language', label: '욕설·비하 발언' },
   { key: 'commercial', label: '상업적 목적·광고' },
   { key: 'meeting_no_show', label: '약속 불이행' },
-  { key: 'safety_concern', label: '금전 요구 등 안전 우려' },
   { key: 'other', label: '기타' },
 ];
+
+/**
+ * 대화방 ⋯ 메뉴에서 고르는 사유.
+ *
+ * 대화까지 온 사람이 신고하는 이유는 실제로 이 셋으로 수렴한다. 프로필 상세의
+ * 신고 화면은 아직 대화 전이라 판단 근거가 프로필뿐이므로 전체 목록을 쓴다.
+ */
+const CHAT_REASON_KEYS = ['money_request', 'inappropriate_behavior', 'scam_suspicion'];
+export const CHAT_REPORT_REASONS = REPORT_REASONS.filter((r) =>
+  CHAT_REASON_KEYS.includes(r.key)
+);
+
+/** 더 이상 고를 수 없지만 지난 신고 내역에 남아 있는 사유 */
+const LEGACY_REPORT_REASON_LABELS: Record<string, string> = {
+  safety_concern: '금전 요구 등 안전 우려',
+  abusive_language: '욕설·비하 발언',
+};
+
+/**
+ * 사유 키 → 화면에 뜨는 문구.
+ *
+ * 신고 내역은 예전에 낸 신고도 함께 보여준다. 목록에서 사라진 키를 그대로
+ * 찍으면 사용자가 자기가 뭘로 신고했는지 알아볼 수 없다.
+ */
+export function reportReasonLabel(key: string): string {
+  return (
+    REPORT_REASONS.find((r) => r.key === key)?.label ??
+    LEGACY_REPORT_REASON_LABELS[key] ??
+    key
+  );
+}

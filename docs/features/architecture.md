@@ -74,7 +74,6 @@ apps/mobile/
         _layout.tsx  index.tsx               [수정] 부모님 카드 + 안전 섹션 추가
         parent.tsx                           [신규]
         parent-edit.tsx                      [신규]
-        blocked.tsx                          [신규]
         reports.tsx                          [신규]
         account/personal-data.tsx            [수정] 탈퇴 + 동의 철회 추가
         (그 외 설정 화면 18개)                 [기존]
@@ -192,7 +191,7 @@ apps/mobile/
       safety/                                [신규] 신고·차단 (discovery·connections 양쪽에서 쓰임)
         ui/
           ReportSheet.tsx
-          BlockedList.tsx
+          ReportReasonPicker.tsx             — 사유 선택 (채팅방 시트·신고 화면 공유)
           ReportHistoryList.tsx
         model/
           useSafety.ts
@@ -328,7 +327,6 @@ apps/mobile/
 | `app/(parent-setup)/preview.tsx` | parent-profile | `ProfilePreview` |
 | `app/(tabs)/profile/parent.tsx` | parent-profile | `ProfileStatusPanel` |
 | `app/(tabs)/profile/parent-edit.tsx` | parent-profile | `ProfileEditMenu` |
-| `app/(tabs)/profile/blocked.tsx` | safety | `BlockedList` |
 | `app/(tabs)/profile/reports.tsx` | safety | `ReportHistoryList` |
 | `app/report/[id].tsx` | safety | `ReportSheet` |
 | `app/(tabs)/notifications/index.tsx` | notifications | `NotificationList` |

@@ -118,19 +118,8 @@ export default function ProfileScreen() {
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="차단 목록"
-          style={styles.menuItem}
-          testID="profile-blocked-entry"
-          onPress={() => router.push('/(tabs)/profile/blocked')}
-        >
-          <Text style={styles.menuItemText}>차단 목록</Text>
-          <Text style={styles.menuItemArrow}>→</Text>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="button"
           accessibilityLabel="신고 내역"
-          style={[styles.menuItem, styles.menuItemSpaced]}
+          style={styles.menuItem}
           testID="profile-reports-entry"
           onPress={() => router.push('/(tabs)/profile/reports')}
         >
@@ -190,7 +179,6 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 48 },
-  menuItemSpaced: { marginTop: 8 },
   menuItemStatus: {
     fontSize: 14,
     color: '#64748B',

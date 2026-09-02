@@ -1,6 +1,6 @@
 ﻿import { useReports } from '@features/safety';
 import { theme } from '@shared/config/colors';
-import { REPORT_REASONS } from '@shared/config/safetyRules';
+import { reportReasonLabel } from '@shared/config/safetyRules';
 import { radius, spacing, typography } from '@shared/config/tokens';
 import { EmptyState, Screen, SkeletonList } from '@shared/ui';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
@@ -49,7 +49,7 @@ export default function ReportsScreen() {
                 <Text style={styles.statusText}>{STATUS_LABEL[item.status] ?? item.status}</Text>
               </View>
             </View>
-            <Text style={styles.reason}>{reasonLabel(item.reason)}</Text>
+            <Text style={styles.reason}>{reportReasonLabel(item.reason)}</Text>
             {item.detail ? <Text style={styles.detail}>{item.detail}</Text> : null}
             <Text style={styles.date}>{formatDate(item.createdAt)}</Text>
           </View>
@@ -57,10 +57,6 @@ export default function ReportsScreen() {
       />
     </Screen>
   );
-}
-
-function reasonLabel(key: string): string {
-  return REPORT_REASONS.find((r) => r.key === key)?.label ?? key;
 }
 
 function formatDate(iso: string): string {

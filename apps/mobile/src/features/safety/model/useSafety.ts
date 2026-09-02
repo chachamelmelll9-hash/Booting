@@ -5,10 +5,6 @@ export function useReports() {
   return useQuery({ queryKey: bootingKeys.reports, queryFn: safetyApi.listReports });
 }
 
-export function useBlocks() {
-  return useQuery({ queryKey: bootingKeys.blocks, queryFn: safetyApi.listBlocks });
-}
-
 /**
  * 신고·차단.
  *

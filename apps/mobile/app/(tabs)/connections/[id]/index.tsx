@@ -6,12 +6,15 @@ import {
   useMessages,
   useSendMessage,
 } from '@features/connections';
+import { ReportReasonPicker, useSafetyMutations } from '@features/safety';
 import { bootingKeys } from '@shared/api/booting';
 import { theme } from '@shared/config/colors';
 import { statusDescription } from '@shared/config/connectionStatus';
+import { CHAT_REPORT_REASONS } from '@shared/config/safetyRules';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import {
   AppButton,
+  BottomSheet,
   ConnectionStatusBadge,
   DestructiveConfirmDialog,
   EmptyState,
@@ -33,6 +36,40 @@ import {
   View,
 } from 'react-native';
 
+/** ⋯ 메뉴 한 줄 */
+function MenuRow({
+  icon,
+  label,
+  description,
+  destructive = false,
+  testID,
+  onPress,
+}: {
+  icon: keyof typeof FontAwesome.glyphMap;
+  label: string;
+  description: string;
+  destructive?: boolean;
+  testID: string;
+  onPress: () => void;
+}) {
+  const tint = destructive ? theme.colors.error : theme.colors.text;
+  return (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}
+    >
+      <FontAwesome name={icon} size={18} color={tint} style={styles.menuRowIcon} />
+      <View style={styles.menuRowText}>
+        <Text style={[styles.menuRowLabel, { color: tint }]}>{label}</Text>
+        <Text style={styles.menuRowDescription}>{description}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
 /**
  * 채팅방.
  *
@@ -49,9 +86,18 @@ export default function ChatRoomScreen() {
   const messagesQuery = useMessages(id);
   const sendMessage = useSendMessage(id ?? '');
   const endConnection = useEndConnection(id ?? '');
+  const { report } = useSafetyMutations();
 
   const [draft, setDraft] = useState('');
   const [confirmEnd, setConfirmEnd] = useState(false);
+  /**
+   * ⋯ 메뉴와 신고 사유를 **한 시트 안에서** 단계로 넘긴다.
+   *
+   * 시트를 닫고 다른 시트를 여는 방식은 Modal 두 개가 같은 프레임에서
+   * 교체되면서 두 번째가 안 뜨는 일이 있다. 단계 전환은 그 위험이 없다.
+   */
+  const [sheet, setSheet] = useState<'menu' | 'report' | null>(null);
+  const [reportReason, setReportReason] = useState<string | null>(null);
 
   const messages = useMemo(
     () => messagesQuery.data?.pages.flatMap((page) => page.items) ?? [],
@@ -94,6 +140,11 @@ export default function ChatRoomScreen() {
   }
 
   const canWrite = !connection.readOnly && connection.status !== 'ended';
+
+  const closeSheet = () => {
+    setSheet(null);
+    setReportReason(null);
+  };
 
   /**
    * 대화방에서 안내하는 다음 한 걸음.
@@ -164,10 +215,10 @@ export default function ChatRoomScreen() {
           <ConnectionStatusBadge status={connection.status} />
         </View>
         <Pressable
-          testID="chat-menu-end"
+          testID="chat-menu"
           accessibilityRole="button"
-          accessibilityLabel="대화 나가기"
-          onPress={() => setConfirmEnd(true)}
+          accessibilityLabel="대화방 메뉴"
+          onPress={() => setSheet('menu')}
           hitSlop={8}
           style={styles.menu}
         >
@@ -216,6 +267,80 @@ export default function ChatRoomScreen() {
         />
       )}
 
+      <BottomSheet
+        visible={sheet !== null}
+        title={sheet === 'report' ? '무엇이 문제였나요?' : undefined}
+        onDismiss={closeSheet}
+        testID="chat-menu-sheet"
+        footer={
+          sheet === 'report' ? (
+            <>
+              <AppButton
+                label="신고하기"
+                variant="destructive"
+                disabled={!reportReason}
+                loading={report.isPending}
+                testID="chat-report-submit"
+                onPress={() =>
+                  reportReason &&
+                  report.mutate(
+                    { targetProfileId: connection.partner.profileId, reason: reportReason },
+                    {
+                      onSuccess: () => {
+                        closeSheet();
+                        toast.show({
+                          message: '신고가 접수되었습니다. 내 정보 > 신고 내역에서 확인하실 수 있습니다.',
+                        });
+                      },
+                      onError: (error: Error) => toast.show({ message: error.message }),
+                    }
+                  )
+                }
+              />
+              <AppButton label="취소" variant="ghost" onPress={closeSheet} />
+            </>
+          ) : null
+        }
+      >
+        {sheet === 'report' ? (
+          <>
+            <Text style={styles.reportTarget}>
+              {connection.partner.nickname} 님 자녀분을 신고합니다.
+            </Text>
+            <ReportReasonPicker
+              reasons={CHAT_REPORT_REASONS}
+              selected={reportReason}
+              onSelect={setReportReason}
+            />
+            <Text style={styles.reportHint}>
+              접수된 신고는 운영팀이 확인합니다. 고른 사유는 내 정보 &gt; 신고 내역에
+              그대로 남습니다.
+            </Text>
+          </>
+        ) : (
+          <>
+            <MenuRow
+              icon="flag-o"
+              label="대화 상대 신고하기"
+              description="금전 요구·부적절한 언행·사기 의심을 운영팀에 알립니다."
+              testID="chat-menu-report"
+              onPress={() => setSheet('report')}
+            />
+            <MenuRow
+              icon="sign-out"
+              label="대화방 나가기"
+              description="대화가 종료되고 되돌릴 수 없습니다."
+              destructive
+              testID="chat-menu-end"
+              onPress={() => {
+                setSheet(null);
+                setConfirmEnd(true);
+              }}
+            />
+          </>
+        )}
+      </BottomSheet>
+
       <DestructiveConfirmDialog
         visible={confirmEnd}
         title="대화를 나가시겠습니까?"
@@ -247,6 +372,20 @@ const styles = StyleSheet.create({
   headerText: { flex: 1, gap: 4 },
   partner: { ...typography.subheading, color: theme.colors.text },
   menu: { width: HIT_SIZE, height: HIT_SIZE, alignItems: 'center', justifyContent: 'center' },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    borderRadius: radius.lg,
+  },
+  menuRowIcon: { width: 22, marginTop: 2, textAlign: 'center' },
+  menuRowText: { flex: 1, gap: 2 },
+  menuRowLabel: { ...typography.body, fontWeight: '600' },
+  menuRowDescription: { ...typography.caption, color: theme.colors.textTertiary },
+  reportTarget: { ...typography.caption, color: theme.colors.textSecondary },
+  reportHint: { ...typography.micro, color: theme.colors.textMuted },
   statusHint: {
     ...typography.caption,
     color: theme.colors.textTertiary,
