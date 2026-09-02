@@ -41,6 +41,31 @@ const sentryPlugin: [string, Record<string, unknown>] = [
   },
 ];
 
+/**
+ * 카카오 네이티브 앱 키를 app.json 이 아니라 env 에서 주입한다.
+ *
+ * app.json 은 커밋되지만 `.env.*` 는 gitignore 다. 네이티브 앱 키는 APK 안에
+ * 어차피 들어가는 클라이언트 식별자라 비밀은 아니지만, 저장소에 박아두면
+ * 앱을 새로 만들 때마다 남의 키가 따라다닌다. 플레이스홀더는 그대로 두고
+ * 빌드 시점에 갈아끼운다 — 키가 없으면 플레이스홀더가 남고, 그 상태에서는
+ * `initializeKakaoSDK` 도 호출되지 않아 카카오 기능이 조용히 꺼진다.
+ */
+const KAKAO_KEY_PLACEHOLDER = "__KAKAO_NATIVE_APP_KEY__";
+
+function withKakaoKey(plugins: ExpoConfig["plugins"]): ExpoConfig["plugins"] {
+  const key = process.env.EXPO_PUBLIC_KAKAO_NATIVE_KEY;
+  if (!key) return plugins;
+
+  return (plugins ?? []).map((plugin) => {
+    if (!Array.isArray(plugin) || plugin[0] !== "@react-native-kakao/core") {
+      return plugin;
+    }
+    const options = (plugin[1] ?? {}) as Record<string, unknown>;
+    if (options.nativeAppKey !== KAKAO_KEY_PLACEHOLDER) return plugin;
+    return [plugin[0], { ...options, nativeAppKey: key }];
+  });
+}
+
 export default ({ config }: ConfigContext): ExpoConfig => {
   const baseConfig = config as ExpoConfig;
 
@@ -76,7 +101,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       }),
     },
     plugins: [
-      ...(baseConfig.plugins ?? []),
+      ...(withKakaoKey(baseConfig.plugins) ?? []),
       admobPlugin,
       ...(isSentryConfigured ? [sentryPlugin] : []),
     ],

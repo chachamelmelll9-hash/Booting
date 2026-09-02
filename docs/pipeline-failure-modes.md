@@ -265,3 +265,29 @@ Stop 훅은 다음 phase 를 주입하지 않고 PreToolUse 훅은 새 Agent spa
    검은 스크린샷, 브랜딩 안 된 앱, 비어 있는 UI 덤프는 "통과"가 아니다.
 3. **경로·형식·도구 존재를 단정하지 않는다.**
    URL 스킴, SDK 경로, 서버 라우트 prefix는 실제로 확인하고 쓴다.
+
+### B3. Windows 네이티브 빌드가 prefab 단계에서 죽는다
+
+**실측** — `gradlew installDebug` 가 `[CXX1429] ... C++ build system [prefab] failed` 로
+멈춘다. 로그의 cmd 오류가 한글로 깨져 나오고, 실행하려던 배치 파일을 보면 줄마다
+**앞 세 글자가 먹혔다**:
+
+```
+'lass-path' 은(는) 내부 또는 외부 명령이 아닙니다      <- --class-path
+'.google.prefab.cli.AppKt' 은(는) ...                <- com.google...
+'tl' 은(는) ...                                       <- --stl
+```
+
+AGP 가 prefab CLI 를 `^` 줄바꿈 배치 파일로 만들어 cmd 로 실행하는데, 콘솔 코드페이지가
+949(한국어)면 그 파일을 잘못 파싱한다. 경로에 한글이 없어도 난다 — 저장소를
+`C:\proj\Booting` 으로 옮기고 `GRADLE_USER_HOME` 을 ASCII 로 바꿔도 그대로였다.
+
+**가드** — 콘솔 코드페이지를 UTF-8 로 바꾼 뒤 gradle 을 부른다:
+
+```powershell
+$env:GRADLE_USER_HOME = "C:\gradle-home"   # 홈 경로에 한글이 있으면 함께 옮긴다
+cmd /c "chcp 65001 >nul && .\gradlew.bat installDebug -PreactNativeArchitectures=x86_64 --no-daemon"
+```
+
+`--no-daemon` 이 필요한 이유: 데몬은 처음 뜰 때의 환경을 물고 있어서, 코드페이지를
+바꿔도 이미 떠 있던 데몬은 옛 설정으로 계속 돈다.

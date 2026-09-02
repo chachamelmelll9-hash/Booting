@@ -320,6 +320,12 @@ importers:
       '@react-native-kakao/core':
         specifier: ^2.4.4
         version: 2.4.4(expo@54.0.35)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      '@react-native-kakao/share':
+        specifier: ^2.4.6
+        version: 2.4.6(@react-native-kakao/core@2.4.4(expo@54.0.35)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      '@react-native-kakao/social':
+        specifier: ^2.4.6
+        version: 2.4.6(@react-native-kakao/core@2.4.4(expo@54.0.35)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
       '@react-native-kakao/user':
         specifier: ^2.4.4
         version: 2.4.4(@react-native-kakao/core@2.4.4(expo@54.0.35)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
@@ -1936,6 +1942,9 @@ packages:
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
     engines: {node: '>=8'}
 
+  '@mj-studio/js-util@1.1.14':
+    resolution: {integrity: sha512-u9EIz0wfD8N+aHLHrcNkHhS2O0AJyd1kvX/24ykrHkmwlAhcZr1WjEpQGh8oVv2LJbdL3mx6OJ/EqHdgofhLZQ==}
+
   '@mj-studio/js-util@1.1.3':
     resolution: {integrity: sha512-XZe1V3J1CJ9DbPY0GlPTOES7UdnWcoUe3kIjmUWMvwmunOb/kYuDWiswu5eogHhcPSlM3LpYQYU2HhMzf3N6tw==}
 
@@ -2475,6 +2484,20 @@ packages:
     peerDependenciesMeta:
       expo:
         optional: true
+
+  '@react-native-kakao/share@2.4.6':
+    resolution: {integrity: sha512-kmEr1smmxG5TIxkvKRPAgw//K9WikqTmTHAgUbhq6SM4yR9q2cqoTrkjGSJBgoslj7YzmVcuZUdnIO7ydr6mcA==}
+    peerDependencies:
+      '@react-native-kakao/core': 2.4.6
+      react: '*'
+      react-native: '*'
+
+  '@react-native-kakao/social@2.4.6':
+    resolution: {integrity: sha512-vjKFsLuN10wiallv+TzOtLOFWm8+sFmAWvwpQ18cCuNups5niqwGPgV+D0nHdNB2gm0jG9mqHAxvTeSuqPTKsg==}
+    peerDependencies:
+      '@react-native-kakao/core': 2.4.6
+      react: '*'
+      react-native: '*'
 
   '@react-native-kakao/user@2.4.4':
     resolution: {integrity: sha512-rlFh/8v9a5eEQ/gno76yfSjzbB1Y8cZ/N5Q2HABADAmaj2gm8hmo/liJHq4Wu+pTM3yLLNEU7jLhlVRZ4e3MWQ==}
@@ -10790,6 +10813,8 @@ snapshots:
 
   '@lukeed/csprng@1.1.0': {}
 
+  '@mj-studio/js-util@1.1.14': {}
+
   '@mj-studio/js-util@1.1.3': {}
 
   '@napi-rs/nice-android-arm-eabi@1.1.1':
@@ -11250,6 +11275,20 @@ snapshots:
       return-fetch: 0.4.8
     optionalDependencies:
       expo: 54.0.35(@babel/core@7.28.5)(@expo/metro-runtime@6.1.2)(expo-router@6.0.24)(react-native-webview@13.15.0(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+
+  '@react-native-kakao/share@2.4.6(@react-native-kakao/core@2.4.4(expo@54.0.35)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      '@mj-studio/js-util': 1.1.14
+      '@react-native-kakao/core': 2.4.4(expo@54.0.35)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      react: 19.1.0
+      react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
+
+  '@react-native-kakao/social@2.4.6(@react-native-kakao/core@2.4.4(expo@54.0.35)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)':
+    dependencies:
+      '@mj-studio/js-util': 1.1.3
+      '@react-native-kakao/core': 2.4.4(expo@54.0.35)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      react: 19.1.0
+      react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
 
   '@react-native-kakao/user@2.4.4(@react-native-kakao/core@2.4.4(expo@54.0.35)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)':
     dependencies:
