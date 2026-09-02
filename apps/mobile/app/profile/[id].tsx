@@ -30,7 +30,7 @@ export default function PublicProfileScreen() {
   const router = useRouter();
   const toast = useToast();
 
-  const { data: profile, isLoading, isError, refetch } = usePublicProfile(id);
+  const { data: profile, isLoading, isError, error, refetch } = usePublicProfile(id);
   const { sendHeart, pass } = useHeartActions();
   const [composeOpen, setComposeOpen] = useState(false);
 
@@ -64,12 +64,25 @@ export default function PublicProfileScreen() {
   }
 
   if (isError || !profile) {
+    /**
+     * 못 불러온 이유를 구분한다.
+     *
+     * 서버가 403/404 를 주면 정말 볼 수 없는 상대다(공개 중단·차단). 그 밖의
+     * 실패는 네트워크나 서버 문제인데, 그때까지 "공개가 중단되었습니다"라고
+     * 말하면 멀쩡한 상대를 잘못 설명하고 사용자는 다시 시도할 생각을 못 한다.
+     */
+    const status = (error as { status?: number } | null)?.status;
+    const gone = status === 403 || status === 404;
     return (
       <Screen>
         <EmptyState
           icon="exclamation-circle"
-          title="프로필을 볼 수 없습니다"
-          description="공개가 중단되었거나 이용할 수 없는 상대입니다."
+          title={gone ? '프로필을 볼 수 없습니다' : '프로필을 불러오지 못했습니다'}
+          description={
+            gone
+              ? '공개가 중단되었거나 이용할 수 없는 상대입니다.'
+              : '네트워크 상태를 확인하고 다시 시도해주세요.'
+          }
           cta={{ label: '다시 시도', onPress: () => void refetch() }}
         />
       </Screen>
