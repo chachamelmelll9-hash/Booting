@@ -3,6 +3,7 @@ import { useHeartsUnreadCount } from '@features/hearts';
 import { useParentProfile } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
 import { useClientOnlyValue } from '@shared/lib';
+import { BootingMark } from '@shared/ui';
 import { Tabs } from 'expo-router';
 import React from 'react';
 
@@ -24,7 +25,11 @@ function tabIcon(name: React.ComponentProps<typeof FontAwesome>['name']) {
   return TabBarIcon;
 }
 
-const HomeIcon = tabIcon('home');
+/** 홈 탭만 브랜드 마크를 쓴다 — 추천이 오는 곳이 곧 부팅이다 */
+function HomeIcon({ color }: { color: string }) {
+  return <BootingMark color={color} />;
+}
+
 const HeartIcon = tabIcon('heart');
 const ConnectionsIcon = tabIcon('comments');
 const ProfileIcon = tabIcon('user');

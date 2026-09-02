@@ -1,5 +1,6 @@
 export { AppButton } from './AppButton';
 export { BootingLogo, BootingTagline } from './BootingLogo';
+export { BootingMark } from './BootingMark';
 export { BottomSheet } from './BottomSheet';
 export { ConnectionStatusBadge } from './ConnectionStatusBadge';
 export { DestructiveConfirmDialog } from './DestructiveConfirmDialog';
