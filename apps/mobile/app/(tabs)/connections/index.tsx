@@ -164,7 +164,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: theme.colors.error,
+    // 탭 배지와 같은 색 — 빨강은 위험 신호 전용으로 남긴다
+    backgroundColor: theme.colors.primaryDark,
   },
   unreadText: { ...typography.micro, color: '#FFFFFF' },
   pressed: { opacity: 0.85 },

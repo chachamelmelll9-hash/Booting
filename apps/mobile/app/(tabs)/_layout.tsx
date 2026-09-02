@@ -70,6 +70,25 @@ export default function TabLayout() {
         // 아이콘만으로 충분한 4개 탭이라 라벨을 감춘다.
         // title 은 남겨둔다 — 화면 리더가 읽는 이름이자 헤더 제목이다.
         tabBarShowLabel: false,
+        /**
+         * 배지는 브랜드 민트로 칠한다.
+         *
+         * 기본 빨강은 이 앱에서 '위험·되돌릴 수 없음'(신고·차단·대화 나가기·탈퇴)
+         * 전용이다. 새 관심·새 대화는 반가운 일인데 같은 색으로 알리면 경고처럼
+         * 읽힌다. 목록 카드 하이라이트도 이미 민트라 같은 신호가 같은 색이 된다.
+         *
+         * primary 가 아니라 primaryDark 인 이유: 배지 숫자는 10sp 남짓이라
+         * teal-500 위의 흰 글자는 대비가 모자란다.
+         *
+         * 흰 테두리를 두르는 이유: 활성 탭 아이콘 색(tabActive)이 이 배지 색과
+         * 같아서, 테두리가 없으면 배지가 아이콘에 녹아 숫자만 떠 있는 것처럼 보인다.
+         */
+        tabBarBadgeStyle: {
+          backgroundColor: theme.colors.primaryDark,
+          color: theme.colors.tabBarBg,
+          borderWidth: 2,
+          borderColor: theme.colors.tabBarBg,
+        },
         headerStyle: { backgroundColor: theme.colors.background },
         headerTintColor: theme.colors.text,
         headerShown: useClientOnlyValue(false, false),
