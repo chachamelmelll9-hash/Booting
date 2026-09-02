@@ -1,4 +1,5 @@
 ﻿import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -181,6 +182,45 @@ export class ConnectionsService {
     return count;
   }
 
+  /**
+   * 부모님께 프로필을 공유했다고 기록한다.
+   *
+   * 실제 전송(카카오톡·공유 시트)은 기기에서 일어나고 서버가 확인할 방법이 없다.
+   * 그래서 이건 "보냈다고 표시한 시각"이지 전송 증명이 아니다 — 자녀가 여러
+   * 인연을 들고 있을 때 누구를 이미 보여드렸는지 기억해 주는 게 목적이다.
+   *
+   * 다시 눌러도 처음 시각을 유지한다 (`ignoreDuplicates`) — 두 번 공유했다고
+   * 기록이 덮이면 "언제 보여드렸더라"의 답이 틀어진다.
+   */
+  async markParentShare(connectionId: string, userId: string): Promise<ConnectionDto> {
+    const ctx = await this.requireParticipant(connectionId, userId);
+
+    const { error } = await this.supabase
+      .getClient()
+      .from('parent_shares')
+      .upsert(
+        { connection_id: connectionId, user_id: userId },
+        { onConflict: 'connection_id,user_id', ignoreDuplicates: true }
+      );
+    if (error) {
+      throw new BadRequestException({ code: 'parent_share_failed', message: error.message });
+    }
+
+    return this.toDto(ctx.row, userId);
+  }
+
+  /** 내 부모님 별명 — 시스템 메시지 문구에 쓴다 */
+  async myParentNickname(connectionId: string, userId: string): Promise<string> {
+    const ctx = await this.requireParticipant(connectionId, userId);
+    const { data } = await this.supabase
+      .getClient()
+      .from('parent_profiles')
+      .select('nickname, display_name')
+      .eq('id', ctx.myProfileId)
+      .maybeSingle();
+    return data?.nickname || data?.display_name || '상대';
+  }
+
   async getOne(connectionId: string, userId: string): Promise<ConnectionDto> {
     const ctx = await this.requireParticipant(connectionId, userId);
     return this.toDto(ctx.row, userId);
@@ -193,7 +233,7 @@ export class ConnectionsService {
     const myProfileId = isA ? row.parent_profile_a_id : row.parent_profile_b_id;
     const partnerUserId = isA ? row.user_b_id : row.user_a_id;
 
-    const [partnerRes, meRes, convRes, intentRes, meetingRes] = await Promise.all([
+    const [partnerRes, meRes, convRes, intentRes, meetingRes, shareRes] = await Promise.all([
       client.from('parent_profiles').select('*').eq('id', partnerProfileId).maybeSingle(),
       client.from('parent_profiles').select('region_code').eq('id', myProfileId).maybeSingle(),
       client
@@ -212,6 +252,12 @@ export class ConnectionsService {
         .not('status', 'eq', 'cancelled')
         .order('created_at', { ascending: false })
         .limit(1)
+        .maybeSingle(),
+      client
+        .from('parent_shares')
+        .select('shared_at')
+        .eq('connection_id', row.id)
+        .eq('user_id', userId)
         .maybeSingle(),
     ]);
 
@@ -289,6 +335,7 @@ export class ConnectionsService {
       lastMessage,
       unreadCount,
       unseen,
+      sharedWithParent: !!shareRes.data,
       readOnly: !!convRes.data?.read_only_at || row.status === 'ended',
       myParentIntent: myIntent,
       partnerRespondedIntent: partnerResponded,

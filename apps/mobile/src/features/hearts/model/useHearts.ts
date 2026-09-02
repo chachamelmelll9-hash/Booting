@@ -1,4 +1,4 @@
-import { bootingKeys, heartsApi } from '@shared/api/booting';
+import { bootingKeys, heartsApi, savedApi } from '@shared/api/booting';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useReceivedHearts() {
@@ -61,4 +61,32 @@ export function usePassReceivedHeart() {
       ]);
     },
   });
+}
+
+/** 찜한 프로필 보관함 */
+export function useSavedProfiles() {
+  return useQuery({ queryKey: bootingKeys.saved, queryFn: savedApi.list });
+}
+
+/**
+ * 찜하기 / 찜 풀기.
+ *
+ * 받은 관심도 함께 무효화한다 — 찜한 상대는 받은 관심 목록에서 빠지고,
+ * 풀면 돌아온다. 둘이 어긋나면 "찜을 풀었는데 어디에도 없는" 상태가 된다.
+ */
+export function useSavedMutations() {
+  const queryClient = useQueryClient();
+
+  const invalidate = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: bootingKeys.saved }),
+      queryClient.invalidateQueries({ queryKey: bootingKeys.heartsReceived }),
+      queryClient.invalidateQueries({ queryKey: bootingKeys.heartsUnread }),
+    ]);
+  };
+
+  return {
+    save: useMutation({ mutationFn: savedApi.save, onSuccess: invalidate }),
+    unsave: useMutation({ mutationFn: savedApi.unsave, onSuccess: invalidate }),
+  };
 }

@@ -7,6 +7,14 @@ interface Props {
   onHeart: () => void;
   onPass: () => void;
   onDetail?: () => void;
+  /**
+   * 가운데 버튼을 '자세히' 대신 '찜해놓기'로 바꾼다 (받은 관심).
+   *
+   * 받은 관심에서는 지금 결정하기 어려운 분이 반드시 나온다. 선택지가 관심/넘기기
+   * 둘뿐이면 되돌릴 수 없는 넘기기를 누르게 된다. 찜은 그 사이를 메운다.
+   */
+  onSave?: () => void;
+  saved?: boolean;
   layout?: 'deck' | 'row' | 'detail';
   heartDisabled?: boolean;
   busy?: boolean;
@@ -25,6 +33,8 @@ export function HeartActionBar({
   onHeart,
   onPass,
   onDetail,
+  onSave,
+  saved = false,
   layout = 'deck',
   heartDisabled = false,
   busy = false,
@@ -50,7 +60,26 @@ export function HeartActionBar({
         {!compact && <Text style={styles.passLabel}>넘기기</Text>}
       </Pressable>
 
-      {onDetail && !compact ? (
+      {onSave && !compact ? (
+        <Pressable
+          testID="action-save"
+          accessibilityRole="button"
+          accessibilityLabel={saved ? '찜 해제' : '찜해놓기'}
+          accessibilityState={{ selected: saved }}
+          onPress={onSave}
+          disabled={busy}
+          style={({ pressed }) => [styles.detail, pressed && styles.pressed]}
+        >
+          <FontAwesome
+            name={saved ? 'bookmark' : 'bookmark-o'}
+            size={16}
+            color={saved ? theme.colors.primaryDark : theme.colors.textTertiary}
+          />
+          <Text style={[styles.detailLabel, saved && styles.detailLabelActive]}>
+            {saved ? '찜함' : '찜해놓기'}
+          </Text>
+        </Pressable>
+      ) : onDetail && !compact ? (
         <Pressable
           testID="action-detail"
           accessibilityRole="button"
@@ -109,9 +138,12 @@ const styles = StyleSheet.create({
   detail: {
     minHeight: HIT_SIZE,
     paddingHorizontal: spacing.sm,
+    alignItems: 'center',
     justifyContent: 'center',
+    gap: 2,
   },
   detailLabel: { ...typography.caption, color: theme.colors.textTertiary },
+  detailLabelActive: { color: theme.colors.primaryDark, fontWeight: '600' },
   disabled: { opacity: 0.45 },
   pressed: { opacity: 0.85 },
 });

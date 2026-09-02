@@ -24,6 +24,9 @@ interface Props {
   onHeart: () => void;
   onPass: () => void;
   onDetail?: () => void;
+  /** 주면 가운데 버튼이 '자세히' 대신 '찜해놓기'가 된다 (받은 관심) */
+  onSave?: () => void;
+  saved?: boolean;
   busy?: boolean;
   /** 카드 아래 안내 문구 (남은 수 등) */
   note?: string;
@@ -48,6 +51,8 @@ export function ProfileDeck({
   onHeart,
   onPass,
   onDetail,
+  onSave,
+  saved = false,
   busy = false,
   note,
   highlight,
@@ -166,7 +171,14 @@ export function ProfileDeck({
       {note ? <Text style={styles.note}>{note}</Text> : null}
 
       <View style={styles.actions}>
-        <HeartActionBar onHeart={onHeart} onPass={onPass} onDetail={onDetail} busy={busy} />
+        <HeartActionBar
+          onHeart={onHeart}
+          onPass={onPass}
+          onDetail={onDetail}
+          onSave={onSave}
+          saved={saved}
+          busy={busy}
+        />
       </View>
     </View>
   );

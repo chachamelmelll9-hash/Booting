@@ -6,6 +6,21 @@ import { StyleSheet, Text, View } from 'react-native';
 export function MessageBubble({ message }: { message: Message }) {
   const mine = message.mine;
 
+  /**
+   * 앱이 남긴 기록은 말풍선이 아니다.
+   *
+   * "…님의 자녀가 프로필을 공유했습니다" 를 보낸 사람 말풍선으로 찍으면 자녀가
+   * 직접 한 말처럼 읽히고, 상대는 답을 해야 하는지 헷갈린다. 가운데 회색 한 줄로
+   * 두면 대화 흐름을 끊지 않으면서 사실만 남는다.
+   */
+  if (message.kind === 'system') {
+    return (
+      <View style={styles.systemRow}>
+        <Text style={styles.systemText}>{message.body}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.row, mine ? styles.rowMine : styles.rowTheirs]}>
       <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
@@ -26,6 +41,16 @@ function formatTime(iso: string): string {
 }
 
 const styles = StyleSheet.create({
+  systemRow: {
+    alignSelf: 'center',
+    maxWidth: '90%',
+    marginVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
+    borderRadius: radius.pill,
+    backgroundColor: theme.colors.surfaceSecondary,
+  },
+  systemText: { ...typography.caption, color: theme.colors.textTertiary, textAlign: 'center' },
   row: { marginBottom: spacing.xs, maxWidth: '82%' },
   rowMine: { alignSelf: 'flex-end', alignItems: 'flex-end' },
   rowTheirs: { alignSelf: 'flex-start', alignItems: 'flex-start' },

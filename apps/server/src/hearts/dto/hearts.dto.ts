@@ -22,6 +22,17 @@ export class PassDto {
   targetProfileId!: string;
 }
 
+export class SaveProfileDto {
+  @IsUUID()
+  targetProfileId!: string;
+}
+
+/** 찜(보류)한 프로필. 매칭이 아니고, 상대는 알지 못한다 */
+export interface SavedProfileDto {
+  savedAt: string;
+  profile: DiscoveryItemDto;
+}
+
 export interface SendHeartResponse {
   /** 상호 하트 여부. 서버가 판정한다 — 클라이언트는 결과만 받는다 */
   mutual: boolean;

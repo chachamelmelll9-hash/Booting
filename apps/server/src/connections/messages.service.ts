@@ -96,6 +96,7 @@ export class MessagesService {
         sentAt: r.sent_at,
         mine: r.sender_user_id === userId,
         read: !!r.read_at,
+        kind: (r.kind ?? 'text') as 'text' | 'system',
       })),
       nextCursor: hasMore && page.length ? page[page.length - 1].sent_at : null,
     };
@@ -144,6 +145,47 @@ export class MessagesService {
       sentAt: data.sent_at,
       mine: true,
       read: false,
+      kind: 'text',
+    };
+  }
+
+  /**
+   * 앱이 남기는 기록 한 줄 (부모님 공유 등).
+   *
+   * `send` 를 재사용하지 않는 이유가 셋이다:
+   *  - 상태를 '대화 중'으로 올리지 않는다. 공유는 대화가 아니다.
+   *  - 읽기 전용·종료된 대화방에도 남긴다. 기록이지 발화가 아니라 막을 이유가 없다.
+   *  - 새 메시지 알림을 보내지 않는다. 상대 대화방을 열면 그 자리에 보인다.
+   */
+  async postSystemMessage(
+    connectionId: string,
+    userId: string,
+    body: string
+  ): Promise<MessageDto> {
+    await this.connections.requireParticipant(connectionId, userId);
+    const conversation = await this.conversationFor(connectionId);
+
+    const { data, error } = await this.supabase
+      .getClient()
+      .from('messages')
+      .insert({
+        conversation_id: conversation.id,
+        sender_user_id: userId,
+        body,
+        kind: 'system',
+      })
+      .select('*')
+      .single();
+
+    if (error) throw new BadRequestException({ code: 'message_failed', message: error.message });
+
+    return {
+      id: data.id,
+      body: data.body,
+      sentAt: data.sent_at,
+      mine: true,
+      read: false,
+      kind: 'system',
     };
   }
 }

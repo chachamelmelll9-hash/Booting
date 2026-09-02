@@ -23,6 +23,7 @@ import type {
   ReceivedHeart,
   Region,
   Report,
+  SavedProfile,
   SendHeartResult,
   VerificationStatus,
 } from './booting.types';
@@ -113,6 +114,15 @@ export const heartsApi = {
     serverFetch<void>('/passes', { method: 'POST', body: { targetProfileId } }),
 };
 
+/** 찜(보류) 보관함 */
+export const savedApi = {
+  save: (targetProfileId: string) =>
+    serverFetch<SavedProfile>('/saved', { method: 'POST', body: { targetProfileId } }),
+  list: () => serverFetch<SavedProfile[]>('/saved'),
+  unsave: (targetProfileId: string) =>
+    serverFetch<void>(`/saved/${targetProfileId}`, { method: 'DELETE' }),
+};
+
 export const connectionsApi = {
   list: (status?: string) => serverFetch<Connection[]>(`/connections${qs({ status })}`),
   /** 탭 배지용 — 아직 확인하지 않은 대화방 수 */
@@ -124,6 +134,9 @@ export const connectionsApi = {
     serverFetch<Message>(`/connections/${id}/messages`, { method: 'POST', body: { body } }),
   end: (id: string, reason?: string) =>
     serverFetch<Connection>(`/connections/${id}/end`, { method: 'POST', body: { reason } }),
+  /** 부모님께 공유 완료 표시 + 대화방에 기록 한 줄 */
+  shareWithParent: (id: string) =>
+    serverFetch<Connection>(`/connections/${id}/parent-share`, { method: 'POST' }),
 };
 
 export const meetingsApi = {
@@ -185,6 +198,7 @@ export const bootingKeys = {
   publicProfile: (id: string) => ['profile', id] as const,
   heartsReceived: ['hearts', 'received'] as const,
   heartsUnread: ['hearts', 'unread'] as const,
+  saved: ['saved'] as const,
   connections: (status?: string) => ['connections', status ?? 'all'] as const,
   connectionsUnread: ['connections', 'unread-count'] as const,
   connection: (id: string) => ['connection', id] as const,

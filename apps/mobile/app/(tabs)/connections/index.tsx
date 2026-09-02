@@ -1,4 +1,4 @@
-﻿import { useConnections } from '@features/connections';
+﻿import { ParentShareButton, useConnections } from '@features/connections';
 import { theme } from '@shared/config/colors';
 import {
   CONNECTION_FILTERS,
@@ -90,35 +90,47 @@ export default function ConnectionsScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${item.partner.nickname} 님과의 대화${item.unseen ? ', 확인하지 않음' : ''}`}
-              onPress={() => router.push(`/(tabs)/connections/${item.id}`)}
-              style={({ pressed }) => [
-                styles.rowWrap,
-                item.unseen && styles.rowWrapUnseen,
-                pressed && styles.pressed,
-              ]}
+            /**
+             * 공유 버튼은 카드를 여는 Pressable **밖**에 둔다. 안에 넣으면 버튼을
+             * 눌렀을 때 대화방까지 함께 열린다.
+             */
+            <View
+              style={[styles.rowWrap, item.unseen && styles.rowWrapUnseen]}
               testID={`connection-${item.id}`}
             >
-              <ParentProfileCard profile={item.partner} variant="list" />
-              <View style={styles.meta}>
-                <ConnectionStatusBadge status={item.status} />
-                {item.lastMessage ? (
-                  <Text style={styles.preview} numberOfLines={1}>
-                    {item.lastMessage.mine ? '나: ' : ''}
-                    {item.lastMessage.body}
-                  </Text>
-                ) : (
-                  <Text style={styles.previewMuted}>아직 대화가 없습니다</Text>
-                )}
-                {item.unreadCount > 0 ? (
-                  <View style={styles.unread}>
-                    <Text style={styles.unreadText}>{item.unreadCount}</Text>
-                  </View>
-                ) : null}
-              </View>
-            </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${item.partner.nickname} 님과의 대화${item.unseen ? ', 확인하지 않음' : ''}${item.sharedWithParent ? ', 부모님께 공유함' : ''}`}
+                onPress={() => router.push(`/(tabs)/connections/${item.id}`)}
+                style={({ pressed }) => [
+                  styles.rowTap,
+                  // 부모님께 넘긴 카드는 한 톤 죽인다 — 내 손을 떠난 건이라
+                  // 아직 결정이 남은 카드들 사이에서 눈에 덜 걸려야 한다
+                  item.sharedWithParent && styles.rowShared,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <ParentProfileCard profile={item.partner} variant="list" />
+                <View style={styles.meta}>
+                  <ConnectionStatusBadge status={item.status} />
+                  {item.lastMessage ? (
+                    <Text style={styles.preview} numberOfLines={1}>
+                      {item.lastMessage.mine ? '나: ' : ''}
+                      {item.lastMessage.body}
+                    </Text>
+                  ) : (
+                    <Text style={styles.previewMuted}>아직 대화가 없습니다</Text>
+                  )}
+                  {item.unreadCount > 0 ? (
+                    <View style={styles.unread}>
+                      <Text style={styles.unreadText}>{item.unreadCount}</Text>
+                    </View>
+                  ) : null}
+                </View>
+              </Pressable>
+
+              <ParentShareButton connection={item} />
+            </View>
           )}
         />
       )}
@@ -144,12 +156,14 @@ const styles = StyleSheet.create({
    * 그때 두께가 바뀌면 목록 전체가 한 칸 밀린다.
    */
   rowWrap: {
-    gap: spacing.xxs,
+    gap: spacing.xs,
     borderWidth: 2,
     borderColor: 'transparent',
     borderRadius: radius.lg,
     padding: spacing.xxs,
   },
+  rowTap: { gap: spacing.xxs },
+  rowShared: { opacity: 0.5 },
   rowWrapUnseen: {
     borderColor: theme.colors.primary,
     backgroundColor: theme.colors.primarySurface,

@@ -12,7 +12,7 @@ import { ConnectionsService } from '../connections/connections.service';
 import { DiscoveryService } from '../discovery/discovery.service';
 import { NotificationsPublisher } from '../notifications/notifications.publisher';
 import { SupabaseService } from '../supabase/supabase.service';
-import { ReceivedHeartDto, SendHeartResponse } from './dto/hearts.dto';
+import { ReceivedHeartDto, SavedProfileDto, SendHeartResponse } from './dto/hearts.dto';
 
 @Injectable()
 export class HeartsService {
@@ -335,15 +335,105 @@ export class HeartsService {
     return count ?? 0;
   }
 
+  // --- 찜(보류) ---------------------------------------------------------------
+
+  /**
+   * 찜해놓기.
+   *
+   * 넘기기와 다르다. 넘기기는 추천에서 영구 제외라 되돌릴 수 없고, 그래서 확신이
+   * 안 서는 분을 만나면 사용자가 아무 결정도 못 하고 멈춘다. 찜은 "지금은 아니고
+   * 나중에" 를 담는 자리다 — 보관함에 두었다가 다시 보고, 언제든 풀 수 있다.
+   *
+   * 상대에게는 알리지 않는다. 알림이 가면 그건 이미 관심 표현이다.
+   */
+  async save(userId: string, targetProfileId: string): Promise<SavedProfileDto> {
+    const client = this.supabase.getClient();
+
+    const { data: target } = await client
+      .from('parent_profiles')
+      .select('*')
+      .eq('id', targetProfileId)
+      .maybeSingle();
+    if (!target) throw new NotFoundException(domainError(ERROR_CODES.PROFILE_NOT_FOUND));
+    if (target.user_id === userId) {
+      throw new BadRequestException(domainError(ERROR_CODES.FORBIDDEN));
+    }
+
+    const { data, error } = await client
+      .from('saved_profiles')
+      .upsert(
+        { user_id: userId, target_parent_profile_id: targetProfileId },
+        { onConflict: 'user_id,target_parent_profile_id', ignoreDuplicates: true }
+      )
+      .select('created_at')
+      .maybeSingle();
+    if (error) throw new BadRequestException({ code: 'save_failed', message: error.message });
+
+    const [profile] = await this.discovery.toItems([target], '');
+    return { savedAt: data?.created_at ?? new Date().toISOString(), profile };
+  }
+
+  async listSaved(userId: string, myProfileId: string): Promise<SavedProfileDto[]> {
+    const client = this.supabase.getClient();
+
+    const { data: rows } = await client
+      .from('saved_profiles')
+      .select('target_parent_profile_id, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (!rows?.length) return [];
+
+    // 공개가 중단된 프로필은 보관함에서도 빠진다 — 열어도 볼 수 없는 카드를
+    // 남겨 두면 사용자는 앱이 고장 난 줄 안다
+    const { data: profiles } = await client
+      .from('parent_profiles')
+      .select('*')
+      .in(
+        'id',
+        rows.map((r) => r.target_parent_profile_id)
+      )
+      .eq('status', 'published');
+    if (!profiles?.length) return [];
+
+    const { data: me } = await client
+      .from('parent_profiles')
+      .select('region_code')
+      .eq('id', myProfileId)
+      .maybeSingle();
+
+    const items = await this.discovery.toItems(profiles, me?.region_code ?? '');
+    const byId = new Map(profiles.map((p, i) => [p.id as string, items[i]]));
+
+    return rows
+      .filter((r) => byId.has(r.target_parent_profile_id))
+      .map((r) => ({
+        savedAt: r.created_at as string,
+        profile: byId.get(r.target_parent_profile_id)!,
+      }));
+  }
+
+  async unsave(userId: string, targetProfileId: string): Promise<void> {
+    const { error } = await this.supabase
+      .getClient()
+      .from('saved_profiles')
+      .delete()
+      .eq('user_id', userId)
+      .eq('target_parent_profile_id', targetProfileId); // 소유권 스코프
+    if (error) throw new BadRequestException({ code: 'unsave_failed', message: error.message });
+  }
+
   /**
    * 받은 관심에서 빼야 할 상대들.
    *
-   * 두 가지다:
+   * 세 가지다:
    *   - 차단한(또는 나를 차단한) 상대
    *   - **이미 인연이 된 상대** — 상호 하트가 성립하는 순간 그 관계는 '인연'
    *     탭으로 옮겨간다. 받은 관심에 그대로 남아 있으면 이미 대화 중인 사람에게
    *     아직 답할 게 남은 것처럼 보이고, 같은 사람에게 관심을 또 보내라고
    *     권하는 꼴이 된다 (서버는 중복 하트를 거부하므로 누르면 에러만 난다).
+   *   - **찜해 둔 상대** — 보류함으로 옮긴 카드다. 목록에 그대로 두면 찜이
+   *     아무 일도 하지 않은 것이 되고, 매번 같은 결정을 다시 요구한다.
+   *     찜을 풀면 다시 돌아온다.
    *
    * 인연이 끝난(ended) 경우에도 되살리지 않는다 — 끝낸 관계를 받은 관심함에
    * 되돌려 놓는 건 끝냈다는 결정을 무르는 일이다.
@@ -368,6 +458,21 @@ export class HeartsService {
       hidden.add(
         connection.user_a_id === userId ? connection.user_b_id : connection.user_a_id
       );
+    }
+
+    const { data: saved } = await client
+      .from('saved_profiles')
+      .select('target_parent_profile_id')
+      .eq('user_id', userId);
+    if (saved?.length) {
+      const { data: savedProfiles } = await client
+        .from('parent_profiles')
+        .select('user_id')
+        .in(
+          'id',
+          saved.map((s) => s.target_parent_profile_id)
+        );
+      for (const profile of savedProfiles ?? []) hidden.add(profile.user_id);
     }
 
     return hidden;

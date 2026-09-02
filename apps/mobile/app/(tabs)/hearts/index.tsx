@@ -1,6 +1,7 @@
 ﻿import {
   usePassReceivedHeart,
   useReceivedHearts,
+  useSavedMutations,
   useSendHeartBack,
 } from '@features/hearts';
 import {
@@ -27,6 +28,7 @@ export default function HeartsScreen() {
   const hearts = useReceivedHearts();
   const sendBack = useSendHeartBack();
   const pass = usePassReceivedHeart();
+  const { save } = useSavedMutations();
   const [index, setIndex] = useState(0);
   const [composeOpen, setComposeOpen] = useState(false);
 
@@ -60,6 +62,23 @@ export default function HeartsScreen() {
     if (index >= items.length - 3 && hearts.hasNextPage && !hearts.isFetchingNextPage) {
       void hearts.fetchNextPage();
     }
+  };
+
+  /**
+   * 찜해놓기 = 지금은 결정하지 않고 보관함으로.
+   *
+   * 넘기기와 달리 되돌릴 수 있고 상대에게 알리지 않는다. 카드는 넘어가고,
+   * 서버가 받은 관심 목록에서 빼 준다 (찜을 풀면 돌아온다).
+   */
+  const saveCurrent = () => {
+    if (!current) return;
+    save.mutate(current.profile.profileId, {
+      onSuccess: () => {
+        advance();
+        toast.show({ message: '보관함에 담았습니다' });
+      },
+      onError: (error: Error) => toast.show({ message: error.message }),
+    });
   };
 
   if (hearts.isLoading) {
@@ -109,11 +128,11 @@ export default function HeartsScreen() {
       <ProfileDeck
         profiles={items.map((item) => item.profile)}
         index={index}
-        busy={sendBack.isPending || pass.isPending}
+        busy={sendBack.isPending || pass.isPending || save.isPending}
         note={`받은 관심 ${index + 1} / ${items.length}`}
         highlight={current.message}
         testID="hearts-deck"
-        onDetail={() => router.push(`/profile/${current.profile.profileId}`)}
+        onSave={saveCurrent}
         onHeart={() => setComposeOpen(true)}
         onPass={() => pass.mutate(current.profile.profileId, { onSuccess: advance })}
       />

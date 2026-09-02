@@ -23,6 +23,8 @@ export interface MessageDto {
   sentAt: string;
   mine: boolean;
   read: boolean;
+  /** system 은 앱이 남긴 기록 — 말풍선이 아니라 가운데 한 줄로 렌더한다 */
+  kind: 'text' | 'system';
 }
 
 export interface ConnectionDto {
@@ -37,6 +39,8 @@ export interface ConnectionDto {
   unreadCount: number;
   /** 아직 확인하지 않은 대화방 — 안 읽은 메시지가 있거나 한 번도 열지 않았다 */
   unseen: boolean;
+  /** 이 프로필을 내 부모님께 공유했는가 (매칭 목록의 공유 완료 표시) */
+  sharedWithParent: boolean;
   /** 90일 경과 대화는 읽기 전용 (TODO-12) */
   readOnly: boolean;
   myParentIntent: ParentIntentKind | null;

@@ -62,6 +62,25 @@ export class ConnectionsController {
     return this.messages.send(id, userId, dto.body);
   }
 
+  /**
+   * 부모님께 공유 완료 표시.
+   *
+   * 기록을 남기고, 같은 대화방에 "…님의 자녀가 프로필을 공유했습니다" 한 줄을
+   * 남긴다. 상대는 이걸 보고 저쪽 집에서 이야기가 오가는 중임을 안다 —
+   * 이 앱에서 가장 알고 싶은 신호다.
+   */
+  @Post(':id/parent-share')
+  @HttpCode(200)
+  async shareWithParent(@User('id') userId: string, @Param('id') id: string) {
+    const nickname = await this.connections.myParentNickname(id, userId);
+    await this.messages.postSystemMessage(
+      id,
+      userId,
+      `${nickname} 님의 자녀가 프로필을 공유했습니다.`
+    );
+    return this.connections.markParentShare(id, userId);
+  }
+
   @Post(':id/end')
   @HttpCode(200)
   end(

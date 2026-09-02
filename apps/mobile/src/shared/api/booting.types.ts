@@ -195,6 +195,8 @@ export interface Connection {
   unreadCount: number;
   /** 아직 확인하지 않은 대화방 — 안 읽은 메시지가 있거나 한 번도 열지 않았다 */
   unseen: boolean;
+  /** 이 프로필을 내 부모님께 공유했는가 */
+  sharedWithParent: boolean;
   readOnly: boolean;
   myParentIntent: ParentIntentKind | null;
   partnerRespondedIntent: boolean;
@@ -210,6 +212,14 @@ export interface Message {
   sentAt: string;
   mine: boolean;
   read: boolean;
+  /** system 은 앱이 남긴 기록 — 말풍선이 아니라 가운데 한 줄로 보인다 */
+  kind: 'text' | 'system';
+}
+
+/** 찜(보류)한 프로필. 매칭이 아니고 상대는 알지 못한다 */
+export interface SavedProfile {
+  savedAt: string;
+  profile: DiscoveryItem;
 }
 
 export interface Meeting {

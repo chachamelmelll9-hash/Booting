@@ -301,6 +301,8 @@ apps/mobile/
 | `PhotoUploader` | `photos`, `max = 5`, `onAdd`, `onRemove`, `onSetPrimary` | 프로필 작성, 수정 |
 | `SafetyNotice` | `variant: 'banner' \| 'list' \| 'checklist'` | 채팅방, 만남 일정, 미동행 확인 |
 | `BootingMark` | `color`, `size = 26` | 홈 탭 아이콘 — 집 아이콘 대신 워드마크 첫 글자 `B`. 홈은 '집'이 아니라 추천이 오는 곳이다 |
+| `ParentShareButton` | `connection` | 매칭 카드 하단. 공유 시트 → 서버 기록 → '부모님께 공유 완료'. 카드를 여는 Pressable **밖**에 둔다 (안에 넣으면 버튼을 눌러도 대화방이 열린다) |
+| `HeartActionBar` | `+ onSave`, `saved` | `onSave` 를 주면 가운데가 '자세히' 대신 '찜해놓기'가 된다 (받은 관심) |
 | `StepProgressBar` | `current`, `total`, `label` | 등록 플로우 5화면 |
 | `BottomSheet` | `snapPoints`, `onDismiss`, `dismissGuard?` | 필터, 신고, 의사 확인, 미동행, 만남 확인, 피드백 |
 | `Toast` | `message`, `undo?` | 전역 |
@@ -549,6 +551,9 @@ DiscoveryItemDto & {
 | `connections` | user_a_id, user_b_id, parent_profile_a_id, parent_profile_b_id, status, ended_reason | 참여자 2인만 |
 | `conversations` | connection_id(unique), opened_at, read_only_at | 참여자 2인만 |
 | `conversation_reads` | conversation_id, user_id (PK 둘), read_at | 본인만. 방을 열면 생긴다 — 메시지가 하나도 없는 새 대화방을 "확인함"으로 만드는 유일한 근거 |
+| `parent_shares` | connection_id, user_id (PK 둘), shared_at | 본인만. 상대 부모님 프로필을 **내 부모님께 전달했다**는 표시. 전송 증명이 아니라 "누구를 이미 보여드렸는지" 기억 |
+| `saved_profiles` | user_id, target_parent_profile_id (PK 둘), created_at | 본인만. 찜(보류) — 넘기기와 달리 되돌릴 수 있고 상대에게 알리지 않는다 |
+| `messages.kind` | `text` \| `system` | system 은 앱이 남긴 기록(부모님 공유 등). 말풍선이 아니라 가운데 회색 한 줄로 렌더 |
 | `messages` | conversation_id, sender_user_id, body, sent_at, read_at | 참여자 2인만. insert는 본인 발신만 |
 | `parent_intents` | connection_id, user_id, intent, responded_at | unique(connection, user). 참여자 2인 select |
 | `meetings` | connection_id, proposed_by_user_id, meet_at, place, child_accompanied, solo_reason, safety_ack_at, status | 참여자 2인만 |

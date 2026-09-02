@@ -67,6 +67,28 @@ export function useSendMessage(connectionId: string) {
   });
 }
 
+/**
+ * 부모님께 공유 완료 표시.
+ *
+ * 실제 전송은 기기의 공유 시트에서 끝나고, 서버는 "보냈다고 표시했다"만 받는다.
+ * 대화방 목록과 그 방의 메시지를 함께 무효화한다 — 서버가 대화방에도 기록
+ * 한 줄을 남기므로, 방을 열어 두고 공유했으면 바로 보여야 한다.
+ */
+export function useShareWithParent(connectionId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => connectionsApi.shareWithParent(connectionId),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['connections'] }),
+        queryClient.invalidateQueries({ queryKey: bootingKeys.connection(connectionId) }),
+        queryClient.invalidateQueries({ queryKey: bootingKeys.messages(connectionId) }),
+      ]);
+    },
+  });
+}
+
 export function useEndConnection(connectionId: string) {
   const queryClient = useQueryClient();
 
