@@ -21,7 +21,9 @@ export function useSafetyMutations() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: bootingKeys.blocks }),
       queryClient.invalidateQueries({ queryKey: bootingKeys.discovery }),
-      queryClient.invalidateQueries({ queryKey: bootingKeys.connections() }),
+      // 프리픽스로 걸어 목록과 탭 배지를 함께 갱신한다 — 신고하면 대화가
+      // 목록에서 빠지므로 배지 숫자도 같이 줄어야 한다
+      queryClient.invalidateQueries({ queryKey: ['connections'] }),
       queryClient.invalidateQueries({ queryKey: bootingKeys.heartsReceived }),
     ]);
   };

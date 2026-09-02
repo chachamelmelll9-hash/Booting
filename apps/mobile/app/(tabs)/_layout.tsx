@@ -1,4 +1,5 @@
 ﻿import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useConnectionsUnread } from '@features/connections';
 import { useHeartsUnreadCount } from '@features/hearts';
 import { useParentProfile } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
@@ -44,6 +45,10 @@ const ProfileIcon = tabIcon('user');
 export default function TabLayout() {
   const { data: hearts } = useHeartsUnreadCount();
   const heartBadge = hearts?.count ? String(hearts.count) : undefined;
+
+  // 새 대화방(안 읽은 메시지 또는 아직 열지 않은 방)이 있으면 매칭 탭에 배지
+  const { data: unseenRooms } = useConnectionsUnread();
+  const connectionsBadge = unseenRooms?.count ? String(unseenRooms.count) : undefined;
 
   // 프로필을 공개하기 전에는 관심·인연 탭이 아무것도 못 한다 (서버가 403 을 준다).
   // 눌러봐야 빈 화면이 나오는 탭을 띄워두면 등록 동선에서 주의만 흩어진다.
@@ -94,6 +99,7 @@ export default function TabLayout() {
           title: '매칭',
           href: published ? undefined : null,
           tabBarAccessibilityLabel: '매칭',
+          tabBarBadge: connectionsBadge,
           tabBarIcon: ConnectionsIcon,
         }}
       />

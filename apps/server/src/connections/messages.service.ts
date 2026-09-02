@@ -80,6 +80,15 @@ export class MessagesService {
       .neq('sender_user_id', userId)
       .is('read_at', null);
 
+    // 방을 열었다는 사실 자체를 남긴다 — 메시지가 하나도 없는 새 대화방은
+    // 메시지 읽음 처리만으로는 "확인함"이 되지 않는다 (목록 하이라이트 기준)
+    await client
+      .from('conversation_reads')
+      .upsert(
+        { conversation_id: conversation.id, user_id: userId, read_at: new Date().toISOString() },
+        { onConflict: 'conversation_id,user_id' }
+      );
+
     return {
       items: page.map((r) => ({
         id: r.id,

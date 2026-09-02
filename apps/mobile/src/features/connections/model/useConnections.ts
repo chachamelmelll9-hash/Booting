@@ -15,6 +15,21 @@ export function useConnections(status?: ConnectionStatus | 'all') {
   });
 }
 
+/**
+ * 매칭 탭 배지 — 아직 확인하지 않은 대화방 수.
+ *
+ * 목록 쿼리에서 세지 않는 이유: 탭바는 앱이 켜져 있는 내내 떠 있는데, 목록은
+ * 카드 한 장마다 서버가 쿼리를 여러 번 돈다. 개수만 세는 가벼운 엔드포인트를
+ * 따로 둔다. 주기는 관심 탭 배지와 같게 맞춘다.
+ */
+export function useConnectionsUnread() {
+  return useQuery({
+    queryKey: bootingKeys.connectionsUnread,
+    queryFn: connectionsApi.unreadCount,
+    refetchInterval: 30_000,
+  });
+}
+
 export function useConnection(connectionId: string | undefined) {
   return useQuery({
     queryKey: bootingKeys.connection(connectionId ?? ''),

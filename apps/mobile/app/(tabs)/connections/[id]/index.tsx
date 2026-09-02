@@ -125,6 +125,9 @@ export default function ChatRoomScreen() {
       });
       return () => {
         subscription.remove();
+        // ['connections'] 프리픽스라 목록과 탭 배지(connectionsUnread)가 함께 갱신된다.
+        // 방을 열면 서버가 읽음·열람을 기록하므로, 나올 때 다시 물어야 목록
+        // 하이라이트와 탭 배지가 같이 꺼진다.
         void queryClient.invalidateQueries({ queryKey: ['connections'] });
         void queryClient.invalidateQueries({ queryKey: bootingKeys.connection(id ?? '') });
       };

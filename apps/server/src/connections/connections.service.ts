@@ -104,6 +104,73 @@ export class ConnectionsService {
     return Promise.all(visible.map((row) => this.toDto(row, userId)));
   }
 
+  /**
+   * 탭 배지용 — 아직 확인하지 않은 대화방 수.
+   *
+   * `list()` 를 세는 방식은 쓰지 않는다. 그쪽은 방 하나당 쿼리 5~6번을 돌려
+   * 카드 한 장을 다 만든다. 배지는 30초마다 물어보는 값이라, 개수만 세는
+   * 쿼리 몇 개로 끝내야 한다.
+   */
+  async unseenCount(userId: string): Promise<number> {
+    const client = this.supabase.getClient();
+
+    const { data: rows } = await client
+      .from('connections')
+      .select('id, user_a_id, user_b_id, status')
+      .or(`user_a_id.eq.${userId},user_b_id.eq.${userId}`)
+      .neq('status', 'ended');
+    if (!rows?.length) return 0;
+
+    // 목록에서 빠지는 대화는 배지에서도 빠져야 한다 (차단·신고한 상대)
+    const [mine, theirs] = await Promise.all([
+      client.from('blocks').select('blocked_user_id').eq('user_id', userId),
+      client.from('blocks').select('user_id').eq('blocked_user_id', userId),
+    ]);
+    const blocked = new Set<string>([
+      ...(mine.data ?? []).map((b) => b.blocked_user_id as string),
+      ...(theirs.data ?? []).map((b) => b.user_id as string),
+    ]);
+    const visible = rows.filter(
+      (r) => !blocked.has(r.user_a_id === userId ? r.user_b_id : r.user_a_id)
+    );
+    if (!visible.length) return 0;
+
+    const { data: conversations } = await client
+      .from('conversations')
+      .select('id, connection_id')
+      .in(
+        'connection_id',
+        visible.map((r) => r.id as string)
+      );
+
+    // 대화방 행이 아직 없는 인연은 열어본 적이 없는 새 대화다
+    const withConversation = new Set((conversations ?? []).map((c) => c.connection_id as string));
+    let count = visible.filter((r) => !withConversation.has(r.id as string)).length;
+
+    const conversationIds = (conversations ?? []).map((c) => c.id as string);
+    if (!conversationIds.length) return count;
+
+    const [reads, unreadMessages] = await Promise.all([
+      client
+        .from('conversation_reads')
+        .select('conversation_id')
+        .eq('user_id', userId)
+        .in('conversation_id', conversationIds),
+      client
+        .from('messages')
+        .select('conversation_id')
+        .in('conversation_id', conversationIds)
+        .neq('sender_user_id', userId)
+        .is('read_at', null),
+    ]);
+
+    const opened = new Set((reads.data ?? []).map((r) => r.conversation_id as string));
+    const hasUnread = new Set((unreadMessages.data ?? []).map((m) => m.conversation_id as string));
+
+    count += conversationIds.filter((id) => !opened.has(id) || hasUnread.has(id)).length;
+    return count;
+  }
+
   async getOne(connectionId: string, userId: string): Promise<ConnectionDto> {
     const ctx = await this.requireParticipant(connectionId, userId);
     return this.toDto(ctx.row, userId);
@@ -145,9 +212,17 @@ export class ConnectionsService {
 
     let lastMessage: ConnectionDto['lastMessage'] = null;
     let unreadCount = 0;
+    /**
+     * 아직 확인하지 않은 대화방.
+     *
+     * 안 읽은 메시지가 있거나, **한 번도 열어보지 않았거나**. 두 번째 조건이
+     * 없으면 인사말 없이 열린 새 대화방이 목록에서 아무 표시 없이 지나간다.
+     * 대화방이 아직 없는 인연도 열어본 적 없는 새 대화다.
+     */
+    let unseen = true;
 
     if (convRes.data) {
-      const [lastRes, unreadRes] = await Promise.all([
+      const [lastRes, unreadRes, readRes] = await Promise.all([
         client
           .from('messages')
           .select('body, sent_at, sender_user_id')
@@ -161,6 +236,12 @@ export class ConnectionsService {
           .eq('conversation_id', convRes.data.id)
           .eq('sender_user_id', partnerUserId)
           .is('read_at', null),
+        client
+          .from('conversation_reads')
+          .select('read_at')
+          .eq('conversation_id', convRes.data.id)
+          .eq('user_id', userId)
+          .maybeSingle(),
       ]);
 
       if (lastRes.data) {
@@ -171,7 +252,10 @@ export class ConnectionsService {
         };
       }
       unreadCount = unreadRes.count ?? 0;
+      unseen = unreadCount > 0 || !readRes.data;
     }
+    // 끝난 대화는 열어볼 이유가 없다 — 안 열면 배지가 영영 안 꺼진다
+    if (row.status === 'ended') unseen = false;
 
     const intents = intentRes.data ?? [];
     const myIntent = intents.find((i) => i.user_id === userId)?.intent ?? null;
@@ -194,6 +278,7 @@ export class ConnectionsService {
       },
       lastMessage,
       unreadCount,
+      unseen,
       readOnly: !!convRes.data?.read_only_at || row.status === 'ended',
       myParentIntent: myIntent,
       partnerRespondedIntent: partnerResponded,

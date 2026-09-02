@@ -32,6 +32,13 @@ export class ConnectionsController {
     return this.connections.list(userId, status);
   }
 
+  // `:id` 보다 먼저 선언해야 한다 — Nest 는 선언 순서대로 매칭해서,
+  // 뒤에 두면 'unread-count' 가 connectionId 로 잡힌다
+  @Get('unread-count')
+  async unreadCount(@User('id') userId: string) {
+    return { count: await this.connections.unseenCount(userId) };
+  }
+
   @Get(':id')
   getOne(@User('id') userId: string, @Param('id') id: string) {
     return this.connections.getOne(id, userId);

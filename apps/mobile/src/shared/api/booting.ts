@@ -115,6 +115,8 @@ export const heartsApi = {
 
 export const connectionsApi = {
   list: (status?: string) => serverFetch<Connection[]>(`/connections${qs({ status })}`),
+  /** 탭 배지용 — 아직 확인하지 않은 대화방 수 */
+  unreadCount: () => serverFetch<{ count: number }>('/connections/unread-count'),
   get: (id: string) => serverFetch<Connection>(`/connections/${id}`),
   messages: (id: string, cursor?: string) =>
     serverFetch<Page<Message>>(`/connections/${id}/messages${qs({ cursor })}`),
@@ -184,6 +186,7 @@ export const bootingKeys = {
   heartsReceived: ['hearts', 'received'] as const,
   heartsUnread: ['hearts', 'unread'] as const,
   connections: (status?: string) => ['connections', status ?? 'all'] as const,
+  connectionsUnread: ['connections', 'unread-count'] as const,
   connection: (id: string) => ['connection', id] as const,
   messages: (id: string) => ['messages', id] as const,
   meeting: (id: string) => ['meeting', id] as const,

@@ -49,8 +49,30 @@ const TITLES: Record<NotificationKind, string> = {
   conversation_read_only: '대화 기간이 지나 읽기 전용으로 전환되었습니다',
 };
 
-export function notificationTitle(type: NotificationKind): string {
-  return TITLES[type] ?? '새 알림';
+/**
+ * 상대가 있는 알림은 이름을 앞에 붙인다.
+ *
+ * "대화가 연결되었습니다" 만으로는 누구인지 몰라 알림을 열고 대화방까지
+ * 들어가 봐야 안다. 이름은 알림이 답해야 할 첫 번째 질문이다.
+ * 프로필 검수처럼 상대가 없는 알림은 그대로 둔다.
+ */
+const WITH_NAME: Partial<Record<NotificationKind, (name: string) => string>> = {
+  heart_received: (n) => `${n} 님이 관심을 보냈습니다`,
+  mutual_heart: (n) => `${n} 님과 대화가 연결되었습니다`,
+  message: (n) => `${n} 님이 메시지를 보냈습니다`,
+  parent_intent: (n) => `${n} 님 부모님의 의사가 전달되었습니다`,
+  meeting_proposed: (n) => `${n} 님과의 만남 일정이 제안되었습니다`,
+  meeting_accepted: (n) => `${n} 님과의 만남 일정이 확정되었습니다`,
+  meeting_confirm_request: (n) => `${n} 님과의 만남은 어떠셨나요?`,
+  meeting_confirm_reminder: (n) => `${n} 님과의 만남 확인이 아직 남아 있습니다`,
+  matched: (n) => `${n} 님과의 만남을 양측 모두 확인했습니다`,
+  conversation_read_only: (n) => `${n} 님과의 대화가 읽기 전용으로 전환되었습니다`,
+};
+
+export function notificationTitle(notification: AppNotification): string {
+  const withName = notification.nickname && WITH_NAME[notification.type];
+  if (withName && notification.nickname) return withName(notification.nickname);
+  return TITLES[notification.type] ?? '새 알림';
 }
 
 /** 알림 → 이동할 경로 */

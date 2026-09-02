@@ -92,9 +92,13 @@ export default function ConnectionsScreen() {
           renderItem={({ item }) => (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`${item.partner.nickname} 님과의 대화`}
+              accessibilityLabel={`${item.partner.nickname} 님과의 대화${item.unseen ? ', 확인하지 않음' : ''}`}
               onPress={() => router.push(`/(tabs)/connections/${item.id}`)}
-              style={({ pressed }) => [styles.rowWrap, pressed && styles.pressed]}
+              style={({ pressed }) => [
+                styles.rowWrap,
+                item.unseen && styles.rowWrapUnseen,
+                pressed && styles.pressed,
+              ]}
               testID={`connection-${item.id}`}
             >
               <ParentProfileCard profile={item.partner} variant="list" />
@@ -135,7 +139,21 @@ const styles = StyleSheet.create({
   chipText: { ...typography.caption, color: theme.colors.textSecondary },
   chipTextSelected: { color: '#FFFFFF', fontWeight: '600' },
   list: { gap: spacing.sm, paddingVertical: spacing.xs },
-  rowWrap: { gap: spacing.xxs },
+  /**
+   * 테두리를 평소에도 투명하게 깔아 둔다 — 확인하면 테두리가 사라지는데,
+   * 그때 두께가 바뀌면 목록 전체가 한 칸 밀린다.
+   */
+  rowWrap: {
+    gap: spacing.xxs,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    borderRadius: radius.lg,
+    padding: spacing.xxs,
+  },
+  rowWrapUnseen: {
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primarySurface,
+  },
   meta: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingLeft: spacing.xxs },
   preview: { ...typography.caption, color: theme.colors.textTertiary, flex: 1 },
   previewMuted: { ...typography.caption, color: theme.colors.textMuted, flex: 1 },

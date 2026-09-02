@@ -35,6 +35,8 @@ export interface ConnectionDto {
   partner: DiscoveryItemDto;
   lastMessage: { body: string; sentAt: string; mine: boolean } | null;
   unreadCount: number;
+  /** 아직 확인하지 않은 대화방 — 안 읽은 메시지가 있거나 한 번도 열지 않았다 */
+  unseen: boolean;
   /** 90일 경과 대화는 읽기 전용 (TODO-12) */
   readOnly: boolean;
   myParentIntent: ParentIntentKind | null;

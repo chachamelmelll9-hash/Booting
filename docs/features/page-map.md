@@ -411,6 +411,7 @@ app/
 | POST | /api/reports | 신고 화면, 채팅방 ⋯ 메뉴 | 추천 & 탐색 | 신고 접수 |
 | GET | /api/reports | 신고 내역 | 추천 & 탐색 | 내 신고 이력 |
 | GET | /api/connections | 인연 목록 | 하트 & 대화 연결 | 상태별 인연 목록 |
+| GET | /api/connections/unread-count | 매칭 탭 배지 | 하트 & 대화 연결 | 아직 확인하지 않은 대화방 수 |
 | GET | /api/connections/:id/messages | 채팅방 | 하트 & 대화 연결 | 메시지 페이지네이션 |
 | POST | /api/connections/:id/messages | 채팅방 | 하트 & 대화 연결 | 메시지 전송 |
 | POST | /api/connections/:id/end | 채팅방 | 하트 & 대화 연결 | 대화 종료 |

@@ -548,6 +548,7 @@ DiscoveryItemDto & {
 | `reports` | reporter_user_id, target_user_id, target_parent_profile_id, reason, detail, status | 신고자 본인만 select |
 | `connections` | user_a_id, user_b_id, parent_profile_a_id, parent_profile_b_id, status, ended_reason | 참여자 2인만 |
 | `conversations` | connection_id(unique), opened_at, read_only_at | 참여자 2인만 |
+| `conversation_reads` | conversation_id, user_id (PK 둘), read_at | 본인만. 방을 열면 생긴다 — 메시지가 하나도 없는 새 대화방을 "확인함"으로 만드는 유일한 근거 |
 | `messages` | conversation_id, sender_user_id, body, sent_at, read_at | 참여자 2인만. insert는 본인 발신만 |
 | `parent_intents` | connection_id, user_id, intent, responded_at | unique(connection, user). 참여자 2인 select |
 | `meetings` | connection_id, proposed_by_user_id, meet_at, place, child_accompanied, solo_reason, safety_ack_at, status | 참여자 2인만 |
