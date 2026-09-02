@@ -563,11 +563,17 @@ async function main() {
   const report = await a.expect(
     'POST',
     '/reports',
-    { targetProfileId: profileB.id, reason: 'safety_concern', detail: '스모크 테스트' },
+    { targetProfileId: profileB.id, reason: 'money_request', detail: '스모크 테스트' },
     'A report'
   );
   check('신고 접수', report.status === 'pending');
   check('신고 이력에도 별명', report.targetNickname === '텃밭지기', report.targetNickname);
+
+  // 신고는 차단을 포함한다 — 신고했는데 대화방과 추천에 계속 뜨면 안 된다
+  const afterReport = await a.expect('GET', `/connections/${connectionId}`, null, 'A conn after report');
+  check('신고하면 인연도 종료된다', afterReport.status === 'ended', afterReport.status);
+  const reportedDetail = await a.call('GET', `/profiles/${profileB.id}`);
+  check('신고한 상대 프로필 접근 403', reportedDetail.status === 403, `status=${reportedDetail.status}`);
 
   const block = await a.expect('POST', '/blocks', { targetProfileId: profileB.id }, 'A block');
   check('차단 등록', !!block.id);

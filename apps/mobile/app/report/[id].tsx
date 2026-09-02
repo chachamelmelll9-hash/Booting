@@ -46,8 +46,12 @@ export default function ReportScreen() {
                 { targetProfileId: id as string, reason, detail: detail.trim() || undefined },
                 {
                   onSuccess: () => {
-                    toast.show({ message: '신고가 접수되었습니다' });
-                    router.back();
+                    // 신고는 차단을 포함한다 — 뒤로 가면 이미 볼 수 없는
+                    // 프로필로 돌아가 403 화면을 보게 된다
+                    toast.show({
+                      message: '신고가 접수되었습니다. 이 분은 추천과 대화에서 보이지 않습니다.',
+                    });
+                    router.replace('/(tabs)/home');
                   },
                   onError: (e: Error) => toast.show({ message: e.message }),
                 }

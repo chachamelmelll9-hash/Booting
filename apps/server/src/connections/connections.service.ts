@@ -79,7 +79,29 @@ export class ConnectionsService {
     const rows = data ?? [];
     if (!rows.length) return [];
 
-    return Promise.all(rows.map((row) => this.toDto(row, userId)));
+    /**
+     * 차단한(= 신고한) 상대와의 대화는 목록에서 아예 지운다.
+     *
+     * `status='ended'` 로만 바꿔 두면 "대화 종료" 카드로 목록에 계속 남는다.
+     * 신고한 사람 입장에서는 신고가 아무 일도 하지 않은 것으로 보인다.
+     * 차단당한 쪽에서도 사라져야 한다 — 한쪽에만 남으면 상대가 왜 답이 없는지
+     * 모른 채 계속 말을 건다.
+     */
+    const [mine, theirs] = await Promise.all([
+      client.from('blocks').select('blocked_user_id').eq('user_id', userId),
+      client.from('blocks').select('user_id').eq('blocked_user_id', userId),
+    ]);
+    const blocked = new Set<string>([
+      ...(mine.data ?? []).map((b) => b.blocked_user_id as string),
+      ...(theirs.data ?? []).map((b) => b.user_id as string),
+    ]);
+
+    const visible = rows.filter(
+      (row) => !blocked.has(row.user_a_id === userId ? row.user_b_id : row.user_a_id)
+    );
+    if (!visible.length) return [];
+
+    return Promise.all(visible.map((row) => this.toDto(row, userId)));
   }
 
   async getOne(connectionId: string, userId: string): Promise<ConnectionDto> {

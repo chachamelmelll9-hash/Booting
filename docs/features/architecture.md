@@ -300,6 +300,7 @@ apps/mobile/
 | `FormSection` | `label`, `required`, `helper`, `error`, `children` | 프로필 작성/수정, 만남 일정, 동의 |
 | `PhotoUploader` | `photos`, `max = 5`, `onAdd`, `onRemove`, `onSetPrimary` | 프로필 작성, 수정 |
 | `SafetyNotice` | `variant: 'banner' \| 'list' \| 'checklist'` | 채팅방, 만남 일정, 미동행 확인 |
+| `BootingMark` | `color`, `size = 26` | 홈 탭 아이콘 — 집 아이콘 대신 워드마크 첫 글자 `B`. 홈은 '집'이 아니라 추천이 오는 곳이다 |
 | `StepProgressBar` | `current`, `total`, `label` | 등록 플로우 5화면 |
 | `BottomSheet` | `snapPoints`, `onDismiss`, `dismissGuard?` | 필터, 신고, 의사 확인, 미동행, 만남 확인, 피드백 |
 | `Toast` | `message`, `undo?` | 전역 |
@@ -433,6 +434,7 @@ apps/server/src/
 
 #### safety/
 - **Responsibility**: 신고·차단. 차단은 양방향 제외 집합으로 discovery가 소비한다
+- **신고는 차단을 포함한다**: `report()` 가 `enforceBlock()` 을 타 blocks 행을 만들고 그 사이 인연을 `ended`(reason=`blocked`)로 끝낸다. `connections.list` 는 차단 쌍을 목록에서 제외한다 — 신고했는데 대화방이 남아 있으면 신고가 먹지 않은 것으로 읽힌다
 - **Endpoints**: `POST/GET /reports`, `POST/GET/DELETE /blocks`
 
 #### maintenance/

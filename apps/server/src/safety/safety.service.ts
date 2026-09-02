@@ -30,6 +30,12 @@ export class SafetyService {
 
   // --- 신고 -------------------------------------------------------------------
 
+  /**
+   * 신고는 차단을 포함한다.
+   *
+   * 신고했는데 그 사람이 대화방과 추천에 계속 보이면 신고가 아무 일도 하지
+   * 않은 것으로 읽힌다. 접수 즉시 차단해 대화를 끝내고 추천에서 뺀다.
+   */
   async report(userId: string, dto: CreateReportDto): Promise<ReportDto> {
     const target = await this.profileOwner(dto.targetProfileId);
 
@@ -47,6 +53,11 @@ export class SafetyService {
       .single();
 
     if (error) throw new BadRequestException({ code: 'report_failed', message: error.message });
+
+    // 자기 프로필을 신고하는 경우만 건너뛴다 (차단은 자기 자신에게 걸 수 없다)
+    if (target.user_id !== userId) {
+      await this.enforceBlock(userId, target.user_id);
+    }
 
     return {
       id: data.id,
@@ -94,18 +105,16 @@ export class SafetyService {
   /**
    * 차단하면 진행 중인 인연도 함께 종료한다.
    * 목록에서만 사라지고 대화가 살아 있으면 차단이 아니다.
+   *
+   * 신고(`report`)도 이 경로를 탄다 — 두 곳에서 따로 구현하면 한쪽만 인연을
+   * 끊는 상태가 생긴다.
    */
-  async block(userId: string, targetProfileId: string): Promise<BlockDto> {
-    const target = await this.profileOwner(targetProfileId);
-    if (target.user_id === userId) {
-      throw new BadRequestException(domainError(ERROR_CODES.FORBIDDEN));
-    }
-
+  private async enforceBlock(userId: string, targetUserId: string) {
     const client = this.supabase.getClient();
     const { data, error } = await client
       .from('blocks')
       .upsert(
-        { user_id: userId, blocked_user_id: target.user_id },
+        { user_id: userId, blocked_user_id: targetUserId },
         { onConflict: 'user_id,blocked_user_id' }
       )
       .select('*')
@@ -121,9 +130,20 @@ export class SafetyService {
         ended_at: new Date().toISOString(),
       })
       .or(
-        `and(user_a_id.eq.${userId},user_b_id.eq.${target.user_id}),and(user_a_id.eq.${target.user_id},user_b_id.eq.${userId})`
+        `and(user_a_id.eq.${userId},user_b_id.eq.${targetUserId}),and(user_a_id.eq.${targetUserId},user_b_id.eq.${userId})`
       )
       .neq('status', 'ended');
+
+    return data;
+  }
+
+  async block(userId: string, targetProfileId: string): Promise<BlockDto> {
+    const target = await this.profileOwner(targetProfileId);
+    if (target.user_id === userId) {
+      throw new BadRequestException(domainError(ERROR_CODES.FORBIDDEN));
+    }
+
+    const data = await this.enforceBlock(userId, target.user_id);
 
     return {
       id: data.id,

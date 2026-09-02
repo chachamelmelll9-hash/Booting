@@ -288,8 +288,12 @@ export default function ChatRoomScreen() {
                     {
                       onSuccess: () => {
                         closeSheet();
+                        // 신고하면 서버가 차단까지 걸어 이 대화는 끝난다.
+                        // 종료된 대화방에 그대로 서 있게 두지 않는다.
+                        router.navigate('/(tabs)/connections');
                         toast.show({
-                          message: '신고가 접수되었습니다. 내 정보 > 신고 내역에서 확인하실 수 있습니다.',
+                          message:
+                            '신고가 접수되었습니다. 이 분은 대화와 추천에서 보이지 않습니다.',
                         });
                       },
                       onError: (error: Error) => toast.show({ message: error.message }),
@@ -313,29 +317,29 @@ export default function ChatRoomScreen() {
               onSelect={setReportReason}
             />
             <Text style={styles.reportHint}>
-              접수된 신고는 운영팀이 확인합니다. 고른 사유는 내 정보 &gt; 신고 내역에
-              그대로 남습니다.
+              신고하면 이 대화가 종료되고 이 분은 추천에도 다시 뜨지 않습니다. 고른
+              사유는 내 정보 &gt; 신고 내역에 그대로 남습니다.
             </Text>
           </>
         ) : (
           <>
             <MenuRow
-              icon="flag-o"
-              label="대화 상대 신고하기"
-              description="금전 요구·부적절한 언행·사기 의심을 운영팀에 알립니다."
-              testID="chat-menu-report"
-              onPress={() => setSheet('report')}
-            />
-            <MenuRow
               icon="sign-out"
               label="대화방 나가기"
               description="대화가 종료되고 되돌릴 수 없습니다."
-              destructive
               testID="chat-menu-end"
               onPress={() => {
                 setSheet(null);
                 setConfirmEnd(true);
               }}
+            />
+            <MenuRow
+              icon="flag-o"
+              label="대화 상대 신고하기"
+              description="운영팀에 알리고, 이 분을 대화와 추천에서 즉시 숨깁니다."
+              destructive
+              testID="chat-menu-report"
+              onPress={() => setSheet('report')}
             />
           </>
         )}
