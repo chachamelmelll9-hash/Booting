@@ -17,7 +17,13 @@ import { queryClient } from '@shared/query';
 import { ToastProvider } from '@shared/ui';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router';
+import {
+  Stack,
+  useNavigationContainerRef,
+  useRootNavigationState,
+  useRouter,
+  useSegments,
+} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef } from 'react';
 import { ActivityIndicator, StyleSheet,View } from 'react-native';
@@ -134,9 +140,23 @@ function RootLayoutNav() {
   //   "Attempted to navigate before mounting the Root Layout component."
   // 정적 검사(lint/tsc/build)로는 잡히지 않는 런타임 계약이라 실기기 기동으로만 드러난다.
   const rootNavigationState = useRootNavigationState();
+  const navigationRef = useNavigationContainerRef();
 
   useEffect(() => {
+    /**
+     * 가드가 **두 개**인 이유.
+     *
+     * `rootNavigationState` 는 expo-router 의 모듈 스코프 스토어에 있다. 뒤로가기로
+     * 앱을 나가면 안드로이드는 액티비티만 없애고 JS 컨텍스트는 살려 두는 일이 있는데,
+     * 그때 다시 열면 **이전 key 가 그대로 남아 있어** 이 가드를 통과한다. 정작
+     * navigator 는 새로 만들어지는 트리에 아직 붙기 전이라 replace 가 그 자리에서
+     * 던지고, 앱이 ErrorBoundary("문제가 발생했습니다")로 떨어진다.
+     *
+     * `navigationRef.isReady()` 가 실제 마운트 여부를 본다. 아직이면 그냥 넘기고,
+     * navigator 가 붙는 순간 `rootNavigationState` 가 바뀌어 이 effect 가 다시 돈다.
+     */
     if (!rootNavigationState?.key) return;
+    if (!navigationRef?.isReady?.()) return;
     if (!isInitialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
@@ -151,7 +171,14 @@ function RootLayoutNav() {
     } else if (!isAuthenticated && inIndex) {
       router.replace('/(auth)/login');
     }
-  }, [isAuthenticated, isInitialized, segments, router, rootNavigationState?.key]);
+  }, [
+    isAuthenticated,
+    isInitialized,
+    segments,
+    router,
+    navigationRef,
+    rootNavigationState?.key,
+  ]);
 
   // 초기화 중에도 navigator 는 반드시 렌더한다 (조기 반환 금지).
   return (
