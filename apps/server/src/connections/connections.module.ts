@@ -5,11 +5,12 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { ConnectionsController } from './connections.controller';
 import { ConnectionsService } from './connections.service';
+import { KakaoShareController } from './kakao-share.controller';
 import { MessagesService } from './messages.service';
 
 @Module({
   imports: [SupabaseModule, DiscoveryModule, NotificationsModule],
-  controllers: [ConnectionsController],
+  controllers: [ConnectionsController, KakaoShareController],
   providers: [ConnectionsService, MessagesService],
   exports: [ConnectionsService],
 })

@@ -111,7 +111,11 @@ export default function ParentProfileScreen() {
       footer={
         detail.matched ? (
           <View style={styles.contactBox} testID="parent-contact">
-            <Text style={styles.contactLabel}>연락처가 열렸습니다</Text>
+            {/* 상대가 나중에 눌러 성사된 쪽은 축하 팝업을 못 봤다.
+                여기서 같은 문장을 한 번 더 말해 준다 */}
+            <Text style={styles.contactLabel}>
+              {profile.nickname} 님과 마음이 통했습니다
+            </Text>
             <Text style={styles.contactName}>{detail.partnerName ?? profile.nickname} 님</Text>
             <Text style={styles.contactPhone} selectable>
               {detail.partnerPhone ?? '연락처 준비 중'}
@@ -334,12 +338,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.successBg,
     borderRadius: radius.lg,
     borderWidth: 2,
-    borderColor: theme.colors.success,
+    borderColor: theme.colors.primaryDark,
     padding: spacing.md,
     gap: 6,
     alignItems: 'center',
   },
-  contactLabel: { ...typography.bodyStrong, color: theme.colors.success },
+  contactLabel: { ...typography.subheading, color: theme.colors.primaryDark, fontWeight: '700' },
   contactName: { ...typography.subheading, color: theme.colors.text },
   contactPhone: {
     fontSize: 32,

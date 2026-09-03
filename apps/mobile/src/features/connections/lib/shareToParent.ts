@@ -1,7 +1,6 @@
 import type * as KakaoShare from '@react-native-kakao/share';
 import type { DiscoveryItem } from '@shared/api/booting.types';
 import { goalLabel } from '@shared/config/relationshipGoals';
-import { Share } from 'react-native';
 
 const MARITAL_LABEL: Record<string, string> = { bereaved: '사별', divorced: '이혼' };
 
@@ -80,46 +79,56 @@ function feedTemplate(profile: DiscoveryItem) {
       // 비워 둔다 — 카드만 보내고 이동은 하지 않는다.
       link: {},
     },
+    // 버튼을 만들지 않는다. 비워 두면 카카오가 '자세히 보기' 를 자동으로 붙이는데,
+    // 갈 곳이 없어 부모님이 눌러보고 아무 일도 안 일어난다 (실측).
+    buttons: [],
   };
 }
 
-/**
- * 부모님께 프로필 공유.
- *
- * 카카오톡으로 카드를 보내는 것이 기본이고, 안 되면 OS 공유 시트로 내려간다.
- * 실패하는 경우가 실제로 여럿이다 — 카카오톡 미설치, 네이티브 키 미설정,
- * 네이티브 모듈이 없는 빌드, 콘솔 설정 누락. 그때 아무 일도 일어나지 않으면
- * 사용자는 앱이 고장 난 줄 안다. 공유 시트는 카카오톡을 포함해 어디로든 보낼
- * 수 있으니 폴백으로 충분하다.
- *
- * @returns 공유 흐름으로 넘어갔으면 true, 사용자가 닫았으면 false.
- *          **보냈다는 뜻이 아니다** — 카카오톡이든 공유 시트든 그 안에서 실제로
- *          보냈는지는 알려주지 않는다. 그래서 호출부가 돌아온 뒤에 직접 확인받는다.
- */
-export async function shareProfileToParent(profile: DiscoveryItem): Promise<boolean> {
-  const kakao = isKakaoConfigured ? loadKakaoShare() : null;
-  if (kakao) {
-    try {
-      await kakao.shareFeedTemplate({
-        template: feedTemplate(profile),
-        /**
-         * 카카오톡이 없으면 **웹으로 우회하지 않고 실패시킨다**.
-         *
-         * 웹 우회를 켜두면 카카오톡 미설치 기기에서 아무 화면도 안 뜬 채로
-         * 성공이 돌아온다 (에뮬레이터에서 실측). 그러면 사용자는 공유 UI 를
-         * 본 적도 없는데 "보내셨나요?" 를 받는다. 차라리 실패시켜 아래 OS
-         * 공유 시트로 내려보내면, 거기서 카카오톡이든 뭐든 고를 수 있다.
-         */
-        useWebBrowserIfKakaoTalkNotAvailable: false,
-      });
-      return true;
-    } catch (error) {
-      // 카카오톡 미설치·콘솔 설정 누락 등. 공유 시트로 이어간다.
-      // 왜 떨어졌는지는 개발 중에만 남긴다 — 릴리스에서는 조용히 폴백한다.
-      if (__DEV__) console.log('[kakao share fallback]', error);
-    }
-  }
+export type ShareOutcome =
+  /** 카카오톡 공유 화면까지 넘어갔다 */
+  | 'kakao'
+  /** 카카오톡이 없거나 카카오 설정이 안 돼 있다 */
+  | 'unavailable';
 
-  const result = await Share.share({ message: parentShareMessage(profile) });
-  return result.action === Share.sharedAction;
+/**
+ * 부모님께 프로필 공유 — 카카오톡으로만 보낸다.
+ *
+ * OS 공유 시트를 쓰지 않는다. 시트를 열면 드라이브·클립보드·메모까지 나열되는데,
+ * 이 버튼이 하려는 일은 하나뿐이라 고를 것을 늘릴 이유가 없다. 부모님께 닿는
+ * 통로도 사실상 카카오톡 하나다.
+ *
+ * @returns 'kakao' 면 카카오톡 공유 화면까지 갔다. **보냈다는 증명은 아니다** —
+ *          카카오 SDK 는 카카오톡으로 넘긴 시점에 성공을 돌려주고, 그 안에서
+ *          실제로 전송했는지는 알려주지 않는다. 확실한 발송 확인은 카카오
+ *          **서버 콜백**(`serverCallbackArgs` + 콘솔에 콜백 URL 등록)뿐인데,
+ *          공개 도메인에 서버가 올라간 뒤에야 붙일 수 있다.
+ */
+export async function shareProfileToParent(
+  profile: DiscoveryItem,
+  /**
+   * 카카오 서버 콜백에 되돌려 받을 값.
+   *
+   * 메시지가 **실제로 전송되면** 카카오 서버가 이 값들을 그대로 실어 우리
+   * 서버를 부른다. 공유 완료 표시는 그 콜백에서만 한다 — 앱은 "카카오톡으로
+   * 넘겼다"까지만 알기 때문에, 앱에서 표시하면 버튼만 눌러도 완료가 된다.
+   */
+  callbackArgs?: Record<string, string>
+): Promise<ShareOutcome> {
+  const kakao = isKakaoConfigured ? loadKakaoShare() : null;
+  if (!kakao) return 'unavailable';
+
+  try {
+    await kakao.shareFeedTemplate({
+      template: feedTemplate(profile),
+      // 카카오톡이 없으면 웹으로 우회하지 않는다 — 아무 화면도 없이 성공이
+      // 돌아와 보내지도 않은 걸 보냈다고 표시하게 된다 (에뮬레이터에서 실측)
+      useWebBrowserIfKakaoTalkNotAvailable: false,
+      ...(callbackArgs ? { serverCallbackArgs: callbackArgs } : {}),
+    });
+    return 'kakao';
+  } catch (error) {
+    if (__DEV__) console.log('[kakao share unavailable]', error);
+    return 'unavailable';
+  }
 }

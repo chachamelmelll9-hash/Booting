@@ -136,6 +136,9 @@ export const connectionsApi = {
   /** 부모님께 공유 완료 표시 + 대화방에 기록 한 줄 */
   shareWithParent: (id: string) =>
     serverFetch<Connection>(`/connections/${id}/parent-share`, { method: 'POST' }),
+  /** 카카오 공유에 실어 보낼 서명 — 서버 콜백이 돌아왔을 때 위조를 가른다 */
+  shareToken: (id: string) =>
+    serverFetch<{ token: string; userId: string }>(`/connections/${id}/share-token`),
 };
 
 export const meetingsApi = {

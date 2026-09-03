@@ -1,4 +1,4 @@
-import {
+﻿import {
   Body,
   Controller,
   Get,
@@ -39,6 +39,12 @@ export class ConnectionsController {
     return { count: await this.connections.unseenCount(userId) };
   }
 
+  /** 카카오 공유에 실어 보낼 서명 — 콜백이 돌아왔을 때 위조를 가른다 */
+  @Get(':id/share-token')
+  shareToken(@User('id') userId: string, @Param('id') id: string) {
+    return { token: this.connections.parentShareToken(id, userId), userId };
+  }
+
   @Get(':id')
   getOne(@User('id') userId: string, @Param('id') id: string) {
     return this.connections.getOne(id, userId);
@@ -61,6 +67,7 @@ export class ConnectionsController {
   ) {
     return this.messages.send(id, userId, dto.body);
   }
+
 
   /**
    * 부모님께 공유 완료 표시.

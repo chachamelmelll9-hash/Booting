@@ -1,4 +1,6 @@
-﻿import {
+﻿import { createHmac, timingSafeEqual } from 'node:crypto';
+
+import {
   BadRequestException,
   ForbiddenException,
   Injectable,
@@ -180,6 +182,31 @@ export class ConnectionsService {
 
     count += conversationIds.filter((id) => !opened.has(id) || hasUnread.has(id)).length;
     return count;
+  }
+
+  /**
+   * 카카오 서버 콜백이 들고 오는 표식.
+   *
+   * 콜백 URL 은 공개돼 있어서 아무나 POST 할 수 있다. "누가 무엇을 보냈는지"를
+   * 서버 비밀로 서명해 실어 보내고, 돌아온 값을 그 비밀로 다시 만들어 비교한다.
+   * 서명이 없으면 남의 인연을 공유 완료로 바꿔 놓을 수 있다.
+   */
+  parentShareToken(connectionId: string, userId: string): string {
+    return createHmac('sha256', this.shareSecret())
+      .update(`${connectionId}:${userId}`)
+      .digest('base64url');
+  }
+
+  verifyParentShareToken(connectionId: string, userId: string, token: string): boolean {
+    const expected = this.parentShareToken(connectionId, userId);
+    // 길이가 다르면 timingSafeEqual 이 던진다
+    if (expected.length !== token.length) return false;
+    return timingSafeEqual(Buffer.from(expected), Buffer.from(token));
+  }
+
+  private shareSecret(): string {
+    // 서버 전용 키를 그대로 쓴다 — 이 값이 새면 어차피 DB 가 통째로 열린다
+    return process.env.SUPABASE_SECRET_KEY ?? 'booting-dev-share-secret';
   }
 
   /**

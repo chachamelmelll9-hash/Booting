@@ -90,7 +90,12 @@ export default function ParentHomeScreen() {
               <ParentProfileCard profile={item.profile} variant="list" />
               <View style={styles.metaRow}>
                 {item.matched ? (
-                  <Text style={styles.matched}>마음이 통했습니다 · 연락처 보기</Text>
+                  /* 상대가 나중에 눌러 성사된 경우, 부모님이 이 목록에서
+                     처음 아신다 — 팝업을 못 보셨을 수 있으니 여기서 이름과
+                     함께 분명히 말한다 */
+                  <Text style={styles.matched}>
+                    {item.profile.nickname} 님과 마음이 통했습니다 · 연락처 보기
+                  </Text>
                 ) : item.interested ? (
                   <Text style={styles.waiting}>
                     {item.profile.nickname} 님의 답을 기다리고 있습니다
@@ -138,10 +143,11 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.primary,
     backgroundColor: theme.colors.primarySurface,
   },
-  cardMatched: { borderColor: theme.colors.success, backgroundColor: theme.colors.successBg },
+  // 성사된 카드는 브랜드 민트로 가장 강하게 — 이 목록에서 가장 중요한 한 장이다
+  cardMatched: { borderColor: theme.colors.primaryDark, backgroundColor: theme.colors.successBg },
   metaRow: { paddingLeft: spacing.xxs },
   new: { ...typography.bodyStrong, color: theme.colors.primaryDark },
-  matched: { ...typography.bodyStrong, color: theme.colors.success },
+  matched: { ...typography.bodyStrong, color: theme.colors.primaryDark },
   waiting: { ...typography.body, color: theme.colors.textTertiary },
   seen: { ...typography.body, color: theme.colors.textMuted },
   signOut: { alignSelf: 'center', padding: spacing.md },
