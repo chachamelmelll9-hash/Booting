@@ -53,13 +53,8 @@ export async function signInWithApple(): Promise<AppleLoginResult> {
     });
     await saveUser(apiResult.data.user);
 
-    return {
-      success: true,
-      user: {
-        id: apiResult.data.user.id,
-        email: apiResult.data.user.email,
-      },
-    };
+    // 저장한 것을 그대로 돌려준다 — 필드를 골라 담으면 새 필드가 조용히 빠진다
+    return { success: true, user: apiResult.data.user };
   } catch {
     return { success: false, error: 'Apple 로그인 중 오류가 발생했습니다' };
   }

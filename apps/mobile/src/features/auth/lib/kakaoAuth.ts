@@ -1,19 +1,53 @@
 import { login } from '@react-native-kakao/user';
 import { supabase } from '@shared/lib/supabase';
 
-import { oauthCallbackApi } from '../api/authApi';
+import { oauthCallbackApi, resolveKakaoLinkApi } from '../api/authApi';
 import { saveTokens, saveUser, type StoredUser } from './tokenStorage';
 
 export type KakaoLoginResult =
   | { success: true; user: StoredUser }
   | { success: false; error: string };
 
+/** 세션을 저장하고 결과를 만든다 — 연결 로그인과 일반 로그인이 함께 쓴다 */
+async function finishLogin(session: {
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: number;
+  user: StoredUser;
+}): Promise<KakaoLoginResult> {
+  await saveTokens({
+    accessToken: session.accessToken,
+    refreshToken: session.refreshToken,
+    expiresAt: session.expiresAt,
+  });
+  await saveUser(session.user);
+  // 저장한 것을 그대로 돌려준다. 필드를 골라 다시 담으면 새 필드가 생길 때마다
+  // 여기서 조용히 떨어진다 (displayName 이 실제로 그렇게 빠졌다).
+  return { success: true, user: session.user };
+}
+
 /** 사용자가 카카오 화면에서 그냥 나온 것 — 실패로 떠들지 않는다 */
 const CANCEL_HINTS = ['cancel', 'Cancel', 'user_cancelled'];
 
-function isCancel(error: unknown): boolean {
+export function isKakaoCancel(error: unknown): boolean {
   const text = error instanceof Error ? `${error.name} ${error.message}` : String(error);
   return CANCEL_HINTS.some((h) => text.includes(h));
+}
+
+const isCancel = isKakaoCancel;
+
+/**
+ * 카카오 로그인만 해서 id_token 을 받아 온다 — 세션은 만들지 않는다.
+ *
+ * 계정 연결이 쓴다. 이미 우리 계정으로 로그인해 있는 사람이라, 여기서
+ * Supabase 로그인까지 해 버리면 카카오 쪽 계정으로 갈아타 버린다.
+ */
+export async function getKakaoIdToken(): Promise<string> {
+  const token = await login();
+  if (!token.idToken) {
+    throw new Error('OpenID Connect가 활성화되지 않았습니다. 카카오 개발자 콘솔에서 설정해주세요.');
+  }
+  return token.idToken;
 }
 
 /**
@@ -38,6 +72,23 @@ function logIdTokenAudience(idToken: string) {
   }
 }
 
+/**
+ * 계정 연결은 **이메일로만** 된다.
+ *
+ * Supabase 는 들어온 이메일이 인증된 값이면 같은 이메일의 기존 계정에 카카오
+ * 신원을 자동으로 붙인다. 이메일이 없으면 같은 사람인지 알 방법이 없어
+ * 계정이 하나 더 생긴다 (이메일로 가입한 뒤 카카오로 들어온 사람).
+ *
+ * 그 이메일은 여기서 요청하지 않는다 — `login({ scopes })` 는 카카오톡 앱
+ * 로그인과 같이 못 쓴다 (`useKakaoAccountLogin` 이 false 면 라이브러리가
+ * 거부한다. 실측). 웹 계정 로그인으로 바꿔야 하는데, 그러자고 카카오톡으로
+ * 바로 되던 로그인을 아이디·비밀번호 입력으로 되돌릴 이유가 없다.
+ *
+ * 대신 카카오 콘솔 [카카오 로그인] > [동의항목] 에 '카카오계정(이메일)' 을
+ * 넣는다. 동의 화면에 항목으로 떠서 scope 를 실어 보내지 않아도 들어온다
+ * (프로필 사진이 지금 그렇게 오고 있다). 이미 동의를 마친 사용자는 연결이
+ * 끊기기 전까지 새 항목을 다시 묻지 않는다는 점만 유의한다.
+ */
 export async function signInWithKakao(): Promise<KakaoLoginResult> {
   let kakaoToken;
   try {
@@ -64,7 +115,18 @@ export async function signInWithKakao(): Promise<KakaoLoginResult> {
     }
     logIdTokenAudience(kakaoToken.idToken);
 
-    // 2. Supabase에 idToken으로 인증 (웹브라우저 불필요)
+    // 2. 이 카카오에 연결해 둔 계정이 있으면 그 계정으로 들어간다.
+    //    Supabase 보다 먼저 묻는 이유: Supabase 는 이메일이 같을 때만 붙여 주는데
+    //    카카오는 이메일을 주지 않아, 여기서 안 걸러내면 계정이 하나 더 생긴다.
+    const linked = await resolveKakaoLinkApi(kakaoToken.idToken);
+    if (linked.success && linked.data.linked && linked.data.session) {
+      return finishLogin(linked.data.session);
+    }
+    // 연결이 없으면(또는 확인에 실패하면) 하던 대로 간다 — 연결을 안 해 둔
+    // 사람의 로그인까지 막을 이유는 없다
+    if (!linked.success && __DEV__) console.log('[kakao link resolve failed]', linked.error);
+
+    // 3. Supabase에 idToken으로 인증 (웹브라우저 불필요)
     const { data: signInData, error: signInError } =
       await supabase.auth.signInWithIdToken({
         provider: 'kakao',
@@ -81,28 +143,14 @@ export async function signInWithKakao(): Promise<KakaoLoginResult> {
 
     const { access_token, refresh_token } = signInData.session;
 
-    // 3. 서버에 토큰 전달하여 프로필 조회
+    // 4. 서버에 토큰 전달하여 프로필 조회
     const apiResult = await oauthCallbackApi(access_token, refresh_token);
 
     if (!apiResult.success) {
       return { success: false, error: apiResult.error.message };
     }
 
-    // 4. 토큰 및 유저 정보 저장
-    await saveTokens({
-      accessToken: apiResult.data.accessToken,
-      refreshToken: apiResult.data.refreshToken,
-      expiresAt: apiResult.data.expiresAt,
-    });
-    await saveUser(apiResult.data.user);
-
-    return {
-      success: true,
-      user: {
-        id: apiResult.data.user.id,
-        email: apiResult.data.user.email,
-      },
-    };
+    return finishLogin(apiResult.data);
   } catch (error) {
     if (__DEV__) console.log('[kakao session exchange failed]', error);
     const detail = error instanceof Error ? error.message : String(error);

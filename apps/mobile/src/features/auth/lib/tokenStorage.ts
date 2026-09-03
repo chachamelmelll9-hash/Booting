@@ -12,7 +12,15 @@ export interface StoredTokens {
 
 export interface StoredUser {
   id: string;
+  /** 소셜 로그인은 비어 있을 수 있다 (카카오는 이메일 동의가 없으면 안 준다) */
   email: string;
+  /**
+   * 이메일이 없을 때 대신 부를 이름 — 카카오 닉네임.
+   *
+   * 선택 필드로 둔다. 이미 로그인해 둔 사람의 저장본에는 이 값이 없어서,
+   * 다시 로그인하기 전까지는 `undefined` 로 읽힌다.
+   */
+  displayName?: string;
 }
 
 // Web fallback using in-memory storage (for Expo Web)

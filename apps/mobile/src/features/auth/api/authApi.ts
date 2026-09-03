@@ -9,7 +9,10 @@ if (!process.env.EXPO_PUBLIC_SERVER_URL) {
 
 interface AuthUser {
   id: string;
+  /** 소셜 로그인은 비어 있을 수 있다 (카카오는 이메일 동의가 없으면 안 준다) */
   email: string;
+  /** 이메일이 없을 때 대신 부를 이름 — 카카오 닉네임 */
+  displayName?: string;
 }
 
 interface LoginResponse {
@@ -139,5 +142,19 @@ export async function oauthCallbackApi(
   return authFetch<LoginResponse>('/auth/oauth-callback', {
     accessToken,
     refreshToken,
+  });
+}
+
+/**
+ * 이 카카오 계정에 연결해 둔 부팅 계정이 있는지 묻는다 — 카카오 로그인의 첫 걸음.
+ *
+ * 있으면 서버가 그 계정의 세션을 바로 내준다. 없으면 `linked: false` 만 오고
+ * 앱은 하던 대로 Supabase 카카오 로그인을 이어간다.
+ */
+export async function resolveKakaoLinkApi(
+  idToken: string
+): Promise<ApiResult<{ linked: boolean; session?: LoginResponse }>> {
+  return authFetch<{ linked: boolean; session?: LoginResponse }>('/auth/kakao/resolve', {
+    idToken,
   });
 }

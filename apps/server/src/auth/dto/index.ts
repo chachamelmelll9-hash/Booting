@@ -39,3 +39,8 @@ export class OAuthCallbackDto {
   @IsString({ message: 'refreshToken이 필요합니다' })
   refreshToken!: string;
 }
+
+export class KakaoIdTokenDto {
+  @IsString({ message: 'idToken이 필요합니다' })
+  idToken!: string;
+}

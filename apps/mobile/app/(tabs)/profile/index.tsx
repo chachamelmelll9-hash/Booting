@@ -1,6 +1,7 @@
 import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { useAuthStore } from '@features/auth';
 import { deleteAccountApi,logoutApi } from '@features/auth/api';
+import { KakaoLinkRow } from '@features/auth/ui/KakaoLinkRow';
 import { useParentProfile } from '@features/parent-profile';
 import { screenStyles } from '@shared/config/styles';
 import { useMutation } from '@tanstack/react-query';
@@ -23,6 +24,9 @@ export default function ProfileScreen() {
   const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const { data: parentProfile } = useParentProfile();
+
+  /** 이메일 우선, 없으면 소셜 계정 이름. 둘 다 없으면 칸을 그리지 않는다 */
+  const accountLabel = user?.email || user?.displayName || null;
 
   const logoutMutation = useMutation({
     mutationFn: () => logoutApi(),
@@ -88,9 +92,13 @@ export default function ProfileScreen() {
     >
       <Text style={screenStyles.title}>내 정보</Text>
 
-      {user && (
+      {/*
+        이메일이 없으면 이름으로 부른다 — 카카오는 이메일 동의가 없으면 안 준다.
+        둘 다 없으면 칸 자체를 그리지 않는다. 빈 상자만 남아 고장처럼 보인다.
+      */}
+      {accountLabel && (
         <View style={styles.userInfo}>
-          <Text style={styles.email}>{user.email}</Text>
+          <Text style={styles.email}>{accountLabel}</Text>
         </View>
       )}
 
@@ -111,6 +119,11 @@ export default function ProfileScreen() {
               : '미등록'}
           </Text>
         </Pressable>
+      </View>
+
+      <View style={styles.menuSection}>
+        <Text style={styles.sectionTitle}>계정</Text>
+        <KakaoLinkRow />
       </View>
 
       <View style={styles.menuSection}>
