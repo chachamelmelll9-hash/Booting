@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Logger, Post, Query } from '@nestjs/common';
 
 import { ConnectionsService } from './connections.service';
 
@@ -19,6 +19,8 @@ import { ConnectionsService } from './connections.service';
  */
 @Controller('kakao')
 export class KakaoShareController {
+  private readonly logger = new Logger(KakaoShareController.name);
+
   constructor(private readonly connections: ConnectionsService) {}
 
   @Post('share-callback')
@@ -27,7 +29,7 @@ export class KakaoShareController {
     @Body() body: Record<string, string> = {},
     @Query() query: Record<string, string> = {}
   ) {
-    // 카카오는 등록 설정에 따라 쿼리로도 본문으로도 보낸다
+    // 콘솔에서 GET/POST 중 무엇으로 등록했든 받아 준다
     const args = { ...query, ...body };
     const { connectionId, userId, t: token } = args;
 
@@ -36,7 +38,22 @@ export class KakaoShareController {
       return { ok: false };
     }
 
-    await this.connections.markParentShare(connectionId, userId);
+    /**
+     * 카카오는 3초 안에 2XX 를 받지 못하면 실패로 본다.
+     * 기록은 시작만 시키고 응답을 먼저 돌려준다 — DB 가 느린 날 웹훅이
+     * 통째로 실패해 공유 완료가 영영 안 찍히는 것보다 낫다.
+     */
+    void this.connections
+      .markParentShare(connectionId, userId)
+      .catch((error) => this.logger.warn(`kakao share callback failed: ${String(error)}`));
+
     return { ok: true };
+  }
+
+  /** 콘솔에서 GET 으로 등록했을 때도 같은 처리를 한다 */
+  @Get('share-callback')
+  @HttpCode(200)
+  shareCallbackGet(@Query() query: Record<string, string> = {}) {
+    return this.shareCallback({}, query);
   }
 }
