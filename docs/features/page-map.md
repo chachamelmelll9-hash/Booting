@@ -325,7 +325,7 @@ app/
 
 기존 보일러플레이트 재사용 — `login.tsx`, `signup.tsx`, `forgot-password.tsx`, `reset-password.tsx`.
 변경 사항:
-- 카카오 버튼은 `EXPO_PUBLIC_KAKAO_NATIVE_KEY`가 비어 있어 숨겨진 상태를 유지한다 (`kakao_login=false`)
+- 카카오 **로그인** 버튼은 `EXPO_PUBLIC_KAKAO_LOGIN=true` 일 때만 뜬다 (기본 숨김). 네이티브 키로 판단하지 않는다 — 그 키는 '부모님께 공유'에도 쓰여서, 공유만 하려고 키를 넣으면 로그인 버튼이 딸려 나오고 콘솔에서 카카오 로그인을 안 켠 상태라 `KOE004`(서비스 설정 오류)로 끝난다 (실측). 부팅의 로그인 경로는 이메일과 부모님 코드 둘뿐이다
 - 회원가입 완료 직후 `(parent-setup)/onboarding`으로 보낸다
 
 ## WebView Pages

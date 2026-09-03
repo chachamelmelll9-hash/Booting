@@ -29,7 +29,20 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 import KakaoIcon from '../../assets/icons/kakao.svg';
 
-const isKakaoLoginEnabled = !!process.env.EXPO_PUBLIC_KAKAO_NATIVE_KEY;
+/**
+ * 카카오 **로그인** 은 별도 스위치로 켠다.
+ *
+ * 네이티브 키(`EXPO_PUBLIC_KAKAO_NATIVE_KEY`)로 판단하면 안 된다 — 그 키는
+ * '부모님께 공유'(카카오톡 공유)에도 쓰이고, 공유만 하려고 키를 넣는 순간
+ * 로그인 버튼이 딸려 나온다. 콘솔에서 카카오 로그인을 안 켰으면 그 버튼은
+ * `KOE004`(서비스 설정 오류)로 끝난다 — 실제로 그렇게 났다.
+ *
+ * 부팅의 로그인은 이메일과 부모님 코드 둘뿐이다. 카카오 로그인을 쓰려면
+ * 콘솔의 [카카오 로그인] > [활성화 설정] 을 켜고 이 값을 `true` 로 준다.
+ */
+const isKakaoLoginEnabled =
+  !!process.env.EXPO_PUBLIC_KAKAO_NATIVE_KEY &&
+  process.env.EXPO_PUBLIC_KAKAO_LOGIN === 'true';
 
 export default function LoginScreen() {
   const { t } = useTranslation(['auth', 'common']);
