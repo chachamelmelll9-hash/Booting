@@ -301,7 +301,7 @@ apps/mobile/
 | `PhotoUploader` | `photos`, `max = 5`, `onAdd`, `onRemove`, `onSetPrimary` | 프로필 작성, 수정 |
 | `SafetyNotice` | `variant: 'banner' \| 'list' \| 'checklist'` | 채팅방, 만남 일정, 미동행 확인 |
 | `BootingMark` | `color`, `size = 26` | 홈 탭 아이콘 — 집 아이콘 대신 워드마크 첫 글자 `B`. 홈은 '집'이 아니라 추천이 오는 곳이다 |
-| `ParentShareButton` | `connection` | 매칭 카드 하단. 공유 시트 → 서버 기록 → '부모님께 공유 완료'. 카드를 여는 Pressable **밖**에 둔다 (안에 넣으면 버튼을 눌러도 대화방이 열린다) |
+| `ParentShareButton` | `connection` | 매칭 카드 하단. 카카오톡 공유 화면 → **카카오 서버 콜백** → '부모님께 공유 완료' (앱은 표시하지 않고 목록을 다시 물어보며 기다린다). 카드를 여는 Pressable **밖**에 둔다 (안에 넣으면 버튼을 눌러도 대화방이 열린다) |
 | `HeartActionBar` | `+ onSave`, `saved` | `onSave` 를 주면 가운데가 '자세히' 대신 '찜해놓기'가 된다 (받은 관심) |
 | `StepProgressBar` | `current`, `total`, `label` | 등록 플로우 5화면 |
 | `BottomSheet` | `snapPoints`, `onDismiss`, `dismissGuard?` | 필터, 신고, 의사 확인, 미동행, 만남 확인, 피드백 |

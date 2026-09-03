@@ -417,7 +417,8 @@ app/
 | GET | /api/reports | 신고 내역 | 추천 & 탐색 | 내 신고 이력 |
 | GET | /api/connections | 인연 목록 | 하트 & 대화 연결 | 상태별 인연 목록 |
 | GET | /api/connections/unread-count | 매칭 탭 배지 | 하트 & 대화 연결 | 아직 확인하지 않은 대화방 수 |
-| POST | /api/connections/:id/parent-share | 매칭 목록 | 하트 & 대화 연결 | 부모님께 공유 표시 + 대화방에 기록 한 줄 |
+| GET | /api/connections/:id/share-token | 매칭 목록 | 하트 & 대화 연결 | 카카오 공유에 실어 보낼 HMAC 서명 |
+| POST | /api/kakao/share-callback | (카카오 서버) | 하트 & 대화 연결 | **전송 확인** → 공유 완료 표시 + 대화방에 기록 한 줄. 인증 없음, 서명으로 검증 |
 | POST | /api/saved | 받은 관심 | 추천 & 탐색 | 찜(보류) |
 | GET | /api/saved | 보관함 | 추천 & 탐색 | 찜 목록 |
 | DELETE | /api/saved/:profileId | 보관함 | 추천 & 탐색 | 찜 풀기 |
