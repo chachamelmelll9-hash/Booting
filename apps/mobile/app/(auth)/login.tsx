@@ -115,7 +115,8 @@ export default function LoginScreen() {
         setAuth(result.user);
         router.replace('/(tabs)/home');
       } else {
-        setSocialError(result.error);
+        // 빈 문자열은 '사용자가 취소함' — 실패 문구를 띄우지 않는다
+        setSocialError(result.error || null);
         setKakaoLoading(false);
       }
     } catch {
