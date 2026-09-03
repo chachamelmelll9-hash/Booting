@@ -1,4 +1,4 @@
-﻿import { useReports } from '@features/safety';
+import { useReports } from '@features/safety';
 import { theme } from '@shared/config/colors';
 import { reportReasonLabel } from '@shared/config/safetyRules';
 import { radius, spacing, typography } from '@shared/config/tokens';

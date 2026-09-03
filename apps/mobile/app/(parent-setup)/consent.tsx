@@ -71,12 +71,14 @@ export default function ConsentScreen() {
             testID="consent-submit"
             onPress={() => {
               const name = parentName.trim() || profile.displayName;
-              if (method === 'sms' && !/^01[016789]\d{7,8}$/.test(phone)) {
+              // 동의 방법과 무관하게 번호를 받는다 — 매칭이 되면 이 번호를
+              // 상대 부모님께 열어드리는 것이 이 서비스의 목적지다
+              if (!/^01[016789]\d{7,8}$/.test(phone)) {
                 toast.show({ message: '부모님 휴대폰 번호를 확인해주세요' });
                 return;
               }
               requestConsent.mutate(
-                { method, parentName: name, phone: method === 'sms' ? phone : undefined },
+                { method, parentName: name, phone },
                 {
                   onSuccess: () => {
                     toast.show({ message: '부모님 동의가 기록되었습니다' });
@@ -151,18 +153,21 @@ export default function ConsentScreen() {
             />
           </FormSection>
 
-          {method === 'sms' ? (
-            <FormSection label="부모님 휴대폰 번호" required>
-              <TextField
-                testID="consent-phone"
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="01012345678"
-                keyboardType="phone-pad"
-                maxLength={11}
-              />
-            </FormSection>
-          ) : null}
+          <FormSection
+            label="부모님 휴대폰 번호"
+            required
+            helper="양측 부모님이 서로 원하시면 이 번호를 상대 부모님께 알려드립니다."
+          >
+            <TextField
+              testID="consent-phone"
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="01012345678"
+              keyboardType="phone-pad"
+              maxLength={11}
+            />
+          </FormSection>
+
         </>
       )}
     </Screen>

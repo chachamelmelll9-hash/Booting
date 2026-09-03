@@ -206,6 +206,18 @@ export class ConnectionsService {
       throw new BadRequestException({ code: 'parent_share_failed', message: error.message });
     }
 
+    // 부모님께 넘어간 순간 인연은 '부모님 확인 중'이 된다. 이제 공은 부모님께 있다.
+    if (['mutual_heart', 'chatting'].includes(ctx.row.status as string)) {
+      await this.setStatus(connectionId, 'parent_intent');
+      const { data: fresh } = await this.supabase
+        .getClient()
+        .from('connections')
+        .select('*')
+        .eq('id', connectionId)
+        .maybeSingle();
+      if (fresh) return this.toDto(fresh, userId);
+    }
+
     return this.toDto(ctx.row, userId);
   }
 
@@ -241,9 +253,16 @@ export class ConnectionsService {
         .select('id, read_only_at')
         .eq('connection_id', row.id)
         .maybeSingle(),
+      /**
+       * 부모님의 결정.
+       *
+       * 예전에는 자녀가 부모님을 대신해 눌렀다(`parent_intents`). 지금은
+       * 부모님이 자기 화면에서 직접 고르고(`parent_interests`), 자녀는 그
+       * 결과만 본다. 자녀 화면에 '부모님이 만나보신대요' 버튼은 없앴다.
+       */
       client
-        .from('parent_intents')
-        .select('user_id, intent')
+        .from('parent_interests')
+        .select('parent_profile_id, kind')
         .eq('connection_id', row.id),
       client
         .from('meetings')
@@ -313,9 +332,12 @@ export class ConnectionsService {
     // 끝난 대화는 열어볼 이유가 없다 — 안 열면 배지가 영영 안 꺼진다
     if (row.status === 'ended') unseen = false;
 
-    const intents = intentRes.data ?? [];
-    const myIntent = intents.find((i) => i.user_id === userId)?.intent ?? null;
-    const partnerResponded = intents.some((i) => i.user_id === partnerUserId);
+    // 'interested'/'declined' 를 기존 DTO 어휘('willing'/'declined')로 옮긴다 —
+    // 자녀 화면은 결정 주체가 바뀐 걸 알 필요가 없다
+    const interests = intentRes.data ?? [];
+    const mine = interests.find((i) => i.parent_profile_id === myProfileId)?.kind;
+    const myIntent = mine ? (mine === 'interested' ? 'willing' : 'declined') : null;
+    const partnerResponded = interests.some((i) => i.parent_profile_id === partnerProfileId);
 
     return {
       id: row.id,

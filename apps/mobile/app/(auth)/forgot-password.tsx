@@ -1,4 +1,4 @@
-﻿import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import {
   type ForgotPasswordFormData,
   forgotPasswordSchema,

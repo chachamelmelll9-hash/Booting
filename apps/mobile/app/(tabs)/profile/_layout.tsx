@@ -1,4 +1,4 @@
-﻿import { theme } from '@shared/config/colors';
+import { theme } from '@shared/config/colors';
 import { Stack } from 'expo-router';
 
 const HEADER_OPTIONS = {

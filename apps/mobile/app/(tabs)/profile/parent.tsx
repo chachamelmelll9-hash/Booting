@@ -4,7 +4,7 @@ import {
   useParentProfileMutations,
 } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
-import { spacing, typography } from '@shared/config/tokens';
+import { radius, spacing, typography } from '@shared/config/tokens';
 import {
   AppButton,
   DestructiveConfirmDialog,
@@ -63,6 +63,24 @@ export default function ParentProfileScreen() {
   return (
     <Screen scroll>
       <ProfileStatusPanel profile={profile} />
+
+      {/*
+        부모님 접속 코드.
+        부모님은 회원가입 없이 이 여섯 자리만으로 자기 화면에 들어가신다.
+        자녀가 부모님께 직접 알려드려야 하므로 눈에 잘 띄는 자리에 크게 둔다.
+      */}
+      {profile.accessCode ? (
+        <View style={styles.codeBox} testID="parent-access-code">
+          <Text style={styles.codeLabel}>부모님 접속 코드</Text>
+          <Text style={styles.code} selectable>
+            {profile.accessCode}
+          </Text>
+          <Text style={styles.codeHelp}>
+            부모님께 이 코드를 알려드리세요. 앱 로그인 화면에서 &apos;부모님이신가요? 코드로
+            시작&apos;을 누르고 넣으시면 됩니다.
+          </Text>
+        </View>
+      ) : null}
 
       <View style={styles.actions}>
         <AppButton
@@ -154,6 +172,29 @@ export default function ParentProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  codeBox: {
+    marginTop: spacing.lg,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 2,
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primarySurface,
+    alignItems: 'center',
+    gap: 6,
+  },
+  codeLabel: { ...typography.caption, color: theme.colors.primaryDark },
+  code: {
+    fontSize: 36,
+    fontWeight: '800',
+    letterSpacing: 8,
+    color: theme.colors.text,
+  },
+  codeHelp: {
+    ...typography.caption,
+    color: theme.colors.textTertiary,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
   actions: { gap: spacing.xs, marginTop: spacing.lg },
   danger: {
     marginTop: spacing.xxl,

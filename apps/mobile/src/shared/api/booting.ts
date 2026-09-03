@@ -16,7 +16,6 @@ import type {
   MeetingFeedbackKind,
   Message,
   Page,
-  ParentIntentKind,
   ParentProfile,
   Photo,
   PublicProfile,
@@ -140,11 +139,7 @@ export const connectionsApi = {
 };
 
 export const meetingsApi = {
-  setParentIntent: (connectionId: string, intent: ParentIntentKind) =>
-    serverFetch<Connection>(`/connections/${connectionId}/parent-intent`, {
-      method: 'POST',
-      body: { intent },
-    }),
+  // setParentIntent 는 없앴다 — 부모님 의사는 부모님이 자기 화면에서 직접 고른다
   get: (connectionId: string) =>
     serverFetch<Meeting | null>(`/connections/${connectionId}/meeting`),
   propose: (

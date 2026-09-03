@@ -1,4 +1,4 @@
-﻿import { useHeartActions, usePublicProfile } from '@features/discovery';
+import { useHeartActions, usePublicProfile } from '@features/discovery';
 import { theme } from '@shared/config/colors';
 import { formatOccupation } from '@shared/config/profileOptions';
 import { radius, spacing, typography } from '@shared/config/tokens';

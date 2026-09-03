@@ -52,7 +52,7 @@ export function TextField({
   testID,
 }: FieldProps) {
   return (
-    <TextInput
+    <TextInput accessibilityLabel="Text input field"
       testID={testID}
       value={value}
       onChangeText={onChangeText}

@@ -1,4 +1,4 @@
-import {
+﻿import {
   BadRequestException,
   ForbiddenException,
   Injectable,
@@ -6,9 +6,7 @@ import {
 } from '@nestjs/common';
 
 import { domainError, ERROR_CODES } from '../common/constants/errors';
-import { ParentIntentKind } from '../common/types';
 import { ConnectionsService } from '../connections/connections.service';
-import { ConnectionDto } from '../connections/dto/connections.dto';
 import { NotificationsPublisher } from '../notifications/notifications.publisher';
 import { SupabaseService } from '../supabase/supabase.service';
 import {
@@ -26,64 +24,6 @@ export class MeetingsService {
     private readonly match: MatchService,
     private readonly notifications: NotificationsPublisher
   ) {}
-
-  // --- 부모님 의사 확인 ----------------------------------------------------------
-
-  async recordParentIntent(
-    connectionId: string,
-    userId: string,
-    intent: ParentIntentKind
-  ): Promise<ConnectionDto> {
-    const ctx = await this.connections.requireParticipant(connectionId, userId);
-    if (ctx.row.status === 'ended') {
-      throw new ForbiddenException(domainError(ERROR_CODES.CONNECTION_ENDED));
-    }
-
-    const client = this.supabase.getClient();
-    await client.from('parent_intents').upsert(
-      {
-        connection_id: connectionId,
-        user_id: userId,
-        intent,
-        responded_at: new Date().toISOString(),
-      },
-      { onConflict: 'connection_id,user_id' }
-    );
-
-    if (intent === 'declined') {
-      // 한쪽이 거절하면 만남 동선을 더 진행하지 않는다
-      await this.connections.end(connectionId, userId, 'parent_declined');
-      return this.connections.getOne(connectionId, userId);
-    }
-
-    /**
-     * 매칭은 여기서 결정된다 — **양측 부모님이 모두 만날 의사를 밝혔을 때만**.
-     *
-     * 한쪽이 눌렀다고 '매칭 성공'을 띄우면, 상대 부모님은 아직 아무 말도 하지
-     * 않았는데 성사된 것처럼 보인다. 이 두 사람 규칙은 이 앱에서 가장 오해가
-     * 비싼 지점이라 상태 하나에 그대로 박아 둔다.
-     */
-    const { data: intents } = await client
-      .from('parent_intents')
-      .select('user_id, intent')
-      .eq('connection_id', connectionId);
-
-    const willing = (intents ?? []).filter((i) => i.intent === 'willing');
-    if (willing.length >= 2) {
-      await this.connections.setStatus(connectionId, 'matched');
-    } else if (['mutual_heart', 'chatting'].includes(ctx.row.status)) {
-      await this.connections.setStatus(connectionId, 'parent_intent');
-    }
-
-    await this.notifications.publish({
-      userId: ctx.partnerUserId,
-      type: 'parent_intent',
-      connectionId,
-      payload: { intent },
-    });
-
-    return this.connections.getOne(connectionId, userId);
-  }
 
   // --- 만남 일정 ---------------------------------------------------------------
 

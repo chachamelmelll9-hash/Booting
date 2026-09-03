@@ -12,6 +12,7 @@ import { HeartsModule } from '../hearts/hearts.module';
 import { MaintenanceModule } from '../maintenance/maintenance.module';
 import { MeetingsModule } from '../meetings/meetings.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { ParentModule } from '../parent/parent.module';
 import { ParentProfileModule } from '../parent-profile/parent-profile.module';
 import { RegionsModule } from '../regions/regions.module';
 import { SafetyModule } from '../safety/safety.module';
@@ -48,6 +49,8 @@ import { validateEnv } from './env.validation';
     ConnectionsModule,
     MeetingsModule,
     SafetyModule,
+    // 부모님 화면 — connections 뒤에 온다 (인연 상태를 바꾼다)
+    ParentModule,
     MaintenanceModule,
   ],
   controllers: [AppController],

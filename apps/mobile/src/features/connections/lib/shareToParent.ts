@@ -113,8 +113,10 @@ export async function shareProfileToParent(profile: DiscoveryItem): Promise<bool
         useWebBrowserIfKakaoTalkNotAvailable: false,
       });
       return true;
-    } catch {
+    } catch (error) {
       // 카카오톡 미설치·콘솔 설정 누락 등. 공유 시트로 이어간다.
+      // 왜 떨어졌는지는 개발 중에만 남긴다 — 릴리스에서는 조용히 폴백한다.
+      if (__DEV__) console.log('[kakao share fallback]', error);
     }
   }
 

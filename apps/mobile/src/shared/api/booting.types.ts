@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 서버 DTO 미러.
  *
  * 서버 `apps/server/src/<module>/dto/` 와 짝을 이룬다. 여기에 실명·생년월일·연락처
@@ -89,6 +89,8 @@ export interface ParentProfile {
   } | null;
   status: ProfileStatus;
   publishedAt: string | null;
+  /** 부모님 접속 코드 6자리. 공개 전에는 null */
+  accessCode: string | null;
   consent: {
     method: 'sms' | 'in_person';
     parentName: string;
@@ -220,6 +222,35 @@ export interface Message {
 export interface SavedProfile {
   savedAt: string;
   profile: DiscoveryItem;
+}
+
+// --- 부모님 화면 --------------------------------------------------------------
+
+export interface ParentLoginResult {
+  token: string;
+  /** 부모님 본인 별명 */
+  nickname: string;
+}
+
+/** 자녀가 부모님께 보내드린 프로필 한 장 */
+export interface ParentInboxItem {
+  connectionId: string;
+  profile: DiscoveryItem;
+  sharedAt: string;
+  /** 아직 열어보지 않았다 — 초록 강조 */
+  unseen: boolean;
+  interested: boolean;
+  matched: boolean;
+  /** 매칭됐을 때만 채워진다 */
+  partnerPhone: string | null;
+  partnerName: string | null;
+}
+
+export interface ParentInterestResult {
+  matched: boolean;
+  partnerPhone: string | null;
+  partnerName: string | null;
+  partnerNickname: string | null;
 }
 
 export interface Meeting {

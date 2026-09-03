@@ -1,4 +1,4 @@
-﻿import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { useAuthStore } from '@features/auth';
 import { deleteAccountApi,logoutApi } from '@features/auth/api';
 import { useParentProfile } from '@features/parent-profile';

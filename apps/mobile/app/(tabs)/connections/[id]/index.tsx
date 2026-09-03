@@ -1,4 +1,4 @@
-﻿import FontAwesome from '@expo/vector-icons/FontAwesome';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import {
   MessageBubble,
   useConnection,
@@ -152,18 +152,10 @@ export default function ChatRoomScreen() {
   /**
    * 대화방에서 안내하는 다음 한 걸음.
    *
-   * 동선은 **부모님 의사 확인에서 끝난다** — 양측 부모님이 만나보고 싶다고
-   * 하시면 매칭 성공이고, 그 뒤 일정 조율은 앱이 대신할 일이 아니라 자녀분들이
-   * 대화로 정할 일이다. 여기서 만남 일정·확인·후기까지 이어 붙이면 이미 매칭된
-   * 사람에게 계속 할 일이 남은 것처럼 보인다.
+   * '부모님 의사 확인하기' 버튼은 없앴다. 부모님 의사는 자녀가 대신 눌러 주는
+   * 값이 아니라 **부모님이 직접** 자기 화면에서 정하신다. 자녀가 할 일은
+   * 프로필을 부모님께 전달하는 것까지고, 그 버튼은 매칭 목록 카드에 있다.
    */
-  const nextAction = (() => {
-    if (connection.status === 'ended' || connection.status === 'matched') return null;
-    if (!connection.myParentIntent) {
-      return { label: '부모님 의사 확인하기', href: `/(tabs)/connections/${id}/parent-intent` };
-    }
-    return null;
-  })();
 
   return (
     <Screen
@@ -172,6 +164,7 @@ export default function ChatRoomScreen() {
         canWrite ? (
           <View style={styles.composer}>
             <TextInput
+              accessibilityLabel="메시지 입력"
               testID="message-input"
               value={draft}
               onChangeText={setDraft}
@@ -234,17 +227,6 @@ export default function ChatRoomScreen() {
       <View style={styles.banner}>
         <SafetyNotice variant="banner" />
       </View>
-
-      {nextAction ? (
-        <View style={styles.nextAction}>
-          <AppButton
-            label={nextAction.label}
-            variant="secondary"
-            onPress={() => router.push(nextAction.href as never)}
-            testID="chat-next-action"
-          />
-        </View>
-      ) : null}
 
       {messagesQuery.isLoading ? (
         <SkeletonList rows={4} />
@@ -399,7 +381,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   banner: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
-  nextAction: { paddingHorizontal: spacing.md, paddingBottom: spacing.xs },
   messages: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   composer: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.xs },
   input: {

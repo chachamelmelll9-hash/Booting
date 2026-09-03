@@ -1,4 +1,4 @@
-﻿import FontAwesome from '@expo/vector-icons/FontAwesome';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useConnectionsUnread } from '@features/connections';
 import { useHeartsUnreadCount } from '@features/hearts';
 import { useParentProfile } from '@features/parent-profile';

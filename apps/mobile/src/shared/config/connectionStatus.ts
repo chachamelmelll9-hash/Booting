@@ -41,8 +41,10 @@ export const CONNECTION_STATUS: Record<ConnectionStatus, StatusPresentation> = {
     tone: 'active',
   },
   parent_intent: {
-    label: '부모님 의사 확인',
-    description: '양측 부모님께 만나실 의향이 있는지 여쭤보는 단계입니다.',
+    label: '부모님 확인 중',
+    // 자녀가 부모님께 프로필을 전달한 뒤의 상태다. 이제 공은 부모님께 있고
+    // 자녀가 할 수 있는 일은 없다 — 문구가 그 사실을 그대로 말해야 한다.
+    description: '부모님께 전달했습니다. 부모님이 직접 보고 정하십니다.',
     tone: 'pending',
   },
   meeting_scheduled: {

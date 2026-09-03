@@ -1,4 +1,4 @@
-﻿import { ParentShareButton, useConnections } from '@features/connections';
+import { ParentShareButton, useConnections } from '@features/connections';
 import { theme } from '@shared/config/colors';
 import {
   CONNECTION_FILTERS,

@@ -373,6 +373,8 @@ export class ParentProfileService {
         : null,
       status: row.status,
       publishedAt: row.published_at,
+      // 공개 전에는 코드를 숨긴다 — 넣어도 안 들어가는 코드를 알려주면 문의만 는다
+      accessCode: row.status === 'published' ? (row.access_code ?? null) : null,
       consent: consent
         ? {
             method: consent.method,

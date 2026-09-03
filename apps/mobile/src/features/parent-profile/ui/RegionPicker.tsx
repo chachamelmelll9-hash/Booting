@@ -30,7 +30,7 @@ export function RegionPicker({ visible, onSelect, onDismiss }: Props) {
 
   return (
     <BottomSheet visible={visible} title="거주 지역" onDismiss={onDismiss}>
-      <TextInput
+      <TextInput accessibilityLabel="Text input field"
         testID="region-search"
         value={query}
         onChangeText={setQuery}

@@ -1,5 +1,5 @@
 import { bootingKeys, meetingsApi } from '@shared/api/booting';
-import type { MeetingFeedbackKind, ParentIntentKind } from '@shared/api/booting.types';
+import type { MeetingFeedbackKind } from '@shared/api/booting.types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useMeeting(connectionId: string | undefined) {
@@ -29,11 +29,7 @@ export function useMeetingMutations(connectionId: string) {
   };
 
   return {
-    setParentIntent: useMutation({
-      mutationFn: (intent: ParentIntentKind) =>
-        meetingsApi.setParentIntent(connectionId, intent),
-      onSuccess: invalidate,
-    }),
+    // setParentIntent 는 없앴다 — 부모님 의사는 부모님이 자기 화면에서 직접 고른다
     propose: useMutation({
       mutationFn: (body: {
         meetAt: string;

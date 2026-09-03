@@ -5,6 +5,7 @@ import { initI18nMobile } from '@chachamelmelll9-hash-service/i18n/config/mobile
 import { isAdMobEnabled } from '@features/ads';
 import { AnalyticsProvider } from '@features/analytics';
 import { useAuth } from '@features/auth';
+import { useParentSession } from '@features/parent-view';
 import { useLanguageStore } from '@features/settings';
 import { initializeKakaoSDK } from '@react-native-kakao/core';
 import {
@@ -121,6 +122,8 @@ export default isSentryEnabled ? Sentry.wrap(RootLayout) : RootLayout;
 
 function RootLayoutNav() {
   const { isAuthenticated, isInitialized } = useAuth();
+  const parentToken = useParentSession((s) => s.token);
+  const parentHydrated = useParentSession((s) => s.hydrated);
   const router = useRouter();
   const segments = useSegments();
   const previousAuth = useRef<boolean | null>(null);
@@ -157,10 +160,26 @@ function RootLayoutNav() {
      */
     if (!rootNavigationState?.key) return;
     if (!navigationRef?.isReady?.()) return;
+    if (!parentHydrated) return;
     if (!isInitialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inIndex = segments.length < 1 || segments[0] === 'index';
+    const inParent = segments[0] === '(parent)';
+
+    /**
+     * 부모님 세션이 있으면 부모님 화면이 이 기기의 전부다.
+     *
+     * 자녀 로그인 여부와 무관하게 먼저 판정한다 — 한 기기에서 두 역할이 섞이면
+     * 부모님이 자녀 화면(추천 피드·대화)을 보게 되고, 그건 이 서비스가 절대
+     * 하면 안 되는 일이다.
+     */
+    if (parentToken) {
+      if (!inParent) router.replace('/(parent)/home');
+      return;
+    }
+    // 코드 입력 화면에 계신 중 — 자녀 로그인 규칙으로 밀어내지 않는다
+    if (inParent) return;
 
     if (!isAuthenticated && !inAuthGroup && !inIndex) {
       router.replace('/(auth)/login');
@@ -174,6 +193,8 @@ function RootLayoutNav() {
   }, [
     isAuthenticated,
     isInitialized,
+    parentToken,
+    parentHydrated,
     segments,
     router,
     navigationRef,
@@ -194,6 +215,8 @@ function RootLayoutNav() {
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                   {/* 탭 밖의 흐름 — 등록 플로우와 전역 모달 3종 */}
                   <Stack.Screen name="(parent-setup)" options={{ headerShown: false }} />
+                  {/* 부모님 화면 — 자녀 세션과 완전히 분리된 표면 */}
+                  <Stack.Screen name="(parent)" options={{ headerShown: false }} />
                   <Stack.Screen
                     name="profile/[id]"
                     options={{ title: '프로필', presentation: 'modal' }}

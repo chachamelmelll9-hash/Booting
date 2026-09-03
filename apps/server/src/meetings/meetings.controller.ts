@@ -10,11 +10,7 @@ import {
 
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
-import {
-  MeetingFeedbackDto,
-  ParentIntentDto,
-  ProposeMeetingDto,
-} from './dto/meetings.dto';
+import { MeetingFeedbackDto, ProposeMeetingDto } from './dto/meetings.dto';
 import { MeetingsService } from './meetings.service';
 
 @Controller('connections/:connectionId')
@@ -22,15 +18,14 @@ import { MeetingsService } from './meetings.service';
 export class MeetingsController {
   constructor(private readonly meetings: MeetingsService) {}
 
-  @Post('parent-intent')
-  @HttpCode(200)
-  parentIntent(
-    @User('id') userId: string,
-    @Param('connectionId') connectionId: string,
-    @Body() dto: ParentIntentDto
-  ) {
-    return this.meetings.recordParentIntent(connectionId, userId, dto.intent);
-  }
+  /**
+   * `POST parent-intent` 는 없앴다.
+   *
+   * 부모님 의사는 자녀가 대신 눌러 주는 값이 아니라 **부모님이 직접** 자기
+   * 화면에서 정하는 것이 됐다 (`/api/parent/profiles/:id/interest`).
+   * 자녀가 부모님을 대신해 누르는 버튼이 있으면 그 결정이 누구 것인지
+   * 아무도 모르게 된다.
+   */
 
   @Get('meeting')
   getMeeting(@User('id') userId: string, @Param('connectionId') connectionId: string) {

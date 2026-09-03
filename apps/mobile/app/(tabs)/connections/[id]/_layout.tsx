@@ -51,10 +51,7 @@ export default function ConnectionDetailLayout() {
       }}
     >
       <Stack.Screen name="index" options={chatOptions} />
-      <Stack.Screen
-        name="parent-intent"
-        options={{ title: '부모님 의사 확인', presentation: 'modal' }}
-      />
+      {/* parent-intent 는 없앴다 — 부모님 의사는 부모님이 자기 화면에서 직접 정한다 */}
       <Stack.Screen name="meeting" options={{ title: '만남 일정' }} />
       <Stack.Screen
         name="meeting-solo"

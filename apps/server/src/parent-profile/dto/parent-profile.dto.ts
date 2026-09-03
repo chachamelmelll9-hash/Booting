@@ -142,9 +142,16 @@ export class ConsentDto {
   @MaxLength(20)
   parentName!: string;
 
-  @IsOptional()
+  /**
+   * 부모님 휴대폰 번호 — **필수**.
+   *
+   * 예전에는 문자 동의(sms)일 때만 받았다. 지금은 양측 부모님이 서로 원하시면
+   * 이 번호를 서로에게 열어드리는 것이 이 서비스의 목적지라, 번호가 없으면
+   * 매칭이 돼도 두 분이 연결될 방법이 없다 (실측: 대면 동의로 등록된 분은
+   * 매칭 후에도 연락처가 비어 있었다).
+   */
   @Matches(/^01[016789]\d{7,8}$/, { message: '휴대폰 번호 형식이 올바르지 않습니다' })
-  phone?: string;
+  phone!: string;
 }
 
 export class VisibilityDto {
@@ -210,6 +217,13 @@ export interface ParentProfileDto {
   } | null;
   status: ProfileStatus;
   publishedAt: string | null;
+  /**
+   * 부모님 접속 코드 6자리.
+   *
+   * 공개된 뒤에만 내려보낸다 — 검수 전에 알려주면 부모님이 넣어봐도 안 들어가고,
+   * 그러면 자녀가 "코드가 안 된다" 는 문의를 하게 된다.
+   */
+  accessCode: string | null;
   consent: {
     method: ConsentMethod;
     parentName: string;

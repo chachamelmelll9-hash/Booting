@@ -1,4 +1,4 @@
-﻿import type { DiscoveryItem } from '@shared/api/booting.types';
+import type { DiscoveryItem } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
 import { elevation, radius, spacing, typography } from '@shared/config/tokens';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';

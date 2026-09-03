@@ -9,7 +9,7 @@ import { radius, spacing, typography } from '@shared/config/tokens';
 import { EmptyState, Screen, SkeletonList } from '@shared/ui';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text } from 'react-native';
 
 export default function NotificationsScreen() {
   const router = useRouter();
