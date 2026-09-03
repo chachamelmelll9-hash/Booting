@@ -19,10 +19,9 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 const INTRO_POINTS = [
-  '부모님은 앱을 설치하실 필요가 없습니다. 자녀분이 대신 등록하고 대화합니다.',
+  '자녀분이 대신 등록하고 프로필을 고르며, 부모님은 최종 결정만 하시면 됩니다.',
   '부모님 동의 없이는 프로필이 공개되지 않습니다.',
   '실명·생년월일·연락처는 상대에게 공개되지 않습니다.',
-  '전면 무료입니다.',
 ];
 
 /**

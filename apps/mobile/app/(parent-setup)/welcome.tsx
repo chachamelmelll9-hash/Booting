@@ -237,9 +237,11 @@ export default function WelcomeScreen() {
               ]}
             />
             {/*
-              넘친 액체 — 두 겹으로 그린다.
-              (1) 어깨에서 넓게 퍼지고 (2) 가운데가 혀처럼 앞서 흘러내린다.
-              물이 실제로 그렇게 흐른다: 위는 넓고 아래로 갈수록 좁아진다.
+              넘친 액체가 병 앞면을 덮으며 내려온다 — **폭 전체를 한 겹으로**.
+
+              넓은 덩어리에서 가운데만 좁게 흘러내리게 그렸더니 손 모양이 됐다.
+              물리적으로는 그게 맞아도 화면에 남는 인상이 그렇다면 틀린 그림이다.
+              튀어나오는 부분을 없애고 아래 모서리만 크게 굴려 물의 앞머리를 만든다.
 
               병 **안쪽**에 둔다. 바깥에 두면 네모난 위쪽 모서리가 둥근 병
               실루엣 밖으로 삐져나온다. 안에 두면 `overflow: hidden` 이 병 모양대로
@@ -247,22 +249,11 @@ export default function WelcomeScreen() {
             */}
             <Animated.View
               style={[
-                styles.sheetWide,
+                styles.sheet,
                 {
                   height: spill.interpolate({
-                    inputRange: [0, 0.55, 1],
-                    outputRange: [0, BODY_HEIGHT * 0.34, BODY_HEIGHT * 0.46],
-                  }),
-                },
-              ]}
-            />
-            <Animated.View
-              style={[
-                styles.sheetTongue,
-                {
-                  height: spill.interpolate({
-                    inputRange: [0, 0.3, 1],
-                    outputRange: [0, BODY_HEIGHT * 0.3, BODY_HEIGHT - 10],
+                    inputRange: [0, 1],
+                    outputRange: [0, BODY_HEIGHT * 0.86],
                   }),
                 },
               ]}
@@ -442,24 +433,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: theme.colors.primaryDark,
   },
-  /** 어깨에서 넓게 퍼지는 겹 (병 안쪽 좌표계) */
-  sheetWide: {
+  /**
+   * 흘러내리는 액체 한 겹 (병 안쪽 좌표계).
+   * 폭은 병 전체. 아래 모서리를 크게 굴려 앞머리가 곡선이 되게 한다.
+   */
+  sheet: {
     position: 'absolute',
     top: 0,
-    alignSelf: 'center',
-    width: BODY_WIDTH - 22,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    backgroundColor: theme.colors.primaryDark,
-  },
-  /** 가운데가 앞서 흘러내리는 혀 — 아래로 갈수록 좁아지는 물의 모양 */
-  sheetTongue: {
-    position: 'absolute',
-    top: 0,
-    alignSelf: 'center',
-    width: 44,
-    borderBottomLeftRadius: 22,
-    borderBottomRightRadius: 22,
+    left: 0,
+    right: 0,
+    borderBottomLeftRadius: 56,
+    borderBottomRightRadius: 56,
     backgroundColor: theme.colors.primaryDark,
   },
   drop: {
