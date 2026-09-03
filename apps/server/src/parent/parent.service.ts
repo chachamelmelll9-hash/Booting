@@ -11,6 +11,7 @@ import {
   ParentInboxItemDto,
   ParentInterestResponse,
   ParentLoginResponse,
+  ParentProfileDetailDto,
 } from './dto/parent.dto';
 
 const publicName = (row: { nickname?: string | null; display_name: string }) =>
@@ -151,6 +152,33 @@ export class ParentService {
         } satisfies ParentInboxItemDto;
       })
       .filter((item): item is ParentInboxItemDto => item !== null);
+  }
+
+  /**
+   * 한 장 상세 — 목록 카드보다 훨씬 많이 담는다.
+   *
+   * 부모님은 이 화면 하나로 판단하신다. 자녀처럼 여러 사람을 빠르게 훑는
+   * 화면이 아니라 아낄 이유가 없다. 사진 전부, 소개글 전부, 생활 정보까지 준다.
+   *
+   * `getPublicProfile` 을 그대로 재사용한다 — 자녀가 보는 것과 다른 내용이
+   * 부모님께 가면 두 분이 다른 사람을 두고 이야기하게 된다.
+   */
+  async detail(
+    parentProfileId: string,
+    connectionId: string
+  ): Promise<ParentProfileDetailDto> {
+    const { partnerProfileId } = await this.requireShared(parentProfileId, connectionId);
+    const childUserId = await this.childUserId(parentProfileId);
+
+    const [profile, items] = await Promise.all([
+      this.discovery.getPublicProfile(childUserId, parentProfileId, partnerProfileId),
+      this.inbox(parentProfileId),
+    ]);
+
+    const card = items.find((i) => i.connectionId === connectionId);
+    if (!card) throw new NotFoundException(domainError(ERROR_CODES.CONNECTION_NOT_FOUND));
+
+    return { ...card, profile };
   }
 
   /** 부모님이 카드를 열었다 — 초록 강조를 끈다 */

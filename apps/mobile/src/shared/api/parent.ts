@@ -9,6 +9,7 @@ import type {
   ParentInboxItem,
   ParentInterestResult,
   ParentLoginResult,
+  ParentProfileDetail,
 } from './booting.types';
 
 const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL || 'http://10.0.2.2:3000/api';
@@ -49,6 +50,8 @@ export const parentApi = {
     parentFetch<ParentLoginResult>('/parent/login', { method: 'POST', body: { code } }),
   logout: (token: string) => parentFetch<void>('/parent/logout', { method: 'POST', token }),
   inbox: (token: string) => parentFetch<ParentInboxItem[]>('/parent/profiles', { token }),
+  detail: (token: string, connectionId: string) =>
+    parentFetch<ParentProfileDetail>(`/parent/profiles/${connectionId}`, { token }),
   markViewed: (token: string, connectionId: string) =>
     parentFetch<void>(`/parent/profiles/${connectionId}/view`, { method: 'POST', token }),
   express: (token: string, connectionId: string) =>
@@ -62,4 +65,5 @@ export const parentApi = {
 
 export const parentKeys = {
   inbox: ['parent', 'inbox'] as const,
+  detail: (connectionId: string) => ['parent', 'detail', connectionId] as const,
 };

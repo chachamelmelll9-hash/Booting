@@ -246,6 +246,11 @@ export interface ParentInboxItem {
   partnerName: string | null;
 }
 
+/** 부모님이 여시는 상세 — 카드보다 훨씬 많이 담는다 */
+export interface ParentProfileDetail extends Omit<ParentInboxItem, 'profile'> {
+  profile: PublicProfile;
+}
+
 export interface ParentInterestResult {
   matched: boolean;
   partnerPhone: string | null;

@@ -1,6 +1,7 @@
-import { useParentActions, useParentInbox } from '@features/parent-view';
-import type { ParentInterestResult } from '@shared/api/booting.types';
+import { useParentActions, useParentProfileDetail } from '@features/parent-view';
+import type { ParentInterestResult, PublicProfile } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
+import { formatOccupation } from '@shared/config/profileOptions';
 import { goalLabel } from '@shared/config/relationshipGoals';
 import { radius, spacing, typography } from '@shared/config/tokens';
 import {
@@ -13,37 +14,67 @@ import {
 } from '@shared/ui';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Image, Linking, Modal, StyleSheet, Text, View } from 'react-native';
+import { Image, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const MARITAL_LABEL: Record<string, string> = { bereaved: '사별', divorced: '이혼' };
+
+/** 항목 한 줄 — 왼쪽 이름, 오른쪽 값. 값이 없으면 줄 자체를 그리지 않는다 */
+function Row({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null;
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue}>{value}</Text>
+    </View>
+  );
+}
+
+/** 문단 한 덩이 — 소개글처럼 긴 글에 쓴다 */
+function Paragraph({ title, body }: { title: string; body?: string | null }) {
+  if (!body) return null;
+  return (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={styles.paragraph}>{body}</Text>
+    </View>
+  );
+}
+
+function livingLabels(profile: PublicProfile): string | null {
+  const parts = [
+    profile.childrenCount ? `자녀 ${profile.childrenCount}` : '',
+    profile.livingWith ? `${profile.livingWith}와 함께` : '',
+  ].filter(Boolean);
+  return parts.length ? parts.join(' · ') : null;
+}
 
 /**
  * 부모님이 보시는 상대 프로필 한 장.
  *
- * 아래에 선택지가 딱 둘이다:
- *   - 대화해보고 싶어요  → 양쪽이 모두 누르면 그때 연락처가 열린다
- *   - 다른 프로필 볼래요 → 되돌릴 수 없으니 한 번 더 확인받는다
+ * 자녀 화면의 상세와 담는 내용은 같지만 **읽는 방식이 다르다**. 부모님은 이
+ * 한 장으로 판단하시고 다시 넘겨보지 않으신다. 그래서:
+ *   - 본문 19sp, 행간 32 — 돋보기 없이 읽히는 크기를 먼저 잡았다
+ *   - 사진은 가로로 넘겨 전부 보신다 (자녀는 카드 한 장만 본다)
+ *   - 항목은 이름·값 두 칸으로만 — 표처럼 훑을 수 있어야 한다
  *
- * 한쪽만 눌렀을 때는 상대에게 아무것도 알리지 않는다. 거절이 드러나지 않아야
- * 두 분 다 편하게 정하실 수 있다.
+ * 아래 선택지는 딱 둘이다. 한쪽만 눌렀을 때는 상대에게 알리지 않는다.
  */
 export default function ParentProfileScreen() {
   const { connectionId } = useLocalSearchParams<{ connectionId: string }>();
   const router = useRouter();
   const toast = useToast();
-  const { data: items, isLoading } = useParentInbox();
+  const { data: detail, isLoading } = useParentProfileDetail(connectionId);
   const { markViewed, express, decline } = useParentActions();
 
   const [confirmDecline, setConfirmDecline] = useState(false);
   const [celebration, setCelebration] = useState<ParentInterestResult | null>(null);
 
-  const item = items?.find((i) => i.connectionId === connectionId);
-
   /** 열어보신 순간 초록 강조를 끈다 */
   const markSeen = markViewed.mutate;
+  const unseen = detail?.unseen;
   useEffect(() => {
-    if (item?.unseen && connectionId) markSeen(connectionId);
-  }, [item?.unseen, connectionId, markSeen]);
+    if (unseen && connectionId) markSeen(connectionId);
+  }, [unseen, connectionId, markSeen]);
 
   if (isLoading) {
     return (
@@ -53,7 +84,7 @@ export default function ParentProfileScreen() {
     );
   }
 
-  if (!item) {
+  if (!detail) {
     return (
       <Screen>
         <EmptyState
@@ -66,27 +97,27 @@ export default function ParentProfileScreen() {
     );
   }
 
-  const { profile } = item;
+  const { profile } = detail;
   const goals = (profile.goals ?? []).map(goalLabel).filter(Boolean);
+  const photos = profile.photoUrls?.length
+    ? profile.photoUrls
+    : profile.primaryPhotoUrl
+      ? [profile.primaryPhotoUrl]
+      : [];
 
   return (
     <Screen
       scroll
       footer={
-        item.matched ? (
+        detail.matched ? (
           <View style={styles.contactBox} testID="parent-contact">
             <Text style={styles.contactLabel}>연락처가 열렸습니다</Text>
-            <Text style={styles.contactName}>{item.partnerName ?? profile.nickname} 님</Text>
-            <Text style={styles.contactPhone}>{item.partnerPhone ?? '연락처 준비 중'}</Text>
-            {item.partnerPhone ? (
-              <AppButton
-                label="전화 걸기"
-                testID="parent-call"
-                onPress={() => void Linking.openURL(`tel:${item.partnerPhone ?? ''}`)}
-              />
-            ) : null}
+            <Text style={styles.contactName}>{detail.partnerName ?? profile.nickname} 님</Text>
+            <Text style={styles.contactPhone} selectable>
+              {detail.partnerPhone ?? '연락처 준비 중'}
+            </Text>
           </View>
-        ) : item.interested ? (
+        ) : detail.interested ? (
           <View style={styles.waitBox}>
             <Text style={styles.waitText}>
               마음을 전해드렸습니다.{'\n'}상대 부모님의 답을 기다리고 있습니다.
@@ -118,12 +149,26 @@ export default function ParentProfileScreen() {
         )
       }
     >
-      {profile.primaryPhotoUrl ? (
-        <Image
-          source={{ uri: profile.primaryPhotoUrl }}
-          style={styles.photo}
-          accessibilityLabel={`${profile.nickname} 님의 사진`}
-        />
+      {/* 사진은 전부 보신다 — 한 장만 보고 정하실 일이 아니다 */}
+      {photos.length ? (
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          style={styles.photoStrip}
+        >
+          {photos.map((url, index) => (
+            <Image
+              key={url}
+              source={{ uri: url }}
+              style={styles.photo}
+              accessibilityLabel={`${profile.nickname} 님의 사진 ${index + 1}`}
+            />
+          ))}
+        </ScrollView>
+      ) : null}
+      {photos.length > 1 ? (
+        <Text style={styles.photoHint}>사진 {photos.length}장 · 옆으로 넘겨보세요</Text>
       ) : null}
 
       <Text style={styles.name}>
@@ -135,18 +180,43 @@ export default function ParentProfileScreen() {
       </Text>
 
       {goals.length ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>찾으시는 인연</Text>
-          <Text style={styles.sectionBody}>{goals.join(', ')}</Text>
+        <View style={styles.goalRow}>
+          {goals.map((goal) => (
+            <View key={goal} style={styles.goalChip}>
+              <Text style={styles.goalText}>{goal}</Text>
+            </View>
+          ))}
         </View>
       ) : null}
 
-      {profile.introExcerpt ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>자녀분이 소개하는 부모님</Text>
-          <Text style={styles.sectionBody}>{profile.introExcerpt}</Text>
-        </View>
-      ) : null}
+      <Paragraph title="자녀분이 소개하는 부모님" body={profile.introByChild || profile.introExcerpt} />
+      <Paragraph title="이런 분을 만나고 싶어요" body={profile.desiredPartner} />
+      <Paragraph title="부모님이 전하는 말" body={profile.parentMessage} />
+      <Paragraph title="좌우명" body={profile.motto} />
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>생활</Text>
+        <Row label="키" value={profile.heightCm ? `${profile.heightCm}cm` : null} />
+        <Row label="종교" value={profile.religion} />
+        <Row
+          label="직업"
+          value={formatOccupation(
+            profile.occupation ?? profile.retiredOccupation,
+            profile.economicallyActive
+          )}
+        />
+        <Row label="가족" value={livingLabels(profile)} />
+        <Row label="음주" value={profile.drinking} />
+        <Row label="흡연" value={profile.smoking} />
+        <Row label="취미" value={profile.hobbies?.length ? profile.hobbies.join(', ') : null} />
+      </View>
+
+      <View style={styles.badgeBox}>
+        <Text style={styles.badgeTitle}>부팅이 확인한 것</Text>
+        <Text style={styles.badgeText}>
+          자녀분 본인 확인 · 가족관계 확인 · 부모님 동의를 모두 마친 분입니다.
+        </Text>
+      </View>
 
       <DestructiveConfirmDialog
         visible={confirmDecline}
@@ -181,7 +251,9 @@ export default function ParentProfileScreen() {
             </Text>
             <View style={styles.celebrationContact}>
               <Text style={styles.contactName}>{celebration?.partnerName ?? ''} 님</Text>
-              <Text style={styles.contactPhone}>{celebration?.partnerPhone ?? ''}</Text>
+              <Text style={styles.contactPhone} selectable>
+                {celebration?.partnerPhone ?? ''}
+              </Text>
             </View>
             <AppButton
               label="확인"
@@ -195,19 +267,54 @@ export default function ParentProfileScreen() {
   );
 }
 
+const PHOTO_WIDTH = 300;
+
 const styles = StyleSheet.create({
+  photoStrip: { marginTop: spacing.sm },
   photo: {
-    width: '100%',
-    height: 320,
+    width: PHOTO_WIDTH,
+    height: 360,
     borderRadius: radius.lg,
-    marginTop: spacing.sm,
+    marginRight: spacing.xs,
     backgroundColor: theme.colors.surfaceSecondary,
+  },
+  photoHint: {
+    ...typography.caption,
+    color: theme.colors.textTertiary,
+    marginTop: spacing.xxs,
   },
   name: { ...typography.display, color: theme.colors.text, marginTop: spacing.md },
   region: { ...typography.subheading, color: theme.colors.textSecondary, marginTop: 4 },
-  section: { marginTop: spacing.lg, gap: 6 },
+  goalRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xxs, marginTop: spacing.sm },
+  goalChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: theme.colors.primarySurface,
+  },
+  goalText: { ...typography.body, color: theme.colors.primaryDark, fontWeight: '600' },
+  section: { marginTop: spacing.lg, gap: spacing.xs },
   sectionTitle: { ...typography.bodyStrong, color: theme.colors.primaryDark },
-  sectionBody: { ...typography.subheading, color: theme.colors.text, lineHeight: 30 },
+  // 부모님이 돋보기 없이 읽는 크기 — 자녀 화면보다 한 단계 크다
+  paragraph: { fontSize: 19, lineHeight: 32, color: theme.colors.text },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: spacing.xs,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.border,
+  },
+  rowLabel: { width: 84, fontSize: 18, color: theme.colors.textTertiary },
+  rowValue: { flex: 1, fontSize: 19, lineHeight: 28, color: theme.colors.text },
+  badgeBox: {
+    marginTop: spacing.lg,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    backgroundColor: theme.colors.primarySurface,
+    gap: 4,
+  },
+  badgeTitle: { ...typography.bodyStrong, color: theme.colors.primaryDark },
+  badgeText: { fontSize: 17, lineHeight: 28, color: theme.colors.textSecondary },
   actions: { gap: spacing.xs },
   waitBox: {
     backgroundColor: theme.colors.primarySurface,
@@ -227,15 +334,15 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.success,
     padding: spacing.md,
     gap: 6,
+    alignItems: 'center',
   },
   contactLabel: { ...typography.bodyStrong, color: theme.colors.success },
   contactName: { ...typography.subheading, color: theme.colors.text },
   contactPhone: {
-    fontSize: 30,
+    fontSize: 32,
     fontWeight: '800',
     color: theme.colors.text,
     letterSpacing: 1,
-    marginBottom: spacing.xs,
   },
   celebrationBackdrop: {
     flex: 1,

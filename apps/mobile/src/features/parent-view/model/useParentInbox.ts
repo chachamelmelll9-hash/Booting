@@ -13,6 +13,16 @@ export function useParentInbox() {
   });
 }
 
+/** 한 장 상세 — 사진 전부와 생활 정보까지 */
+export function useParentProfileDetail(connectionId: string) {
+  const token = useParentSession((s) => s.token);
+  return useQuery({
+    queryKey: parentKeys.detail(connectionId),
+    queryFn: () => parentApi.detail(token as string, connectionId),
+    enabled: !!token && !!connectionId,
+  });
+}
+
 /**
  * 부모님이 카드에서 하는 세 가지.
  *
@@ -22,7 +32,8 @@ export function useParentInbox() {
 export function useParentActions() {
   const token = useParentSession((s) => s.token) as string;
   const queryClient = useQueryClient();
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: parentKeys.inbox });
+  // ['parent'] 프리픽스 — 목록과 열려 있는 상세를 함께 갱신한다
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['parent'] });
 
   return {
     markViewed: useMutation({

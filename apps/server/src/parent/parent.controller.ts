@@ -44,6 +44,15 @@ export class ParentController {
     return this.parent.inbox(req.parentProfileId);
   }
 
+  @Get('profiles/:connectionId')
+  @UseGuards(ParentGuard)
+  detail(
+    @Req() req: { parentProfileId: string },
+    @Param('connectionId') connectionId: string
+  ) {
+    return this.parent.detail(req.parentProfileId, connectionId);
+  }
+
   @Post('profiles/:connectionId/view')
   @HttpCode(204)
   @UseGuards(ParentGuard)
