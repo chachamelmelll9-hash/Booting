@@ -1,4 +1,4 @@
-﻿import { useParentProfile } from '@features/parent-profile';
+import { useParentProfile } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';

@@ -60,7 +60,7 @@ export function parentShareMessage(profile: DiscoveryItem): string {
  * 템플릿 ID 를 쓰지 않는다 — `shareFeedTemplate` 은 카카오 개발자 콘솔에
  * 템플릿을 만들지 않아도 앱에서 만든 카드를 그대로 보낸다.
  */
-function feedTemplate(profile: DiscoveryItem) {
+function feedTemplate(profile: DiscoveryItem, connectionId: string) {
   const goals = (profile.goals ?? []).map(goalLabel).filter(Boolean);
   const description = [
     subtitle(profile),
@@ -75,13 +75,26 @@ function feedTemplate(profile: DiscoveryItem) {
       title: `${profile.nickname} 님 · ${profile.age}세`,
       description,
       imageUrl: profile.primaryPhotoUrl ?? '',
-      // 링크 도메인은 카카오 개발자 콘솔에 등록된 것만 허용된다. 등록 전이므로
-      // 비워 둔다 — 카드만 보내고 이동은 하지 않는다.
-      link: {},
+      /**
+       * 카드를 누르면 **부팅 앱**이 열리고, 코드를 넣으시면 **이 프로필** 화면으로
+       * 이어진다. 목록에 떨어뜨리면 방금 무엇을 누르셨는지 다시 찾아야 한다.
+       *
+       * 웹 주소를 넣는 길도 있지만 카카오 콘솔에 도메인을 등록해야 열리고, 등록
+       * 전에는 아무 일도 일어나지 않는다. 앱을 여는 건 우리 매니페스트만 고치면
+       * 되고(`plugins/withKakaoLinkScheme.js`), 부모님은 코드 로그인을 위해 어차피
+       * 앱이 필요하시니 동선도 이쪽이 맞다.
+       */
+      link: {
+        androidExecutionParams: { connectionId },
+        iosExecutionParams: { connectionId },
+      },
     },
-    // 버튼을 만들지 않는다. 비워 두면 카카오가 '자세히 보기' 를 자동으로 붙이는데,
-    // 갈 곳이 없어 부모님이 눌러보고 아무 일도 안 일어난다 (실측).
-    buttons: [],
+    /**
+     * 버튼은 지울 수 없다. 피드 카드는 '자세히 보기' 를 **항상** 붙이고
+     * (`buttons: []` 로도 안 지워진다 — 실측), 그 버튼은 위 `content.link` 로 간다.
+     * 지울 수 없다면 갈 곳을 주는 게 맞다. 문구만 부모님 말로 바꾼다.
+     */
+    buttonTitle: '부팅에서 열기',
   };
 }
 
@@ -106,6 +119,8 @@ export type ShareOutcome =
  */
 export async function shareProfileToParent(
   profile: DiscoveryItem,
+  /** 카드를 눌러 앱이 열렸을 때 이 프로필로 보내기 위한 값 */
+  connectionId: string,
   /**
    * 카카오 서버 콜백에 되돌려 받을 값.
    *
@@ -120,7 +135,7 @@ export async function shareProfileToParent(
 
   try {
     await kakao.shareFeedTemplate({
-      template: feedTemplate(profile),
+      template: feedTemplate(profile, connectionId),
       // 카카오톡이 없으면 웹으로 우회하지 않는다 — 아무 화면도 없이 성공이
       // 돌아와 보내지도 않은 걸 보냈다고 표시하게 된다 (에뮬레이터에서 실측)
       useWebBrowserIfKakaoTalkNotAvailable: false,

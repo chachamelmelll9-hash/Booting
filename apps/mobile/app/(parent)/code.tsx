@@ -1,4 +1,4 @@
-import { useParentSession } from '@features/parent-view';
+import { takePendingSharedProfile, useParentSession } from '@features/parent-view';
 import { parentApi } from '@shared/api/parent';
 import { theme } from '@shared/config/colors';
 import { radius, spacing, typography } from '@shared/config/tokens';
@@ -25,7 +25,12 @@ export default function ParentCodeScreen() {
     mutationFn: () => parentApi.login(code),
     onSuccess: (result) => {
       signIn(result.token, result.nickname);
-      router.replace('/(parent)/home');
+      /**
+       * 카카오톡 카드를 눌러 들어오셨다면 **그 프로필**로 바로 보낸다.
+       * 목록에 떨어뜨리면 방금 무엇을 누르셨는지 다시 찾아야 한다.
+       */
+      const shared = takePendingSharedProfile();
+      router.replace(shared ? `/(parent)/profile/${shared}` : '/(parent)/home');
     },
     onError: (e: Error) => setError(e.message),
   });

@@ -65,7 +65,7 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
     try {
       // 콜백이 돌아왔을 때 누가 무엇을 보냈는지 알아보게 서명을 받아 실어 보낸다
       const { token, userId } = await connectionsApi.shareToken(connection.id);
-      const outcome = await shareProfileToParent(connection.partner, {
+      const outcome = await shareProfileToParent(connection.partner, connection.id, {
         connectionId: connection.id,
         userId,
         t: token,

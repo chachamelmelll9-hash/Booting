@@ -5,7 +5,7 @@ import { initI18nMobile } from '@chachamelmelll9-hash-service/i18n/config/mobile
 import { isAdMobEnabled } from '@features/ads';
 import { AnalyticsProvider } from '@features/analytics';
 import { useAuth } from '@features/auth';
-import { useParentSession } from '@features/parent-view';
+import { setPendingSharedProfile, takePendingSharedProfile, useParentSession } from '@features/parent-view';
 import { useLanguageStore } from '@features/settings';
 import { initializeKakaoSDK } from '@react-native-kakao/core';
 import {
@@ -26,8 +26,8 @@ import {
   useSegments,
 } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useRef } from 'react';
-import { ActivityIndicator, StyleSheet,View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Linking,StyleSheet,View } from 'react-native';
 import mobileAds from 'react-native-google-mobile-ads';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -145,6 +145,34 @@ function RootLayoutNav() {
   const rootNavigationState = useRootNavigationState();
   const navigationRef = useNavigationContainerRef();
 
+  /**
+   * 카카오톡 공유 카드를 눌러 열렸는지.
+   *
+   * 카드를 받는 사람은 **부모님**이다. 앱이 이 경로로 열렸다면 자녀 화면이 아니라
+   * 부모님 자리로 보내야 한다 — 부모님 세션이 있으면 부모님 홈, 없으면 코드 입력.
+   *
+   * 카카오톡은 `kakao{앱키}://kakaolink?...` 로 부른다. expo-router 의 경로 체계와
+   * 무관한 주소라 여기서 직접 받는다.
+   */
+  const [fromKakaoShare, setFromKakaoShare] = useState(false);
+
+  useEffect(() => {
+    /**
+     * 어느 프로필 카드를 누르셨는지 기억해 둔다. 코드 입력이 끝나면 목록이 아니라
+     * **그 프로필**로 보낸다 — 카드를 누른 이유가 그것이기 때문이다.
+     */
+    const handle = (url: string | null) => {
+      if (!url || !url.includes('://kakaolink')) return;
+      const connectionId = /[?&]connectionId=([^&]+)/.exec(url)?.[1];
+      setPendingSharedProfile(connectionId ? decodeURIComponent(connectionId) : null);
+      setFromKakaoShare(true);
+    };
+
+    void Linking.getInitialURL().then(handle);
+    const sub = Linking.addEventListener('url', ({ url }) => handle(url));
+    return () => sub.remove();
+  }, []);
+
   useEffect(() => {
     /**
      * 가드가 **두 개**인 이유.
@@ -175,11 +203,26 @@ function RootLayoutNav() {
      * 하면 안 되는 일이다.
      */
     if (parentToken) {
-      if (!inParent) router.replace('/(parent)/home');
+      if (!inParent) {
+        // 이미 로그인해 계신 부모님이 카드를 누르셨다면 코드를 다시 묻지 않는다
+        const shared = takePendingSharedProfile();
+        router.replace(shared ? `/(parent)/profile/${shared}` : '/(parent)/home');
+      }
       return;
     }
     // 코드 입력 화면에 계신 중 — 자녀 로그인 규칙으로 밀어내지 않는다
     if (inParent) return;
+
+    /**
+     * 카카오톡 공유 카드로 열렸다 = 부모님이 여신 것이다.
+     * 자녀 세션이 남아 있어도 부모님 자리로 보낸다 — 카드를 받은 분에게
+     * 자녀 화면(추천 피드·대화)을 보여드리는 건 이 서비스가 하면 안 되는 일이다.
+     */
+    if (fromKakaoShare) {
+      setFromKakaoShare(false);
+      router.replace('/(parent)/code');
+      return;
+    }
 
     if (!isAuthenticated && !inAuthGroup && !inIndex) {
       router.replace('/(auth)/login');
@@ -198,6 +241,7 @@ function RootLayoutNav() {
     isInitialized,
     parentToken,
     parentHydrated,
+    fromKakaoShare,
     segments,
     router,
     navigationRef,

@@ -282,12 +282,45 @@ AGP 가 prefab CLI 를 `^` 줄바꿈 배치 파일로 만들어 cmd 로 실행�
 949(한국어)면 그 파일을 잘못 파싱한다. 경로에 한글이 없어도 난다 — 저장소를
 `C:\proj\Booting` 으로 옮기고 `GRADLE_USER_HOME` 을 ASCII 로 바꿔도 그대로였다.
 
-**가드** — 콘솔 코드페이지를 UTF-8 로 바꾼 뒤 gradle 을 부른다:
+**가드** — 세 가지를 **전부** 같이 건다. 하나라도 빠지면 그대로 죽는다:
 
 ```powershell
-$env:GRADLE_USER_HOME = "C:\gradle-home"   # 홈 경로에 한글이 있으면 함께 옮긴다
+$env:GRADLE_USER_HOME = "C:\gradle-home"   # (1) 캐시 경로에 한글이 없어야 한다
+cd apps\mobile\android
 cmd /c "chcp 65001 >nul && .\gradlew.bat installDebug -PreactNativeArchitectures=x86_64 --no-daemon"
+#          (2) UTF-8                                                              (3) 데몬 금지
 ```
 
 `--no-daemon` 이 필요한 이유: 데몬은 처음 뜰 때의 환경을 물고 있어서, 코드페이지를
 바꿔도 이미 떠 있던 데몬은 옛 설정으로 계속 돈다.
+
+**2026-09-03 추가 조사 — 원인은 코드페이지가 아니라 줄바꿈이었다.**
+
+위 가드로도 다시 재현됐다. 파고 들어가 실제 원인을 갈랐다.
+
+AGP 가 만드는 `prefab_command.bat` 은 **LF 줄바꿈**이다 (첫 바이트 `40 65 63 68 6f 20 6f 66 66 0a`,
+BOM 없음). Kotlin 의 `appendLine()` 이 플랫폼과 무관하게 `\n` 을 붙이기 때문이다.
+같은 파일을 CRLF 로만 바꿔 실행하면 **그대로 성공한다**:
+
+| 실행 | 결과 |
+|---|---|
+| 원본 (LF) | `'ass-path' is not recognized` — 이어쓰기 줄 앞 3글자가 먹힌다 |
+| CRLF 변환본 | `exit=0` |
+
+코드페이지는 무관하다 — LF 파일은 949 / 437 / 1252 / 65001 **전부** 실패한다.
+그러니 `chcp 65001` 은 원인 해결이 아니었고, 예전 빌드가 성공한 건 그때
+`configureCMakeDebug` 가 이미 up-to-date 라 이 배치를 **실행하지 않았기** 때문으로 보인다.
+
+짧은 예제(`@echo off` + 이어쓰기 한 줄)는 LF 로도 잘 돈다. 실제 파일(946B, 이어쓰기
+20여 줄)에서만 깨지므로 cmd 가 배치를 블록 단위로 읽으며 오프셋이 어긋나는 쪽에 가깝다.
+경로를 줄여 파일을 작게 만들어도(913B) 실패 지점만 옮겨 갔다.
+
+**미해결** — AGP 가 태스크 안에서 배치를 쓰고 바로 실행하므로, 미리 CRLF 로 바꿔 둬도
+매번 덮어쓴다 (실측). 지금 아는 우회로는 두 가지뿐이다:
+
+1. `configureCMakeDebug` 가 up-to-date 인 상태를 깨지 않는다 (`expo prebuild` 나
+   `GRADLE_USER_HOME` 변경이 이걸 깬다 — 둘 다 이번에 깼다).
+2. 네이티브 변경이 꼭 필요하면 다른 머신/CI(리눅스)에서 빌드한다.
+
+`GRADLE_USER_HOME` 을 바꾸면 CMake 설정이 통째로 무효화되어 이 배치를 다시 실행하게
+된다. **네이티브를 건드리지 않는 작업에서는 Gradle 홈을 바꾸지 마라.**

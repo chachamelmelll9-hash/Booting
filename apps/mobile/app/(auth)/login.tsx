@@ -1,4 +1,4 @@
-﻿import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { type LoginFormData,loginSchema } from '@chachamelmelll9-hash-service/supabase';
 import { AuthStyles,useAuthStore } from '@features/auth';
 import { devLoginApi,loginApi } from '@features/auth/api';
