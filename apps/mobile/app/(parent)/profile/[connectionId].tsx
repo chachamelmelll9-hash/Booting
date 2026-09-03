@@ -119,8 +119,11 @@ export default function ParentProfileScreen() {
           </View>
         ) : detail.interested ? (
           <View style={styles.waitBox}>
+            {/* 누구를 기다리는지 이름으로 말한다 — 여러 분을 받아보시는 중이면
+                '상대 부모님'만으로는 어느 분인지 알 수 없다 */}
             <Text style={styles.waitText}>
-              마음을 전해드렸습니다.{'\n'}상대 부모님의 답을 기다리고 있습니다.
+              마음을 전해드렸습니다.{'\n'}
+              {profile.nickname} 님의 답을 기다리고 있습니다.
             </Text>
           </View>
         ) : (

@@ -92,7 +92,9 @@ export default function ParentHomeScreen() {
                 {item.matched ? (
                   <Text style={styles.matched}>마음이 통했습니다 · 연락처 보기</Text>
                 ) : item.interested ? (
-                  <Text style={styles.waiting}>상대 부모님의 답을 기다리는 중입니다</Text>
+                  <Text style={styles.waiting}>
+                    {item.profile.nickname} 님의 답을 기다리고 있습니다
+                  </Text>
                 ) : item.unseen ? (
                   <Text style={styles.new}>새로 받으신 프로필</Text>
                 ) : (
