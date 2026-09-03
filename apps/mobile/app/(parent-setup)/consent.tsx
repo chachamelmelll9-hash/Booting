@@ -109,14 +109,10 @@ export default function ConsentScreen() {
       { parentName: name, phone },
       {
         onSuccess: async (link) => {
+          // 보내지 않고 닫았으면 기다림을 시작하지 않는다 —
+          // 보내지도 않았는데 '보냈습니다' 가 뜨면 안 된다
           const outcome = await sendConsentLink(link.parentName, link.url);
-          if (outcome === 'unavailable') {
-            toast.show({
-              message: '카카오톡을 열지 못했습니다. 설치되어 있는지 확인해 주세요.',
-            });
-            return;
-          }
-          pollForConsent();
+          if (outcome === 'sent') pollForConsent();
         },
         onError: (e: Error) => toast.show({ message: e.message }),
       }
@@ -148,7 +144,7 @@ export default function ConsentScreen() {
 
       <Text style={styles.title}>부모님께 동의를 여쭙습니다</Text>
       <Text style={styles.lede}>
-        아래 내용을 담은 링크를 카카오톡으로 보내드립니다. 부모님이 직접 확인하고 눌러 주셔야
+        아래 내용을 담은 링크를 부모님께 보내드립니다. 부모님이 직접 확인하고 눌러 주셔야
         프로필을 공개할 수 있습니다.
       </Text>
 
