@@ -131,34 +131,42 @@ export function ProfileDeck({
   return (
     <View style={styles.container} testID={testID}>
       <View style={styles.stack}>
-        {/* 뒤 카드 — 다음 장이 있다는 걸 보여준다 */}
-        {next ? (
-          <View style={styles.behind} pointerEvents="none">
-            <ParentProfileCard profile={next} variant="deck" />
-          </View>
-        ) : null}
+        <View style={styles.deck}>
+          {/*
+            뒤 카드 — 다음 장이 있다는 것만 알린다.
 
-        <Animated.View
-          style={[
-            styles.front,
-            { transform: [{ translateX: position.x }, { translateY: position.y }, { rotate }] },
-          ]}
-          {...panResponder.panHandlers}
-        >
-          <ParentProfileCard
-            profile={current}
-            variant="deck"
-            onPress={onDetail}
-            testID="discovery-card"
-          />
+            예전에는 여기에 다음 프로필 카드를 통째로 그렸는데, `absoluteFillObject`
+            라 화면 남은 공간 전체 높이로 늘어났다. 앞 카드보다 훨씬 길어져 아래로
+            삐져나오고 그 자리에 배지 줄이 반쯤 잘린 채 보였다 (실측).
 
-          <Animated.View style={[styles.stamp, styles.stampHeart, { opacity: heartOpacity }]}>
-            <Text style={styles.stampHeartText}>관심</Text>
+            내용을 지우고 종이 가장자리만 남긴다. 어차피 4% 축소에 60% 투명이라
+            읽히지도 않았고, 잘린 글자만 눈에 걸렸다. `deck` 은 앞 카드 높이로
+            잡히므로 `bottom: -12` 가 딱 그만큼만 아래로 비어져 나온다.
+          */}
+          {next ? <View style={styles.behind} pointerEvents="none" /> : null}
+
+          <Animated.View
+            style={[
+              styles.front,
+              { transform: [{ translateX: position.x }, { translateY: position.y }, { rotate }] },
+            ]}
+            {...panResponder.panHandlers}
+          >
+            <ParentProfileCard
+              profile={current}
+              variant="deck"
+              onPress={onDetail}
+              testID="discovery-card"
+            />
+
+            <Animated.View style={[styles.stamp, styles.stampHeart, { opacity: heartOpacity }]}>
+              <Text style={styles.stampHeartText}>관심</Text>
+            </Animated.View>
+            <Animated.View style={[styles.stamp, styles.stampPass, { opacity: passOpacity }]}>
+              <Text style={styles.stampPassText}>넘기기</Text>
+            </Animated.View>
           </Animated.View>
-          <Animated.View style={[styles.stamp, styles.stampPass, { opacity: passOpacity }]}>
-            <Text style={styles.stampPassText}>넘기기</Text>
-          </Animated.View>
-        </Animated.View>
+        </View>
       </View>
 
       {highlight ? (
@@ -187,10 +195,19 @@ export function ProfileDeck({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   stack: { flex: 1 },
+  /** 앞 카드 높이로 잡히는 기준 상자 — 뒤 카드가 이 높이를 기준으로 비어져 나온다 */
+  deck: { position: 'relative' },
   behind: {
-    ...StyleSheet.absoluteFillObject,
-    transform: [{ scale: 0.96 }, { translateY: 10 }],
-    opacity: 0.6,
+    position: 'absolute',
+    // 양옆은 안쪽으로, 아래로만 비어져 나온다 — 밑에 한 장 더 깔린 모양
+    left: 14,
+    right: 14,
+    top: 16,
+    bottom: -12,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    backgroundColor: theme.colors.surfaceSecondary,
   },
   front: {},
   stamp: {
