@@ -210,14 +210,15 @@ export class ConnectionsService {
   }
 
   /**
-   * 부모님께 프로필을 공유했다고 기록한다.
+   * 부모님께 프로필이 실제로 전달됐다고 기록한다.
    *
-   * 실제 전송(카카오톡·공유 시트)은 기기에서 일어나고 서버가 확인할 방법이 없다.
-   * 그래서 이건 "보냈다고 표시한 시각"이지 전송 증명이 아니다 — 자녀가 여러
-   * 인연을 들고 있을 때 누구를 이미 보여드렸는지 기억해 주는 게 목적이다.
+   * 부르는 곳은 카카오 서버 콜백 하나뿐이다 — 카카오톡으로 **메시지가 전송된**
+   * 순간에만 카카오가 우리를 부른다. 앱에는 이 기록을 만드는 경로가 없다.
+   * 있으면 공유 화면만 열었다 나와도 '공유 완료'가 되기 때문이다.
    *
-   * 다시 눌러도 처음 시각을 유지한다 (`ignoreDuplicates`) — 두 번 공유했다고
-   * 기록이 덮이면 "언제 보여드렸더라"의 답이 틀어진다.
+   * 카카오는 보낸 대화방 수만큼 콜백을 준다. 그래서 처음 한 번만 기록하고
+   * (`23505` 는 이미 보낸 것), 대화방 기록도 그때만 남긴다 — 두 번 보내면
+   * 같은 줄이 두 번 찍힌다.
    */
   async markParentShare(connectionId: string, userId: string): Promise<ConnectionDto> {
     const ctx = await this.requireParticipant(connectionId, userId);
@@ -225,13 +226,14 @@ export class ConnectionsService {
     const { error } = await this.supabase
       .getClient()
       .from('parent_shares')
-      .upsert(
-        { connection_id: connectionId, user_id: userId },
-        { onConflict: 'connection_id,user_id', ignoreDuplicates: true }
-      );
-    if (error) {
+      .insert({ connection_id: connectionId, user_id: userId });
+
+    const alreadyShared = error?.code === '23505';
+    if (error && !alreadyShared) {
       throw new BadRequestException({ code: 'parent_share_failed', message: error.message });
     }
+
+    if (!alreadyShared) await this.postShareNotice(connectionId, userId, ctx.myProfileId);
 
     // 부모님께 넘어간 순간 인연은 '부모님 확인 중'이 된다. 이제 공은 부모님께 있다.
     if (['mutual_heart', 'chatting'].includes(ctx.row.status as string)) {
@@ -248,16 +250,35 @@ export class ConnectionsService {
     return this.toDto(ctx.row, userId);
   }
 
-  /** 내 부모님 별명 — 시스템 메시지 문구에 쓴다 */
-  async myParentNickname(connectionId: string, userId: string): Promise<string> {
-    const ctx = await this.requireParticipant(connectionId, userId);
-    const { data } = await this.supabase
-      .getClient()
-      .from('parent_profiles')
-      .select('nickname, display_name')
-      .eq('id', ctx.myProfileId)
-      .maybeSingle();
-    return data?.nickname || data?.display_name || '상대';
+  /**
+   * "…님의 자녀가 프로필을 공유했습니다" 를 대화방에 남긴다.
+   *
+   * 상대는 이 한 줄로 저쪽 집에서 이야기가 오가는 중임을 안다 — 이 앱에서
+   * 가장 알고 싶은 신호다.
+   *
+   * `MessagesService.postSystemMessage` 를 쓰지 않고 직접 넣는다. 그쪽이 이미
+   * 이 서비스를 주입받고 있어 반대로 주입하면 순환이 된다. 넣는 값이 세 개뿐이라
+   * forwardRef 를 끌어오는 것보다 이게 읽기 쉽다.
+   *
+   * 실패해도 던지지 않는다. 이건 곁들이는 알림이고, 여기서 던지면 카카오
+   * 콜백이 실패로 남아 정작 중요한 '공유 완료'가 안 찍힌다.
+   */
+  private async postShareNotice(connectionId: string, userId: string, myProfileId: string) {
+    const client = this.supabase.getClient();
+    const [profileRes, convRes] = await Promise.all([
+      client.from('parent_profiles').select('nickname, display_name').eq('id', myProfileId).maybeSingle(),
+      client.from('conversations').select('id').eq('connection_id', connectionId).maybeSingle(),
+    ]);
+    if (!convRes.data) return;
+
+    const nickname = profileRes.data?.nickname || profileRes.data?.display_name || '상대';
+    const { error } = await client.from('messages').insert({
+      conversation_id: convRes.data.id,
+      sender_user_id: userId,
+      body: `${nickname} 님의 자녀가 프로필을 공유했습니다.`,
+      kind: 'system',
+    });
+    if (error) this.logger.warn(`parent share notice failed: ${error.message}`);
   }
 
   async getOne(connectionId: string, userId: string): Promise<ConnectionDto> {
