@@ -184,7 +184,10 @@ function RootLayoutNav() {
     if (!isAuthenticated && !inAuthGroup && !inIndex) {
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/(tabs)/home');
+      // 로그인 화면에 세션이 생겼다 = 방금 로그인했다 → 인사 화면.
+      // 앱을 새로 켠 경우(inIndex)는 인사 없이 홈으로 — 켤 때마다 같은 인사를
+      // 다시 보는 건 즐거움이 아니라 방해다.
+      router.replace('/(parent-setup)/welcome');
     } else if (isAuthenticated && inIndex) {
       router.replace('/(tabs)/home');
     } else if (!isAuthenticated && inIndex) {

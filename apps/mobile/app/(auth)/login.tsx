@@ -1,4 +1,4 @@
-import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+﻿import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { type LoginFormData,loginSchema } from '@chachamelmelll9-hash-service/supabase';
 import { AuthStyles,useAuthStore } from '@features/auth';
 import { devLoginApi,loginApi } from '@features/auth/api';
@@ -77,7 +77,7 @@ export default function LoginScreen() {
         await saveUser(result.data.user);
         await saveLastLoginMethod('email');
         setAuth(result.data.user);
-        router.replace('/(tabs)/home');
+        router.replace('/(parent-setup)/welcome');
       }
     },
   });
@@ -98,7 +98,7 @@ export default function LoginScreen() {
         await saveUser(result.data.user);
         await saveLastLoginMethod('email');
         setAuth(result.data.user);
-        router.replace('/(tabs)/home');
+        router.replace('/(parent-setup)/welcome');
       } else {
         setSocialError(result.error.message);
       }
@@ -113,7 +113,7 @@ export default function LoginScreen() {
       if (result.success) {
         await saveLastLoginMethod('kakao');
         setAuth(result.user);
-        router.replace('/(tabs)/home');
+        router.replace('/(parent-setup)/welcome');
       } else {
         // 빈 문자열은 '사용자가 취소함' — 실패 문구를 띄우지 않는다
         setSocialError(result.error || null);
@@ -132,7 +132,7 @@ export default function LoginScreen() {
       if (result.success) {
         await saveLastLoginMethod('apple');
         setAuth(result.user);
-        router.replace('/(tabs)/home');
+        router.replace('/(parent-setup)/welcome');
       } else {
         setSocialError(result.error);
         setAppleLoading(false);

@@ -17,6 +17,9 @@ export default function ParentSetupLayout() {
         presentation: 'modal',
       }}
     >
+      {/* 로그인 직후 인사. 헤더를 숨긴다 — 부스터가 화면을 다 쓰고,
+          '뒤로'로 로그인 화면에 돌아갈 자리도 아니다 */}
+      <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ title: '부모님 프로필 등록' }} />
       <Stack.Screen name="verification" options={{ title: '자녀 인증' }} />
       {/* 동의는 프로필 뒤에 온다 — 동의 기록이 프로필에 붙기 때문이다.
