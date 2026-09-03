@@ -133,9 +133,16 @@ export class AddPhotoDto {
 }
 
 export class ConsentDto {
+  /**
+   * 동의 경로. 지금은 링크 하나뿐이라 클라이언트가 보내지 않는다.
+   *
+   * 자녀가 "직접 여쭤봤습니다"(in_person)를 눌러 스스로 기록하던 경로는 없앴다 —
+   * 그건 자녀의 진술이지 부모님의 동의가 아니라, 분쟁 시 증명하지 못한다.
+   */
+  @IsOptional()
   @Type(() => String)
-  @IsIn(['sms', 'in_person'])
-  method!: ConsentMethod;
+  @IsIn(['sms', 'in_person', 'link'])
+  method?: ConsentMethod;
 
   @IsString()
   @MinLength(2)

@@ -68,8 +68,8 @@ export function useParentProfileMutations() {
     onSuccess: invalidate,
   });
 
-  const requestConsent = useMutation({
-    mutationFn: parentProfileApi.requestConsent,
+  const createConsentLink = useMutation({
+    mutationFn: parentProfileApi.createConsentLink,
     onSuccess: invalidate,
   });
 
@@ -93,7 +93,7 @@ export function useParentProfileMutations() {
     update,
     addPhoto,
     removePhoto,
-    requestConsent,
+    createConsentLink,
     revokeConsent,
     submit,
     setVisibility,

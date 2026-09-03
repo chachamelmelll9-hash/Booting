@@ -156,15 +156,38 @@ export class ParentProfileService {
 
   // --- 동의 -------------------------------------------------------------------
 
-  async requestConsent(userId: string, dto: ConsentDto) {
+  /**
+   * 부모님께 보낼 동의 링크.
+   *
+   * 링크가 가리키는 곳은 이 서버가 직접 그리는 웹 페이지다 (`/consent/:token`).
+   * 부모님은 앱을 설치하지 않으시므로 카카오톡에서 눌러 바로 읽으실 수 있어야 한다.
+   */
+  async createConsentLink(userId: string, dto: ConsentDto) {
     const profile = await this.requireOwn(userId);
-    const consent = await this.consent.request(profile.id, dto);
+    const consent = await this.consent.createLink(profile.id, dto);
     return {
-      method: consent.method,
-      parentName: consent.parent_name,
-      consentedAt: consent.consented_at,
-      revokedAt: consent.revoked_at,
+      url: `${this.publicBaseUrl()}/consent/${consent.token}`,
+      parentName: consent.parent_name as string,
+      expiresAt: consent.expires_at as string,
     };
+  }
+
+  /**
+   * 부모님이 여실 링크의 주소.
+   *
+   * 카카오톡으로 나가는 링크라 **바깥에서 닿는 주소**여야 한다 — localhost 나
+   * 10.0.2.2 를 보내면 부모님 폰에서 열리지 않는다. 그래서 서버 환경변수로
+   * 받는다 (개발 중에는 터널 주소).
+   */
+  private publicBaseUrl(): string {
+    const url = process.env.PUBLIC_BASE_URL;
+    if (!url) {
+      throw new BadRequestException({
+        code: 'public_url_missing',
+        message: '동의 링크 주소가 설정되지 않았습니다',
+      });
+    }
+    return url.replace(/\/$/, '');
   }
 
   async revokeConsent(userId: string): Promise<ParentProfileDto> {

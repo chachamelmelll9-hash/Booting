@@ -57,10 +57,17 @@ export class ParentProfileController {
     return this.profiles.removePhoto(userId, photoId);
   }
 
-  @Post('consent')
+  /**
+   * 부모님께 보낼 동의 링크를 발급한다.
+   *
+   * 자녀가 "동의 받았습니다" 를 눌러 스스로 기록하던 경로는 없앴다. 그건
+   * 자녀의 진술이지 부모님의 동의가 아니고, 분쟁이 생기면 증명하지 못한다.
+   */
+  @Post('consent/link')
   @UseGuards(VerifiedChildGuard)
-  requestConsent(@User('id') userId: string, @Body() dto: ConsentDto) {
-    return this.profiles.requestConsent(userId, dto);
+  @HttpCode(200)
+  createConsentLink(@User('id') userId: string, @Body() dto: ConsentDto) {
+    return this.profiles.createConsentLink(userId, dto);
   }
 
   @Post('consent/revoke')

@@ -305,7 +305,17 @@ export default function ProfileEditScreen() {
         </View>
       </FormSection>
 
-      <FormSection label="생년월일" required helper="만 50세 이상만 등록하실 수 있습니다" error={errors.birthDate}>
+      {/*
+        형식을 미리 알려 준다. placeholder 만 두면 한 글자 치는 순간 사라져,
+        정작 형식이 헷갈리는 순간에는 화면에 없다. 틀리고 나서 오류 문구로
+        알려 주는 건 한 번 헛치게 만든 뒤다.
+      */}
+      <FormSection
+        label="생년월일"
+        required
+        helper="연도-월-일 순으로 적어주세요 (예: 1958-04-11) · 만 50세 이상만 등록하실 수 있습니다"
+        error={errors.birthDate}
+      >
         <TextField
           testID="profile-birth"
           value={draft.birthDate}

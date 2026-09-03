@@ -71,11 +71,12 @@ export const parentProfileApi = {
     }),
   removePhoto: (photoId: string) =>
     serverFetch<Photo[]>(`/parent-profile/photos/${photoId}`, { method: 'DELETE' }),
-  requestConsent: (body: { method: 'sms' | 'in_person'; parentName: string; phone?: string }) =>
-    serverFetch<{ consentedAt: string | null }>('/parent-profile/consent', {
-      method: 'POST',
-      body,
-    }),
+  /** 부모님께 보낼 동의 링크 발급 — 동의 자체는 부모님이 그 페이지에서 하신다 */
+  createConsentLink: (body: { parentName: string; phone: string }) =>
+    serverFetch<{ url: string; parentName: string; expiresAt: string }>(
+      '/parent-profile/consent/link',
+      { method: 'POST', body }
+    ),
   revokeConsent: () =>
     serverFetch<ParentProfile>('/parent-profile/consent/revoke', { method: 'POST' }),
   submit: () => serverFetch<ParentProfile>('/parent-profile/submit', { method: 'POST' }),
