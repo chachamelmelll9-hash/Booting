@@ -1,4 +1,4 @@
-import { login } from '@react-native-kakao/user';
+import { isLogined, login, scopes as kakaoScopes } from '@react-native-kakao/user';
 import { supabase } from '@shared/lib/supabase';
 
 import { oauthCallbackApi, resolveKakaoLinkApi } from '../api/authApi';
@@ -58,6 +58,27 @@ async function loginWithKakao() {
     if (__DEV__) console.log('[kakao] 카카오톡 미연결 → 카카오계정 로그인으로 재시도');
     return await login({ useKakaoAccountLogin: true });
   }
+}
+
+/** 카카오톡 메시지 전송 동의항목 — '나에게 보내기' 가 이걸 요구한다 */
+const TALK_MESSAGE_SCOPE = 'talk_message';
+
+/**
+ * 카카오 SDK 세션에 '카카오톡 메시지 전송' 동의를 확보한다.
+ *
+ * 우리 계정 로그인과는 별개다 — Supabase 세션은 건드리지 않고, 카카오 SDK 가
+ * 들고 있는 토큰에 동의항목만 붙인다.
+ *
+ * `useKakaoAccountLogin: true` 로 가는 이유: `scopes` 는 카카오톡 앱 로그인과
+ * 같이 실을 수 없다 (라이브러리가 거부한다 — 실측). 카카오계정 로그인이면
+ * 동의 화면이 떠서 그 자리에서 항목을 받을 수 있다.
+ */
+export async function ensureKakaoMessageScope(): Promise<void> {
+  if (await isLogined()) {
+    const granted = await kakaoScopes([TALK_MESSAGE_SCOPE]);
+    if (granted.some((s) => s.id === TALK_MESSAGE_SCOPE && s.agreed)) return;
+  }
+  await login({ useKakaoAccountLogin: true, scopes: [TALK_MESSAGE_SCOPE] });
 }
 
 /**

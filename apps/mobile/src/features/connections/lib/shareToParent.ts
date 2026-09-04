@@ -1,3 +1,4 @@
+import type * as KakaoAuth from '@features/auth/lib/kakaoAuth';
 import type * as KakaoShare from '@react-native-kakao/share';
 import type { DiscoveryItem } from '@shared/api/booting.types';
 import { goalLabel } from '@shared/config/relationshipGoals';
@@ -145,5 +146,43 @@ export async function shareProfileToParent(
   } catch (error) {
     if (__DEV__) console.log('[kakao share unavailable]', error);
     return 'unavailable';
+  }
+}
+
+/**
+ * 개발 확인용 — 같은 카드를 **내 카카오톡('나와의 채팅')** 으로 보낸다.
+ *
+ * 왜 필요한가: 카카오톡 공유는 보내는 기기의 카카오톡에 계정이 들어가 있어야
+ * 한다. 그런데 카카오톡은 휴대폰 한 대만 허용해서, 개발 기기에 로그인하면
+ * 정작 본인 폰의 카카오톡이 로그아웃된다. 그래서 카드가 실제로 어떻게 보이는지
+ * 확인할 방법이 사실상 없었다.
+ *
+ * '나에게 보내기' 는 카카오 **서버**가 REST 로 보낸다 — 보내는 기기에 카카오톡이
+ * 없어도 되고, 카드는 로그인한 계정의 '나와의 채팅' 으로 간다. 본인 폰(아이폰이든
+ * 안드로이드든)에서 그대로 열어 볼 수 있고, 폰의 카톡 로그인은 건드리지 않는다.
+ *
+ * **부모님께 가는 길이 아니다.** 받는 사람이 보내는 사람 자신이라 운영에서는
+ * 의미가 없다. 개발 빌드에서 생김새를 확인하는 용도로만 둔다.
+ */
+export async function sendProfileCardToMyKakao(
+  profile: DiscoveryItem,
+  connectionId: string
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const kakao = isKakaoConfigured ? loadKakaoShare() : null;
+  if (!kakao) return { ok: false, reason: '카카오 설정이 없습니다' };
+
+  try {
+    // 카카오 **로그인** 모듈도 같은 이유로 호출 시점에 부른다 — 최상단에서
+    // import 하면 네이티브가 없는 빌드에서 이 파일을 읽는 것만으로 터진다
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const auth = require('@features/auth/lib/kakaoAuth') as typeof KakaoAuth;
+    await auth.ensureKakaoMessageScope();
+    await kakao.sendFeedTemplateToMe({ template: feedTemplate(profile, connectionId) });
+    return { ok: true };
+  } catch (error) {
+    if (__DEV__) console.log('[kakao send-to-me failed]', error);
+    // 동의항목이 없으면 여기 문구에 그대로 들어온다 — 콘솔에서 무엇을 켜야
+    // 하는지 이 문자열이 알려준다
+    return { ok: false, reason: error instanceof Error ? error.message : String(error) };
   }
 }

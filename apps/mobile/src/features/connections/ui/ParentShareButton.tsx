@@ -6,9 +6,9 @@ import { radius, spacing, typography } from '@shared/config/tokens';
 import { AppButton, useToast } from '@shared/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable,StyleSheet, Text, View } from 'react-native';
 
-import { shareProfileToParent } from '../lib/shareToParent';
+import { sendProfileCardToMyKakao,shareProfileToParent } from '../lib/shareToParent';
 
 /** 카카오 콜백이 도착할 때까지 목록을 다시 물어보는 간격·횟수 */
 const POLL_INTERVAL_MS = 3_000;
@@ -85,6 +85,30 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
     }
   };
 
+  /**
+   * 개발 빌드에서만 — 카카오톡이 안 열리면 **내 카카오톡**으로 같은 카드를 보낸다.
+   *
+   * 이 기기의 카카오톡이 로그아웃돼 있으면 공유는 여기서 끝난다. 그렇다고 개발
+   * 기기에 로그인하면 카카오톡은 휴대폰 한 대만 허용해서 정작 본인 폰이
+   * 로그아웃된다. '나에게 보내기' 는 카카오 서버가 REST 로 보내므로 그 맞바꿈
+   * 없이 카드 생김새를 본인 폰에서 확인할 수 있다.
+   *
+   * 부모님께 가는 길이 아니므로 공유 완료로 기록하지 않는다 — 그건 여전히
+   * 카카오 서버 콜백만 한다.
+   */
+  const sendToMyselfInDev = async () => {
+    if (!__DEV__) {
+      toast.show({ message: '카카오톡을 열지 못했습니다. 설치되어 있는지 확인해 주세요.' });
+      return;
+    }
+    const result = await sendProfileCardToMyKakao(connection.partner, connection.id);
+    toast.show({
+      message: result.ok
+        ? '개발 빌드: 카카오톡이 없어 내 카카오톡(나와의 채팅)으로 보냈습니다'
+        : `내 카카오톡으로도 못 보냈습니다: ${result.reason}`,
+    });
+  };
+
   const handleShare = async () => {
     setBusy(true);
     try {
@@ -97,9 +121,7 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
       });
 
       if (outcome === 'unavailable') {
-        toast.show({
-          message: '카카오톡을 열지 못했습니다. 설치되어 있는지 확인해 주세요.',
-        });
+        await sendToMyselfInDev();
         return;
       }
       pollForCallback();
@@ -119,17 +141,37 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
   }
 
   return (
-    <AppButton
-      label="부모님께 공유"
-      variant="secondary"
-      loading={busy}
-      testID={`parent-share-${connection.id}`}
-      onPress={() => void handleShare()}
-    />
+    <View style={styles.stack}>
+      <AppButton
+        label="부모님께 공유"
+        variant="secondary"
+        loading={busy}
+        testID={`parent-share-${connection.id}`}
+        onPress={() => void handleShare()}
+      />
+      {/* 개발 빌드에만 있는 확인용 줄. 이 기기의 카카오톡이 로그아웃돼 있어도
+          카드 생김새를 본인 폰에서 볼 수 있다 */}
+      {__DEV__ && (
+        <Pressable
+          accessibilityRole="button"
+          testID={`parent-share-to-me-${connection.id}`}
+          onPress={() => void sendToMyselfInDev()}
+        >
+          <Text style={styles.devLink}>개발: 내 카카오톡으로 보내보기</Text>
+        </Pressable>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  stack: { gap: spacing.xxs },
+  devLink: {
+    ...typography.caption,
+    color: theme.colors.textMuted,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
   done: {
     flexDirection: 'row',
     alignItems: 'center',
