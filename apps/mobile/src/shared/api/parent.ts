@@ -52,8 +52,7 @@ export const parentApi = {
   inbox: (token: string) => parentFetch<ParentInboxItem[]>('/parent/profiles', { token }),
   detail: (token: string, connectionId: string) =>
     parentFetch<ParentProfileDetail>(`/parent/profiles/${connectionId}`, { token }),
-  markViewed: (token: string, connectionId: string) =>
-    parentFetch<void>(`/parent/profiles/${connectionId}/view`, { method: 'POST', token }),
+  // markViewed 는 없앴다 — 상세 요청 안에서 서버가 함께 찍는다
   express: (token: string, connectionId: string) =>
     parentFetch<ParentInterestResult>(`/parent/profiles/${connectionId}/interest`, {
       method: 'POST',

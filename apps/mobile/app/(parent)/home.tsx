@@ -139,12 +139,23 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: spacing.xxs,
   },
+  /**
+   * '안 본 것' 과 '성사됨' 은 **채움으로** 가른다.
+   *
+   * 예전에는 둘 다 배경이 `#F0FDFA` 로 같고 테두리만 한 톤 달랐다. 그래서 성사된
+   * 카드를 열어 봐도 강조가 그대로인 것처럼 보였다 — 부모님은 "봤는데 왜 아직
+   * 새 거지" 하신다 (실측). 색조는 브랜드 민트 하나로 두되(빨강은 위험 전용),
+   * 안 본 것은 **흰 바탕에 윤곽선**, 성사된 것은 **민트로 채운다.** 한눈에 다르다.
+   */
   cardUnseen: {
     borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primarySurface,
+    backgroundColor: theme.colors.surface,
   },
-  // 성사된 카드는 브랜드 민트로 가장 강하게 — 이 목록에서 가장 중요한 한 장이다
-  cardMatched: { borderColor: theme.colors.primaryDark, backgroundColor: theme.colors.successBg },
+  // 성사된 카드는 채워서 가장 강하게 — 이 목록에서 가장 중요한 한 장이다
+  cardMatched: {
+    borderColor: theme.colors.primaryDark,
+    backgroundColor: theme.colors.primaryLight,
+  },
   metaRow: { paddingLeft: spacing.xxs },
   new: { ...typography.bodyStrong, color: theme.colors.primaryDark },
   matched: { ...typography.bodyStrong, color: theme.colors.primaryDark },

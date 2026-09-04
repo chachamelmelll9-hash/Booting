@@ -12,6 +12,7 @@ import {
   SkeletonList,
   useToast,
 } from '@shared/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Image, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -64,17 +65,23 @@ export default function ParentProfileScreen() {
   const router = useRouter();
   const toast = useToast();
   const { data: detail, isLoading, error, refetch } = useParentProfileDetail(connectionId);
-  const { markViewed, express, decline } = useParentActions();
+  const { express, decline } = useParentActions();
+  const queryClient = useQueryClient();
 
   const [confirmDecline, setConfirmDecline] = useState(false);
   const [celebration, setCelebration] = useState<ParentInterestResult | null>(null);
 
-  /** 열어보신 순간 초록 강조를 끈다 */
-  const markSeen = markViewed.mutate;
-  const unseen = detail?.unseen;
+  /**
+   * '봤다' 는 서버가 상세를 내주면서 함께 찍는다 — 여기서 따로 부르지 않는다.
+   * 예전에는 앱이 `POST .../view` 를 따로 불렀는데, 그 요청만 실패하면
+   * (신호가 끊겼거나 바로 뒤로 나가셨거나) 초록 강조가 계속 남았다.
+   *
+   * 여기서는 목록만 새로 물어보면 된다. 상세를 받은 시점에 서버는 이미 찍었다.
+   */
+  const loaded = !!detail;
   useEffect(() => {
-    if (unseen && connectionId) markSeen(connectionId);
-  }, [unseen, connectionId, markSeen]);
+    if (loaded) void queryClient.invalidateQueries({ queryKey: ['parent', 'inbox'] });
+  }, [loaded, queryClient]);
 
   if (isLoading) {
     return (

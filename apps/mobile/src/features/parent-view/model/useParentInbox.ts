@@ -35,11 +35,9 @@ export function useParentActions() {
   // ['parent'] 프리픽스 — 목록과 열려 있는 상세를 함께 갱신한다
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['parent'] });
 
+  // '봤다' 기록은 서버가 상세를 내주면서 함께 찍는다 — 앱이 따로 부르지 않는다.
+  // 따로 부르면 그 요청만 실패했을 때 초록 강조가 계속 남는다 (실측).
   return {
-    markViewed: useMutation({
-      mutationFn: (connectionId: string) => parentApi.markViewed(token, connectionId),
-      onSuccess: invalidate,
-    }),
     express: useMutation({
       mutationFn: (connectionId: string) => parentApi.express(token, connectionId),
       onSuccess: invalidate,

@@ -170,6 +170,19 @@ export class ParentService {
     const { partnerProfileId } = await this.requireShared(parentProfileId, connectionId);
     const childUserId = await this.childUserId(parentProfileId);
 
+    /**
+     * 여는 순간 여기서 '봤다'를 찍는다.
+     *
+     * 예전에는 앱이 따로 `POST .../view` 를 불렀다. 그 요청 하나만 실패하면
+     * (신호가 끊겼거나, 부모님이 바로 뒤로 나가셨거나) 기록이 유실돼 초록
+     * 강조가 계속 남았다 — 부모님은 "안 봤다는데?" 하며 또 여신다.
+     *
+     * 상세가 성공적으로 나갔다면 보신 것이 확실하다. 같은 요청 안에서 찍으면
+     * 따로 실패할 요청이 없다. 이미 찍힌 시각은 덮지 않으므로(`is null`)
+     * 다시 여셔도 '처음 본 시각'은 그대로다.
+     */
+    await this.markViewed(parentProfileId, connectionId);
+
     const [profile, items] = await Promise.all([
       this.discovery.getPublicProfile(childUserId, parentProfileId, partnerProfileId),
       this.inbox(parentProfileId),

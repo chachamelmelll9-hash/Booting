@@ -63,15 +63,8 @@ export class ParentController {
     return this.parent.detail(req.parentProfileId, connectionId);
   }
 
-  @Post('profiles/:connectionId/view')
-  @HttpCode(204)
-  @UseGuards(ParentGuard)
-  async view(
-    @Req() req: { parentProfileId: string },
-    @Param('connectionId') connectionId: string
-  ) {
-    await this.parent.markViewed(req.parentProfileId, connectionId);
-  }
+  // '봤다' 를 따로 받던 `POST profiles/:id/view` 는 없앴다. 그 요청 하나만
+  // 실패하면 초록 강조가 계속 남았다 — 지금은 상세를 내주면서 함께 찍는다.
 
   /** 대화해보고 싶어요 */
   @Post('profiles/:connectionId/interest')
