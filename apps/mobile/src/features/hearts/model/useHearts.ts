@@ -7,6 +7,18 @@ export function useReceivedHearts() {
     queryFn: ({ pageParam }) => heartsApi.received(pageParam as string | undefined),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    /**
+     * 탭을 열 때마다 새로 받아 온다.
+     *
+     * 기본 1분 캐시에 걸려, 앱을 켠 직후 비어 있던 목록이 그 뒤에 관심이 들어와도
+     * 계속 "아직 받은 관심이 없습니다" 로 남았다 — 탭 배지에는 숫자가 떠 있는데
+     * 목록만 비어 있어, 앱이 고장 난 것처럼 보인다 (실측, 두 번).
+     *
+     * 이 목록은 남이 나에게 보낸 것이라 내 조작으로는 갱신될 수 없다. 그래서
+     * 무효화 시점을 잡을 수 없고, 열 때 다시 묻는 것이 유일하게 맞는 규칙이다.
+     */
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 }
 
