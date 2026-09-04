@@ -37,13 +37,37 @@ export function isKakaoCancel(error: unknown): boolean {
 const isCancel = isKakaoCancel;
 
 /**
+ * 카카오톡은 깔려 있는데 그 안에 카카오계정이 안 들어가 있는 상태.
+ *
+ * SDK 는 카카오톡이 깔려 있으면 무조건 카카오톡으로 로그인하려 들고, 그 앱이
+ * 로그아웃 상태면 여기서 끝나 버린다 — 사용자에게는 "카카오 로그인 실패" 라는
+ * 말만 남는다. 자기 폰의 카카오톡이 로그아웃돼 있는지는 아무도 모른다.
+ *
+ * 흔한 일이다: 새 기기, 카톡을 지웠다 다시 깐 경우, 그리고 개발 에뮬레이터.
+ * 이 경우 카카오계정(웹) 로그인으로 한 번 더 시도한다 — 아이디·비밀번호를
+ * 넣는 화면이 뜨고, 거기서 끝까지 갈 수 있다.
+ */
+const NOT_CONNECTED_HINT = 'not connected to Kakao account';
+
+async function loginWithKakao() {
+  try {
+    return await login();
+  } catch (error) {
+    const text = error instanceof Error ? error.message : String(error);
+    if (!text.includes(NOT_CONNECTED_HINT)) throw error;
+    if (__DEV__) console.log('[kakao] 카카오톡 미연결 → 카카오계정 로그인으로 재시도');
+    return await login({ useKakaoAccountLogin: true });
+  }
+}
+
+/**
  * 카카오 로그인만 해서 id_token 을 받아 온다 — 세션은 만들지 않는다.
  *
  * 계정 연결이 쓴다. 이미 우리 계정으로 로그인해 있는 사람이라, 여기서
  * Supabase 로그인까지 해 버리면 카카오 쪽 계정으로 갈아타 버린다.
  */
 export async function getKakaoIdToken(): Promise<string> {
-  const token = await login();
+  const token = await loginWithKakao();
   if (!token.idToken) {
     throw new Error('OpenID Connect가 활성화되지 않았습니다. 카카오 개발자 콘솔에서 설정해주세요.');
   }
@@ -92,8 +116,8 @@ function logIdTokenAudience(idToken: string) {
 export async function signInWithKakao(): Promise<KakaoLoginResult> {
   let kakaoToken;
   try {
-    // 1. 네이티브 카카오 SDK로 로그인 (카카오톡 앱 또는 카카오 계정 로그인)
-    kakaoToken = await login();
+    // 1. 네이티브 카카오 SDK로 로그인 (카카오톡 앱, 안 되면 카카오계정)
+    kakaoToken = await loginWithKakao();
   } catch (error) {
     // 카카오 SDK 실패는 여기서만 잡는다. 아래 단계까지 한 try 로 묶으면
     // Supabase·서버 오류까지 "카카오 로그인 오류"로 뭉개져 원인을 못 찾는다.

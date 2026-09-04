@@ -1,4 +1,4 @@
-import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
+﻿import { useTranslation } from '@chachamelmelll9-hash-service/i18n';
 import { type LoginFormData,loginSchema } from '@chachamelmelll9-hash-service/supabase';
 import { AuthStyles,useAuthStore } from '@features/auth';
 import { devLoginApi,loginApi } from '@features/auth/api';
@@ -6,7 +6,8 @@ import { signInWithApple } from '@features/auth/lib/appleAuth';
 import { parseAuthError } from '@features/auth/lib/auth-errors';
 import { signInWithKakao } from '@features/auth/lib/kakaoAuth';
 import { saveLastLoginMethod } from '@features/auth/lib/lastLoginMethod';
-import { saveTokens, saveUser } from '@features/auth/lib/tokenStorage';
+import { saveTokens, saveUser, type StoredUser } from '@features/auth/lib/tokenStorage';
+import { setPendingSharedProfile, useParentSession } from '@features/parent-view';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EMAIL_KEYBOARD_TYPE } from '@shared/lib';
 import {
@@ -52,6 +53,24 @@ export default function LoginScreen() {
   const [appleLoading, setAppleLoading] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
 
+  /**
+   * 자녀가 로그인하면 이 기기의 부모님 세션은 끝난다.
+   *
+   * 한 기기에 두 역할이 함께 있으면 안 된다. 루트 라우팅은 부모님 세션을 자녀
+   * 로그인보다 먼저 판정하므로(그게 맞다 — 부모님이 자녀 화면을 보시면 안 된다),
+   * 부모님 세션이 남아 있는 기기에서는 자녀가 로그인해도 부모님 화면으로
+   * 끌려갔다. 실제로 부모님으로 한 번 들어가 본 기기에서 자녀 로그인이
+   * 삭제된 프로필 화면으로 떨어졌다 (실측).
+   *
+   * 지우는 자리는 로그인 성공 **직전**이다. `setAuth` 뒤에 지우면 그 사이에
+   * 라우팅 effect 가 먼저 돌아 이미 부모님 화면으로 가 있다.
+   */
+  const startChildSession = (user: StoredUser) => {
+    useParentSession.getState().signOut();
+    setPendingSharedProfile(null);
+    setAuth(user);
+  };
+
   const {
     control,
     handleSubmit,
@@ -76,7 +95,7 @@ export default function LoginScreen() {
         });
         await saveUser(result.data.user);
         await saveLastLoginMethod('email');
-        setAuth(result.data.user);
+        startChildSession(result.data.user);
         router.replace('/(parent-setup)/welcome');
       }
     },
@@ -97,7 +116,7 @@ export default function LoginScreen() {
         });
         await saveUser(result.data.user);
         await saveLastLoginMethod('email');
-        setAuth(result.data.user);
+        startChildSession(result.data.user);
         router.replace('/(parent-setup)/welcome');
       } else {
         setSocialError(result.error.message);
@@ -112,7 +131,7 @@ export default function LoginScreen() {
       const result = await signInWithKakao();
       if (result.success) {
         await saveLastLoginMethod('kakao');
-        setAuth(result.user);
+        startChildSession(result.user);
         router.replace('/(parent-setup)/welcome');
       } else {
         // 빈 문자열은 '사용자가 취소함' — 실패 문구를 띄우지 않는다
@@ -131,7 +150,7 @@ export default function LoginScreen() {
       const result = await signInWithApple();
       if (result.success) {
         await saveLastLoginMethod('apple');
-        setAuth(result.user);
+        startChildSession(result.user);
         router.replace('/(parent-setup)/welcome');
       } else {
         setSocialError(result.error);

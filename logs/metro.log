@@ -1,0 +1,4 @@
+env: load .env.development
+env: export EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_KEY EXPO_PUBLIC_SERVER_URL EXPO_PUBLIC_WEBVIEW_URL EXPO_PUBLIC_KAKAO_NATIVE_KEY EXPO_PUBLIC_KAKAO_LOGIN
+Starting project at C:\proj\Booting\apps\mobile
+Starting Metro Bundler
