@@ -226,13 +226,17 @@ function RootLayoutNav() {
 
     if (!isAuthenticated && !inAuthGroup && !inIndex) {
       router.replace('/(auth)/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      // 로그인 화면에 세션이 생겼다 = 방금 로그인했다 → 인사 화면.
-      // 앱을 새로 켠 경우(inIndex)는 인사 없이 홈으로 — 켤 때마다 같은 인사를
-      // 다시 보는 건 즐거움이 아니라 방해다.
+    } else if (isAuthenticated && (inAuthGroup || inIndex)) {
+      /**
+       * 로그인 직후든 앱을 새로 켠 것이든 인사 화면을 거친다.
+       *
+       * 갈림길은 **등록을 마쳤는지**이고, 그 판정은 인사 화면이 한다 — 마친
+       * 분은 인사 없이 곧장 홈으로 보내고(켤 때마다 같은 인사는 방해다), 아직인
+       * 분에게만 보여 준다. 여기서 홈으로 보내 버렸더니, 등록을 하다 만 사람이
+       * 앱을 다시 켤 때마다 "프로필을 먼저 등록해주세요" 만 있는 빈 홈에
+       * 떨어졌다 (실측). 그분에게 다음 할 일은 홈이 아니라 등록이다.
+       */
       router.replace('/(parent-setup)/welcome');
-    } else if (isAuthenticated && inIndex) {
-      router.replace('/(tabs)/home');
     } else if (!isAuthenticated && inIndex) {
       router.replace('/(auth)/login');
     }
