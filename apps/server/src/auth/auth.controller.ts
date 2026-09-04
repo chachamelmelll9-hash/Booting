@@ -1,4 +1,4 @@
-import { Body, Controller, Delete,Get, HttpCode, HttpStatus, Post, Req,UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete,Get, HttpCode, HttpStatus, Post, Query, Req,UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 
 import { AuthGuard } from './auth.guard';
@@ -28,8 +28,9 @@ export class AuthController {
    */
   @Post('dev-login')
   @HttpCode(HttpStatus.OK)
-  async devLogin() {
-    return this.authService.devLogin();
+  async devLogin(@Query('fresh') fresh?: string) {
+    // `?fresh=1` 이면 매번 새 계정 — 부모님 프로필 등록을 처음부터 보기 위한 통로다
+    return this.authService.devLogin(fresh === '1' || fresh === 'true');
   }
 
   @Post('signup')

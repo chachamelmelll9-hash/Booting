@@ -94,8 +94,14 @@ export async function loginApi(
  * 고정 계정을 서버가 (없으면) 만들고 자녀 인증까지 끝난 상태로 세션을 준다.
  * production 서버는 403 을 돌려준다.
  */
-export async function devLoginApi(): Promise<ApiResult<LoginResponse>> {
-  return authFetch<LoginResponse>('/auth/dev-login', {});
+/**
+ * @param fresh 매번 **새 계정**으로 들어간다.
+ *
+ * 고정 계정에는 부모님 프로필이 이미 등록·공개돼 있어서 등록 흐름을 지날 수
+ * 없다 — 인사 화면이 "다 끝난 사람" 으로 보고 추천 화면으로 건너뛴다.
+ */
+export async function devLoginApi(fresh = false): Promise<ApiResult<LoginResponse>> {
+  return authFetch<LoginResponse>(`/auth/dev-login${fresh ? '?fresh=1' : ''}`, {});
 }
 
 export async function signUpApi(

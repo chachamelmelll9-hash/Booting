@@ -1,4 +1,4 @@
-import { useParentProfile } from '@features/parent-profile';
+import { nextSetupStep,useParentProfile, useVerification } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -32,14 +32,27 @@ const DROPS = [
 export default function WelcomeScreen() {
   const router = useRouter();
   const { data: parentProfile, isLoading } = useParentProfile();
+  const { data: verification, isLoading: verifying } = useVerification();
   const [ready, setReady] = useState(false);
 
-  // 이미 등록을 마친 사람은 인사 없이 바로 홈으로
+  /**
+   * 다음에 갈 곳 — 프로필이 **있는지**가 아니라 등록이 **끝났는지**로 가른다.
+   *
+   * 전에는 프로필이 하나라도 있으면 인사를 건너뛰고 홈으로 보냈다. 그런데 등록을
+   * 하다 만 사람에게도 프로필 행은 이미 있다(초안). 그래서 개발용 로그인으로
+   * 들어가면 등록 단계를 통째로 지나쳐 추천 화면이 떴다 (실측).
+   *
+   * 판정은 `nextSetupStep` 하나에 맡긴다 — 등록 화면들이 이미 쓰는 기준이라
+   * 여기서 따로 세면 두 곳이 어긋난다.
+   */
+  const step = nextSetupStep(verification, parentProfile);
+
   useEffect(() => {
-    if (isLoading) return;
-    if (parentProfile) router.replace('/(tabs)/home');
+    if (isLoading || verifying) return;
+    // 등록을 마친 분께는 인사 없이 홈으로 — 켤 때마다 같은 인사는 방해다
+    if (step === 'done') router.replace('/(tabs)/home');
     else setReady(true);
-  }, [isLoading, parentProfile, router]);
+  }, [isLoading, verifying, step, router]);
 
   const bottleIn = useRef(new Animated.Value(0)).current;
   const shake = useRef(new Animated.Value(0)).current;
@@ -339,7 +352,8 @@ export default function WelcomeScreen() {
           accessibilityLabel="다음"
           style={({ pressed }) => [styles.next, pressed && styles.nextPressed]}
           testID="welcome-next"
-          onPress={() => router.replace('/(parent-setup)/onboarding')}
+          // 하다 만 분은 하던 자리로 — 처음부터 다시 시키지 않는다
+          onPress={() => router.replace(`/(parent-setup)/${step}`)}
         >
           <Text style={styles.nextText}>다음</Text>
         </Pressable>

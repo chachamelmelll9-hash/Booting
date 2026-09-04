@@ -103,10 +103,14 @@ export default function LoginScreen() {
 
   /**
    * 개발용 즉시 로그인 (__DEV__ 빌드에서만 버튼이 보인다).
-   * 서버가 고정 계정을 만들고 자녀 인증까지 끝난 세션을 준다.
+   * 서버가 계정을 만들고 자녀 인증까지 끝난 세션을 준다.
+   *
+   * `fresh` 는 매번 **새 계정**이다. 고정 계정에는 부모님 프로필이 이미 등록·
+   * 공개돼 있어 등록 흐름을 지날 수 없다 — 인사 화면이 "다 끝난 사람" 으로 보고
+   * 추천 화면으로 건너뛴다. 실제로 등록부터 보려다 매번 추천 화면이 떴다.
    */
   const devLoginMutation = useMutation({
-    mutationFn: () => devLoginApi(),
+    mutationFn: (fresh: boolean) => devLoginApi(fresh),
     onSuccess: async (result) => {
       if (result.success) {
         await saveTokens({
@@ -305,13 +309,23 @@ export default function LoginScreen() {
 
         {/* 개발 빌드에서만 보인다. 릴리스 번들에는 아예 포함되지 않는다. */}
         {__DEV__ ? (
-          <FormButton
-            testID="dev-login-button"
-            title="개발용 바로 시작 (회원가입 없이)"
-            variant="secondary"
-            onPress={() => devLoginMutation.mutate()}
-            loading={devLoginMutation.isPending}
-          />
+          <>
+            <FormButton
+              testID="dev-login-button"
+              title="개발용 바로 시작 (등록 끝난 계정)"
+              variant="secondary"
+              onPress={() => devLoginMutation.mutate(false)}
+              loading={devLoginMutation.isPending}
+            />
+            {/* 등록 흐름을 처음부터 보려면 아무것도 없는 계정이 있어야 한다 */}
+            <FormButton
+              testID="dev-login-fresh-button"
+              title="개발용 새 계정 (프로필 등록부터)"
+              variant="secondary"
+              onPress={() => devLoginMutation.mutate(true)}
+              loading={devLoginMutation.isPending}
+            />
+          </>
         ) : null}
       </View>
 

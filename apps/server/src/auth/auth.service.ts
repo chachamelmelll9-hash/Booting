@@ -244,7 +244,17 @@ export class AuthService {
    * **production 에서는 호출 자체가 막힌다** — 열려 있으면 아무나 계정을
    * 얻는 통로가 된다.
    */
-  async devLogin(): Promise<LoginResponse> {
+  /**
+   * @param fresh 매번 **새 계정**으로 들어간다.
+   *
+   * 고정 계정(`demo`)에는 부모님 프로필이 이미 등록·공개돼 있어서, 그 버튼으로는
+   * 등록 흐름을 지날 수 없다 — 인사 화면이 "다 끝난 사람" 으로 보고 추천 화면으로
+   * 건너뛴다. 등록을 처음부터 보려면 아무것도 없는 계정이 있어야 한다.
+   *
+   * 자녀 인증은 두 경우 모두 통과시킨다. 문자 인증은 개발에서 지날 수 없고,
+   * 여기서 보려는 것은 그 뒤의 **부모님 프로필 등록**이다.
+   */
+  async devLogin(fresh = false): Promise<LoginResponse> {
     if (process.env.NODE_ENV === 'production') {
       throw new ForbiddenException({
         code: 'not_available',
@@ -252,8 +262,10 @@ export class AuthService {
       });
     }
 
-    const email = process.env.DEV_LOGIN_EMAIL || 'demo@seed.booting.app';
     const password = process.env.DEV_LOGIN_PASSWORD || 'BootingDemo123!';
+    const email = fresh
+      ? `dev.${Date.now().toString(36)}@seed.booting.app`
+      : process.env.DEV_LOGIN_EMAIL || 'demo@seed.booting.app';
     const client = this.supabaseService.getClient();
 
     const { error: createError } = await client.auth.admin.createUser({
