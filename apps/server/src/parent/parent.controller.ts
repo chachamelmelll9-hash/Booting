@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 
 import { ParentLoginDto } from './dto/parent.dto';
 import { ParentGuard } from './parent.guard';
@@ -24,7 +25,16 @@ import { ParentService } from './parent.service';
 export class ParentController {
   constructor(private readonly parent: ParentService) {}
 
+  /**
+   * 코드 로그인 — 시도 횟수를 막는다.
+   *
+   * 코드가 숫자 8자리라 1억 가지지만, 제한이 없으면 기계가 쉬지 않고 넣어 본다.
+   * 여기서 열리는 건 남의 부모님 사진이고 성사되면 연락처까지라, 뚫리면 되돌릴
+   * 수 없다. 부모님은 코드를 한 번 넣지 분당 열 번 넣지 않으므로 실제 사용에는
+   * 걸리지 않는다.
+   */
   @Post('login')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(200)
   login(@Body() dto: ParentLoginDto) {
     return this.parent.login(dto.code);

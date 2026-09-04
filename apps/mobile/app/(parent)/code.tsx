@@ -1,4 +1,4 @@
-import { takePendingSharedProfile, useParentSession } from '@features/parent-view';
+﻿import { takePendingSharedProfile, useParentSession } from '@features/parent-view';
 import { parentApi } from '@shared/api/parent';
 import { theme } from '@shared/config/colors';
 import { radius, spacing, typography } from '@shared/config/tokens';
@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 /**
- * 부모님 로그인 — 코드 6자리.
+ * 부모님 로그인 — 숫자 8자리 코드.
  *
  * 회원가입도 비밀번호도 없다. 자녀가 알려준 코드 하나면 들어온다.
  * 이 화면의 모든 치수(글자 32sp, 자간, 입력칸 높이)는 60~70대가 돋보기 없이
@@ -40,25 +40,29 @@ export default function ParentCodeScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>부모님, 안녕하세요</Text>
         <Text style={styles.body}>
-          자녀분께 받으신 <Text style={styles.bodyStrong}>여섯 자리 코드</Text>를 넣어 주세요.
+          자녀분께 받으신 <Text style={styles.bodyStrong}>여덟 자리 숫자</Text>를 넣어 주세요.
           {'\n'}가입이나 비밀번호는 없습니다.
         </Text>
       </View>
 
+      {/*
+        숫자만 받는다. 영문이 섞이면 어르신께는 대소문자를 가려 누르는 것부터 벽이다.
+        숫자 자판(`number-pad`)을 띄워 글자 자판을 헤맬 일도 없앤다.
+      */}
       <TextInput
         testID="parent-code-input"
         value={code}
         onChangeText={(text) => {
-          setCode(text.toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 6));
+          setCode(text.replace(/[^0-9]/g, '').slice(0, 8));
           setError(null);
         }}
-        placeholder="ABC123"
+        placeholder="12345678"
         placeholderTextColor={theme.colors.disabled}
-        autoCapitalize="characters"
+        keyboardType="number-pad"
         autoCorrect={false}
-        maxLength={6}
+        maxLength={8}
         style={styles.input}
-        accessibilityLabel="접속 코드 여섯 자리"
+        accessibilityLabel="접속 코드 여덟 자리 숫자"
       />
 
       {error ? (
@@ -69,7 +73,7 @@ export default function ParentCodeScreen() {
 
       <AppButton
         label="시작하기"
-        disabled={code.length !== 6}
+        disabled={code.length !== 8}
         loading={login.isPending}
         testID="parent-code-submit"
         onPress={() => login.mutate()}

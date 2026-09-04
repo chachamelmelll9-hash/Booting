@@ -1,4 +1,4 @@
-import {
+﻿import {
   ProfileStatusPanel,
   useParentProfile,
   useParentProfileMutations,
@@ -66,7 +66,7 @@ export default function ParentProfileScreen() {
 
       {/*
         부모님 접속 코드.
-        부모님은 회원가입 없이 이 여섯 자리만으로 자기 화면에 들어가신다.
+        부모님은 회원가입 없이 이 숫자 여덟 자리만으로 자기 화면에 들어가신다.
         자녀가 부모님께 직접 알려드려야 하므로 눈에 잘 띄는 자리에 크게 둔다.
       */}
       {profile.accessCode ? (

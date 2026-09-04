@@ -3,12 +3,16 @@ import { IsString, Length, Matches } from 'class-validator';
 import { DiscoveryItemDto, PublicProfileDto } from '../../discovery/dto/discovery.dto';
 
 export class ParentLoginDto {
-  /** 6자리 접속 코드. 헷갈리는 글자(0/O, 1/I/L)는 알파벳에서 빠져 있다 */
+  /**
+   * 숫자 8자리 접속 코드.
+   *
+   * 영문을 섞지 않는다 — 어르신께는 대소문자를 가려 누르는 것도, 전화로
+   * "비(B)요 디(D)요" 를 되묻는 것도 벽이다. 숫자는 평생 다뤄 오신 형식이다.
+   * 여섯이 아니라 여덟인 이유는 자릿수가 아니라 안전 때문이다 (100만 → 1억).
+   */
   @IsString()
-  @Length(6, 6)
-  @Matches(/^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/i, {
-    message: '코드가 올바르지 않습니다',
-  })
+  @Length(8, 8)
+  @Matches(/^[0-9]{8}$/, { message: '코드가 올바르지 않습니다' })
   code!: string;
 }
 

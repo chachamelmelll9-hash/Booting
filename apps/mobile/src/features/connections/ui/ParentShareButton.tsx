@@ -54,9 +54,34 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
       timers.current.push(
         setTimeout(() => {
           void queryClient.invalidateQueries({ queryKey: ['connections'] });
-          if (i === POLL_ATTEMPTS) setWaiting(false);
+          if (i === POLL_ATTEMPTS) {
+            setWaiting(false);
+            void fallbackInDev();
+          }
         }, POLL_INTERVAL_MS * i)
       );
+    }
+  };
+
+  /**
+   * 개발 빌드에서만 — 기다려도 콜백이 안 오면 대신 기록한다.
+   *
+   * 카카오 콜백 주소는 공개 주소여야 하는데 개발용 임시 터널은 띄울 때마다
+   * 주소가 바뀐다. 그래서 테스트할 때마다 콘솔을 고쳐야 했고, 안 고치면 부모님
+   * 화면이 "자녀분이 거두었습니다" 로 막혔다 (실측).
+   *
+   * **기다린 뒤에** 한다. 바로 기록하면 카카오톡을 열었다 그냥 나와도 완료가
+   * 되어, 정작 검증하려는 규칙("보내야 완료")을 개발에서 확인할 수 없게 된다.
+   * 개발 우회임을 화면에도 밝힌다 — 조용히 하면 운영에서도 되는 줄 안다.
+   */
+  const fallbackInDev = async () => {
+    if (!__DEV__) return;
+    try {
+      await connectionsApi.markShareInDev(connection.id);
+      await queryClient.invalidateQueries({ queryKey: ['connections'] });
+      toast.show({ message: '개발 빌드: 카카오 콜백 없이 공유로 기록했습니다' });
+    } catch {
+      // 운영 빌드의 서버라면 403 이다 — 그게 맞는 동작이라 조용히 넘긴다
     }
   };
 

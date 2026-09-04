@@ -1,6 +1,7 @@
 ﻿import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   HttpCode,
   Param,
@@ -69,9 +70,33 @@ export class ConnectionsController {
   }
 
 
-  // 공유 완료를 앱이 표시하는 경로(`POST :id/parent-share`)는 없앴다. 앱은
-  // "카카오톡으로 넘겼다"까지만 알아서, 공유 화면을 열었다 그냥 나와도 완료가
-  // 됐다. 표시는 카카오 서버 콜백(`KakaoShareController`)만 한다.
+  /**
+   * **개발 빌드 전용** — 카카오 콜백 없이 공유를 기록한다.
+   *
+   * 운영에서 공유 완료를 표시하는 길은 카카오 서버 콜백 하나뿐이다
+   * (`KakaoShareController`). 앱은 "카카오톡으로 넘겼다"까지만 알아서, 앱이
+   * 표시하게 두면 공유 화면을 열었다 그냥 나와도 완료가 된다.
+   *
+   * 그런데 개발 중에는 그 콜백이 닿지 않는다. 카카오 콘솔에 등록하는 콜백
+   * 주소는 공개 주소여야 하는데, 개발용 임시 터널은 띄울 때마다 주소가 바뀐다.
+   * 그래서 테스트할 때마다 콘솔을 고쳐야 했고, 안 고치면 부모님 화면이
+   * "자녀분이 거두었습니다" 로 막혔다 (실측).
+   *
+   * 운영에서는 도메인이 고정되므로 이 우회로가 필요 없다 — 그래서 **production
+   * 에서는 아예 막는다.** 남겨 두면 언젠가 앱이 이걸 불러 증명 없는 완료를
+   * 만들어 낸다.
+   */
+  @Post(':id/parent-share')
+  @HttpCode(200)
+  markShareInDev(@User('id') userId: string, @Param('id') id: string) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException({
+        code: 'not_available',
+        message: '사용할 수 없습니다',
+      });
+    }
+    return this.connections.markParentShare(id, userId);
+  }
 
   @Post(':id/end')
   @HttpCode(200)

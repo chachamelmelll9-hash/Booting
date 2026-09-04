@@ -63,7 +63,7 @@ export default function ParentProfileScreen() {
   const { connectionId } = useLocalSearchParams<{ connectionId: string }>();
   const router = useRouter();
   const toast = useToast();
-  const { data: detail, isLoading } = useParentProfileDetail(connectionId);
+  const { data: detail, isLoading, error, refetch } = useParentProfileDetail(connectionId);
   const { markViewed, express, decline } = useParentActions();
 
   const [confirmDecline, setConfirmDecline] = useState(false);
@@ -85,13 +85,34 @@ export default function ParentProfileScreen() {
   }
 
   if (!detail) {
+    /**
+     * 못 불러온 이유를 구분한다.
+     *
+     * 서버가 403/404 를 주면 정말 없어진 것이다 (자녀가 거두었거나 인연이 끝났다).
+     * 그 밖의 실패는 통신 문제인데, 그때까지 "자녀분이 거두었다"고 말하면 멀쩡한
+     * 프로필을 두고 부모님이 "얘가 취소했구나" 하고 오해하신다. 실제로 서버가
+     * 잠깐 내려갔을 때 이 문구가 떴다 (실측).
+     *
+     * 통신 문제일 때는 되돌아가는 길이 아니라 **다시 시도**를 드려야 한다.
+     * 목록으로 보내면 부모님은 같은 카드를 다시 눌러보실 수밖에 없다.
+     */
+    const status = (error as { status?: number } | null)?.status;
+    const gone = status === 403 || status === 404;
     return (
       <Screen>
         <EmptyState
           icon="exclamation-circle"
-          title="프로필을 볼 수 없습니다"
-          description="자녀분이 거두었거나 이미 정리된 프로필입니다."
-          cta={{ label: '목록으로', onPress: () => router.replace('/(parent)/home') }}
+          title={gone ? '프로필을 볼 수 없습니다' : '잠시 불러오지 못했습니다'}
+          description={
+            gone
+              ? '자녀분이 거두었거나 이미 정리된 프로필입니다.'
+              : '인터넷 연결을 확인하고 다시 눌러 주세요.'
+          }
+          cta={
+            gone
+              ? { label: '목록으로', onPress: () => router.replace('/(parent)/home') }
+              : { label: '다시 시도', onPress: () => void refetch() }
+          }
         />
       </Screen>
     );

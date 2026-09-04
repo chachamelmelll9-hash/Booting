@@ -134,7 +134,12 @@ export const connectionsApi = {
     serverFetch<Message>(`/connections/${id}/messages`, { method: 'POST', body: { body } }),
   end: (id: string, reason?: string) =>
     serverFetch<Connection>(`/connections/${id}/end`, { method: 'POST', body: { reason } }),
-  // 공유 완료를 앱이 표시하는 호출은 없다 — 카카오 서버 콜백만 표시한다
+  /**
+   * **개발 빌드 전용** — 카카오 콜백이 닿지 않는 개발 환경에서만 쓴다.
+   * 서버가 production 에서는 403 으로 막는다. 운영의 공유 완료는 콜백만 만든다.
+   */
+  markShareInDev: (id: string) =>
+    serverFetch<Connection>(`/connections/${id}/parent-share`, { method: 'POST' }),
   /** 카카오 공유에 실어 보낼 서명 — 서버 콜백이 돌아왔을 때 위조를 가른다 */
   shareToken: (id: string) =>
     serverFetch<{ token: string; userId: string }>(`/connections/${id}/share-token`),
