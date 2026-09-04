@@ -197,6 +197,27 @@ export class ConnectionsService {
       .digest('base64url');
   }
 
+  /**
+   * 카카오톡 카드의 버튼이 갈 주소.
+   *
+   * 앱 실행 파라미터만 넣으면 카카오톡이 버튼을 지운다 — 부모님 폰에 앱이 없고
+   * (아이폰이면 더더욱) 갈 곳이 없다고 보기 때문이다. 실제로 카드는 왔는데
+   * '자세히 보기' 가 없었다 (실측). 어느 기기에서나 열리는 웹 주소를 준다.
+   *
+   * 바깥에서 닿는 주소여야 한다 — localhost 나 10.0.2.2 를 보내면 부모님
+   * 폰에서 열리지 않는다. 동의 링크와 같은 환경변수를 쓴다.
+   */
+  parentOpenUrl(connectionId: string): string {
+    const base = process.env.PUBLIC_BASE_URL;
+    if (!base) {
+      throw new BadRequestException({
+        code: 'public_url_missing',
+        message: '공유 링크 주소가 설정되지 않았습니다',
+      });
+    }
+    return `${base.replace(/\/$/, '')}/open/${connectionId}`;
+  }
+
   verifyParentShareToken(connectionId: string, userId: string, token: string): boolean {
     const expected = this.parentShareToken(connectionId, userId);
     // 길이가 다르면 timingSafeEqual 이 던진다

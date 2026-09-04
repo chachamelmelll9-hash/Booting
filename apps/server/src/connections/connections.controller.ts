@@ -40,10 +40,20 @@ export class ConnectionsController {
     return { count: await this.connections.unseenCount(userId) };
   }
 
-  /** 카카오 공유에 실어 보낼 서명 — 콜백이 돌아왔을 때 위조를 가른다 */
+  /**
+   * 카카오 공유에 실어 보낼 서명 — 콜백이 돌아왔을 때 위조를 가른다.
+   *
+   * 카드 버튼이 갈 주소(`openUrl`)도 함께 준다. 공개 주소는 서버만 알고 있고
+   * (개발용 터널은 띄울 때마다 바뀐다), 앱이 이 값을 따로 들고 있으면 두 곳이
+   * 어긋난다.
+   */
   @Get(':id/share-token')
   shareToken(@User('id') userId: string, @Param('id') id: string) {
-    return { token: this.connections.parentShareToken(id, userId), userId };
+    return {
+      token: this.connections.parentShareToken(id, userId),
+      userId,
+      openUrl: this.connections.parentOpenUrl(id),
+    };
   }
 
   @Get(':id')

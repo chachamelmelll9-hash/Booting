@@ -101,7 +101,13 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
       toast.show({ message: '카카오톡을 열지 못했습니다. 설치되어 있는지 확인해 주세요.' });
       return;
     }
-    const result = await sendProfileCardToMyKakao(connection.partner, connection.id);
+    // 카드 버튼이 갈 주소는 서버만 안다 (개발 터널은 띄울 때마다 바뀐다)
+    const { openUrl } = await connectionsApi.shareToken(connection.id);
+    const result = await sendProfileCardToMyKakao(
+      connection.partner,
+      connection.id,
+      openUrl
+    );
     toast.show({
       message: result.ok
         ? '개발 빌드: 카카오톡이 없어 내 카카오톡(나와의 채팅)으로 보냈습니다'
@@ -113,12 +119,13 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
     setBusy(true);
     try {
       // 콜백이 돌아왔을 때 누가 무엇을 보냈는지 알아보게 서명을 받아 실어 보낸다
-      const { token, userId } = await connectionsApi.shareToken(connection.id);
-      const outcome = await shareProfileToParent(connection.partner, connection.id, {
-        connectionId: connection.id,
-        userId,
-        t: token,
-      });
+      const { token, userId, openUrl } = await connectionsApi.shareToken(connection.id);
+      const outcome = await shareProfileToParent(
+        connection.partner,
+        connection.id,
+        { connectionId: connection.id, userId, t: token },
+        openUrl
+      );
 
       if (outcome === 'unavailable') {
         await sendToMyselfInDev();

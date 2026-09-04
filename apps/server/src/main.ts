@@ -20,7 +20,12 @@ async function bootstrap() {
     // 부모님 동의 페이지는 카카오톡으로 나가는 링크다. 부모님이 보시는 주소에
     // /api 가 붙어 있을 이유가 없고, 짧을수록 링크가 덜 수상해 보인다.
     // path-to-regexp 최신 규격 — 와일드카드에 이름이 필요하다 (`(.*)` 는 경고)
-    exclude: ['consent/:token', 'consent/:token/agree'],
+    exclude: [
+      'consent/:token',
+      'consent/:token/agree',
+      // 카카오톡 카드의 버튼이 오는 자리 — 이것도 부모님이 보시는 주소다
+      'open/:connectionId',
+    ],
   });
   const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:4200')
     .split(',')

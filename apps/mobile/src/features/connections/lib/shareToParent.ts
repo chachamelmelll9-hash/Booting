@@ -61,8 +61,24 @@ export function parentShareMessage(profile: DiscoveryItem): string {
  * 템플릿 ID 를 쓰지 않는다 — `shareFeedTemplate` 은 카카오 개발자 콘솔에
  * 템플릿을 만들지 않아도 앱에서 만든 카드를 그대로 보낸다.
  */
-function feedTemplate(profile: DiscoveryItem, connectionId: string) {
+function feedTemplate(profile: DiscoveryItem, connectionId: string, openUrl?: string) {
   const goals = (profile.goals ?? []).map(goalLabel).filter(Boolean);
+  /**
+   * 웹 주소와 앱 실행을 **둘 다** 넣는다.
+   *
+   * 앱 실행 파라미터만 두면 카카오톡이 버튼을 통째로 지운다 — 부모님 폰에 앱이
+   * 없고, 아이폰이면 iOS 플랫폼도 콘솔에 없어서 갈 곳이 없다고 보기 때문이다.
+   * 실제로 카드는 왔는데 '자세히 보기' 가 없었다 (실측).
+   *
+   * 안드로이드에 앱이 있으면 실행 파라미터가 먼저 먹어 앱이 열리고, 없으면 웹
+   * 주소로 간다. 그 페이지가 앱 열기와 부모님 코드 안내를 보여 드린다.
+   * (`openUrl` 도메인은 카카오 콘솔 [플랫폼 > Web] 에 등록돼 있어야 한다.)
+   */
+  const link = {
+    ...(openUrl ? { webUrl: openUrl, mobileWebUrl: openUrl } : {}),
+    androidExecutionParams: { connectionId },
+    iosExecutionParams: { connectionId },
+  };
   const description = [
     subtitle(profile),
     profile.introExcerpt,
@@ -76,26 +92,16 @@ function feedTemplate(profile: DiscoveryItem, connectionId: string) {
       title: `${profile.nickname} 님 · ${profile.age}세`,
       description,
       imageUrl: profile.primaryPhotoUrl ?? '',
-      /**
-       * 카드를 누르면 **부팅 앱**이 열리고, 코드를 넣으시면 **이 프로필** 화면으로
-       * 이어진다. 목록에 떨어뜨리면 방금 무엇을 누르셨는지 다시 찾아야 한다.
-       *
-       * 웹 주소를 넣는 길도 있지만 카카오 콘솔에 도메인을 등록해야 열리고, 등록
-       * 전에는 아무 일도 일어나지 않는다. 앱을 여는 건 우리 매니페스트만 고치면
-       * 되고(`plugins/withKakaoLinkScheme.js`), 부모님은 코드 로그인을 위해 어차피
-       * 앱이 필요하시니 동선도 이쪽이 맞다.
-       */
-      link: {
-        androidExecutionParams: { connectionId },
-        iosExecutionParams: { connectionId },
-      },
+      link,
     },
     /**
-     * 버튼은 지울 수 없다. 피드 카드는 '자세히 보기' 를 **항상** 붙이고
-     * (`buttons: []` 로도 안 지워진다 — 실측), 그 버튼은 위 `content.link` 로 간다.
-     * 지울 수 없다면 갈 곳을 주는 게 맞다. 문구만 부모님 말로 바꾼다.
+     * 버튼을 `buttonTitle` 로 두지 않고 **목록으로** 명시한다.
+     *
+     * `buttonTitle` 은 카드의 `content.link` 를 그대로 쓰는 줄임 표기인데, 그렇게
+     * 보낸 카드에는 버튼이 아예 나오지 않았다 (아이폰에서 실측). 버튼과 그 버튼이
+     * 갈 곳을 한 자리에 적어 두면 해석의 여지가 없다.
      */
-    buttonTitle: '부팅에서 열기',
+    buttons: [{ title: '부팅에서 열기', link }],
   };
 }
 
@@ -129,14 +135,16 @@ export async function shareProfileToParent(
    * 서버를 부른다. 공유 완료 표시는 그 콜백에서만 한다 — 앱은 "카카오톡으로
    * 넘겼다"까지만 알기 때문에, 앱에서 표시하면 버튼만 눌러도 완료가 된다.
    */
-  callbackArgs?: Record<string, string>
+  callbackArgs?: Record<string, string>,
+  /** 카드 버튼이 갈 웹 주소 — 서버가 준다 (`share-token` 응답) */
+  openUrl?: string
 ): Promise<ShareOutcome> {
   const kakao = isKakaoConfigured ? loadKakaoShare() : null;
   if (!kakao) return 'unavailable';
 
   try {
     await kakao.shareFeedTemplate({
-      template: feedTemplate(profile, connectionId),
+      template: feedTemplate(profile, connectionId, openUrl),
       // 카카오톡이 없으면 웹으로 우회하지 않는다 — 아무 화면도 없이 성공이
       // 돌아와 보내지도 않은 걸 보냈다고 표시하게 된다 (에뮬레이터에서 실측)
       useWebBrowserIfKakaoTalkNotAvailable: false,
@@ -166,7 +174,8 @@ export async function shareProfileToParent(
  */
 export async function sendProfileCardToMyKakao(
   profile: DiscoveryItem,
-  connectionId: string
+  connectionId: string,
+  openUrl?: string
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
   const kakao = isKakaoConfigured ? loadKakaoShare() : null;
   if (!kakao) return { ok: false, reason: '카카오 설정이 없습니다' };
@@ -177,7 +186,11 @@ export async function sendProfileCardToMyKakao(
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const auth = require('@features/auth/lib/kakaoAuth') as typeof KakaoAuth;
     await auth.ensureKakaoMessageScope();
-    await kakao.sendFeedTemplateToMe({ template: feedTemplate(profile, connectionId) });
+    const template = feedTemplate(profile, connectionId, openUrl);
+    // 카드에 버튼이 안 나올 때 무엇이 실려 나갔는지 봐야 한다. 사진 주소는
+    // 서명이 붙어 길기만 하므로 버튼과 링크만 찍는다.
+    if (__DEV__) console.log('[kakao card]', JSON.stringify(template.buttons));
+    await kakao.sendFeedTemplateToMe({ template });
     return { ok: true };
   } catch (error) {
     if (__DEV__) console.log('[kakao send-to-me failed]', error);
