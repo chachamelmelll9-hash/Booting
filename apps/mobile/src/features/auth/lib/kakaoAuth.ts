@@ -1,4 +1,4 @@
-import { isLogined, login, scopes as kakaoScopes } from '@react-native-kakao/user';
+import { login, scopes as kakaoScopes } from '@react-native-kakao/user';
 import { supabase } from '@shared/lib/supabase';
 
 import { oauthCallbackApi, resolveKakaoLinkApi } from '../api/authApi';
@@ -73,11 +73,37 @@ const TALK_MESSAGE_SCOPE = 'talk_message';
  * 같이 실을 수 없다 (라이브러리가 거부한다 — 실측). 카카오계정 로그인이면
  * 동의 화면이 떠서 그 자리에서 항목을 받을 수 있다.
  */
-export async function ensureKakaoMessageScope(): Promise<void> {
-  if (await isLogined()) {
+async function messageScopeState(): Promise<'granted' | 'missing' | 'no-token'> {
+  try {
     const granted = await kakaoScopes([TALK_MESSAGE_SCOPE]);
-    if (granted.some((s) => s.id === TALK_MESSAGE_SCOPE && s.agreed)) return;
+    return granted.some((s) => s.id === TALK_MESSAGE_SCOPE && s.agreed)
+      ? 'granted'
+      : 'missing';
+  } catch {
+    // 동의 상태를 물어보는 것 자체가 토큰을 쓴다. 실패하면 아직 로그인 전이다.
+    //
+    // `isLogined()` 로 묻지 않는 이유: 그 함수는 저장된 토큰이 있는지만 보고
+    // true 를 주는데 정작 그 토큰으로 부르면 `TokenNotFound` 가 난다 (실측).
+    return 'no-token';
   }
+}
+
+export async function ensureKakaoMessageScope(): Promise<void> {
+  let state = await messageScopeState();
+  if (state === 'granted') return;
+
+  if (state === 'no-token') {
+    /**
+     * 로그인이 먼저다. `login({ scopes })` 는 '추가 동의 받기'
+     * (`loginWithNewScopes`) 로 가는데, 그건 **이미 로그인돼 있어야** 동작한다 —
+     * 토큰이 없으면 화면도 안 뜨고 `TokenNotFound` 로 끝난다 (실측).
+     */
+    await loginWithKakao();
+    state = await messageScopeState();
+    if (state === 'granted') return;
+  }
+
+  // 로그인은 됐는데 이 동의만 없다 → 여기서 그 항목만 더 받는다
   await login({ useKakaoAccountLogin: true, scopes: [TALK_MESSAGE_SCOPE] });
 }
 
