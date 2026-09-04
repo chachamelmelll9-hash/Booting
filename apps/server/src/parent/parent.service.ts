@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger,NotFoundException } from '@nestjs/common';
 
 import { domainError, ERROR_CODES } from '../common/constants/errors';
 import { maskName } from '../common/privacy';
@@ -19,6 +19,8 @@ const publicName = (row: { nickname?: string | null; display_name: string }) =>
 
 @Injectable()
 export class ParentService {
+  private readonly logger = new Logger(ParentService.name);
+
   constructor(
     private readonly supabase: SupabaseService,
     private readonly discovery: DiscoveryService,
@@ -224,6 +226,26 @@ export class ParentService {
     );
     if (error) {
       throw new BadRequestException({ code: 'parent_interest_failed', message: error.message });
+    }
+
+    /**
+     * 개발 빌드에서는 상대 부모님도 누르신 것으로 둔다.
+     *
+     * 성사되려면 **양쪽 부모님**이 각각 자기 화면에서 누르셔야 한다. 그게 이
+     * 서비스의 규칙이지만, 개발 기기에는 상대 부모님이 없다 — 상대 코드로 따로
+     * 로그인해 한 번 더 누르지 않으면 매칭 이후(연락처 전달·대화방·부모님 홈의
+     * 성사 강조)를 아예 볼 수 없었다.
+     *
+     * 우회가 아니라 상대 부모님이 하실 일을 그대로 기록한다. 판정 로직은 아래
+     * 그대로 지나므로, 여기서 조작하는 것은 '상대가 눌렀는가' 하나뿐이다.
+     * 운영에서는 이 블록이 실행되지 않는다.
+     */
+    if (process.env.NODE_ENV !== 'production') {
+      await client.from('parent_interests').upsert(
+        { connection_id: connectionId, parent_profile_id: partnerProfileId, kind: 'interested' },
+        { onConflict: 'connection_id,parent_profile_id' }
+      );
+      this.logger.log(`dev: 상대 부모님 의사를 함께 기록 (connection ${connectionId})`);
     }
 
     const { data: theirs } = await client
