@@ -249,7 +249,7 @@ export default function ParentProfileScreen() {
       <View style={styles.badgeBox}>
         <Text style={styles.badgeTitle}>부팅이 확인한 것</Text>
         <Text style={styles.badgeText}>
-          자녀분 본인 확인 · 가족관계 확인 · 부모님 동의를 모두 마친 분입니다.
+          자녀분 본인 확인을 마쳤고, 이분의 부모님께서 직접 동의하셨습니다.
         </Text>
       </View>
 

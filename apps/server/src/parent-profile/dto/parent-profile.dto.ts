@@ -175,9 +175,17 @@ export interface PhotoDto {
   sortOrder: number;
 }
 
+/**
+ * 화면에 보이는 배지는 '부모님 동의' 하나다.
+ *
+ * '자녀 인증'·'가족관계' 를 함께 달았을 때, 공개된 프로필에는 그 둘이 늘 켜져
+ * 있었다 — 인증을 마쳐야 프로필을 만들 수 있으니 당연하다. 늘 같은 값인 표시는
+ * 아무것도 알려주지 않으면서 카드마다 자리를 차지했다. 남에게 실제로 뜻이 있는
+ * 것은 부모님이 직접 동의하셨다는 사실 하나다.
+ *
+ * `review` 는 화면에 나가지 않는다 (내부 심사 상태).
+ */
 export interface ProfileBadges {
-  child: boolean;
-  family: boolean;
   consent: boolean;
   review: boolean;
 }

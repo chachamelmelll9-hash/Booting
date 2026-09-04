@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
-import { SubmitFamilyDocDto, SubmitPhoneDto } from './dto/verification.dto';
+import { SubmitPhoneDto } from './dto/verification.dto';
 import { VerificationService } from './verification.service';
 
 @Controller('me/verification')
@@ -20,8 +20,5 @@ export class VerificationController {
     return this.verification.submitPhone(userId, dto);
   }
 
-  @Post('family')
-  submitFamily(@User('id') userId: string, @Body() dto: SubmitFamilyDocDto) {
-    return this.verification.submitFamilyDoc(userId, dto);
-  }
+  // `POST family` 는 없앴다 — 가족관계증명서는 더 이상 받지 않는다
 }

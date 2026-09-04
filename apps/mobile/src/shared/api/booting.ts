@@ -43,11 +43,7 @@ export const verificationApi = {
       method: 'POST',
       body: { phone, token },
     }),
-  submitFamilyDoc: (storagePath: string) =>
-    serverFetch<VerificationStatus>('/me/verification/family', {
-      method: 'POST',
-      body: { storagePath },
-    }),
+  // submitFamilyDoc 은 없앴다 — 가족관계증명서는 더 이상 받지 않는다
 };
 
 export const parentProfileApi = {

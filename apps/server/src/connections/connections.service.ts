@@ -421,7 +421,7 @@ export class ConnectionsService {
         goals: [],
         primaryPhotoUrl: '',
         introExcerpt: '',
-        badges: { child: false, family: false, consent: false, review: false },
+        badges: { consent: false, review: false },
       },
       lastMessage,
       unreadCount,

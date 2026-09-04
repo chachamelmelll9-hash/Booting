@@ -14,7 +14,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable,StyleSheet, Text, View } from 'react-native';
 
 const CONSENT_POINTS = [
   '부모님 사진과 소개가 다른 회원에게 공개됩니다.',
@@ -98,6 +98,43 @@ export default function ConsentScreen() {
     }
   };
 
+  /**
+   * 개발 빌드에서만 — 부모님 대신 동의 페이지를 눌러 준다.
+   *
+   * 이 단계는 부모님이 카카오톡으로 받은 링크를 **직접** 여셔야 넘어간다. 그게
+   * 맞는 규칙이지만(자녀의 진술은 동의가 아니다), 개발 기기에는 부모님도
+   * 카카오톡 계정도 없어서 그 뒤의 화면들(미리보기·공개·공유·매칭)을 아예 볼 수
+   * 없었다.
+   *
+   * 그래서 **우회하지 않고** 부모님이 하실 일을 그대로 한다 — 링크를 만들고 그
+   * 페이지의 동의 요청을 부른다. 서버가 보기에 진짜 동의와 같은 경로이므로
+   * 기록도 같게 남고, 규칙을 건드리지 않는다. 운영 빌드에는 이 버튼이 없다.
+   */
+  const handleDevAgree = () => {
+    const name = parentName.trim() || profile.displayName;
+    // 번호는 테스트에서 의미가 없다 — 비워 두셨으면 형식만 맞는 값을 쓴다
+    const testPhone = /^01[016789]\d{7,8}$/.test(phone) ? phone : '01012345678';
+
+    createConsentLink.mutate(
+      { parentName: name, phone: testPhone },
+      {
+        onSuccess: async (link) => {
+          try {
+            const res = await fetch(`${link.url}/agree`, { method: 'POST' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            await queryClient.invalidateQueries({ queryKey: ['parent-profile'] });
+            toast.show({ message: '개발 빌드: 부모님이 동의하신 것으로 처리했습니다' });
+          } catch (e) {
+            toast.show({
+              message: `동의 처리 실패: ${e instanceof Error ? e.message : String(e)}`,
+            });
+          }
+        },
+        onError: (e: Error) => toast.show({ message: e.message }),
+      }
+    );
+  };
+
   const handleSend = () => {
     const name = parentName.trim() || profile.displayName;
     if (!/^01[016789]\d{7,8}$/.test(phone)) {
@@ -130,13 +167,25 @@ export default function ConsentScreen() {
             onPress={() => router.push('/(parent-setup)/preview')}
           />
         ) : (
-          <AppButton
-            label="부모님 동의 받기"
-            loading={createConsentLink.isPending}
-            disabled={waiting}
-            testID="consent-send"
-            onPress={handleSend}
-          />
+          <View style={styles.footer}>
+            <AppButton
+              label="부모님 동의 받기"
+              loading={createConsentLink.isPending}
+              disabled={waiting}
+              testID="consent-send"
+              onPress={handleSend}
+            />
+            {/* 개발 빌드에만 있다. 릴리스 번들에는 아예 포함되지 않는다. */}
+            {__DEV__ && (
+              <Pressable
+                accessibilityRole="button"
+                testID="consent-dev-agree"
+                onPress={handleDevAgree}
+              >
+                <Text style={styles.devLink}>개발: 부모님이 동의하신 것으로 처리</Text>
+              </Pressable>
+            )}
+          </View>
         )
       }
     >
@@ -198,6 +247,14 @@ export default function ConsentScreen() {
 }
 
 const styles = StyleSheet.create({
+  footer: { gap: spacing.xs },
+  devLink: {
+    ...typography.caption,
+    color: theme.colors.textMuted,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    paddingVertical: spacing.xxs,
+  },
   title: { ...typography.title, color: theme.colors.text, marginTop: spacing.md },
   lede: { ...typography.body, color: theme.colors.textSecondary, marginTop: spacing.xs },
   body: { ...typography.body, color: theme.colors.textSecondary, marginTop: spacing.md },

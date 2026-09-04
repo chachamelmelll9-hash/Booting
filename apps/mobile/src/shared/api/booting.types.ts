@@ -18,7 +18,7 @@ export type ProfileStatus =
   | 'hidden'
   | 'rejected';
 
-export type FamilyDocStatus = 'none' | 'pending' | 'approved' | 'rejected';
+// FamilyDocStatus 는 없앴다 — 가족관계증명서는 더 이상 받지 않는다
 export type ParentIntentKind = 'willing' | 'thinking' | 'declined';
 export type MeetingStatus =
   | 'proposed'
@@ -28,9 +28,14 @@ export type MeetingStatus =
   | 'cancelled';
 export type MeetingFeedbackKind = 'continue' | 'friends' | 'thinking' | 'no_more';
 
+/**
+ * 화면에 보이는 배지는 '부모님 동의' 하나다 — `review` 는 내부 심사 상태다.
+ *
+ * '자녀 인증'·'가족관계' 는 없앴다. 공개된 프로필에는 그 둘이 늘 켜져 있었고
+ * (인증을 마쳐야 프로필을 만들 수 있으니 당연하다), 늘 같은 값인 표시는
+ * 아무것도 알려주지 않으면서 카드마다 자리를 차지했다.
+ */
 export interface Badges {
-  child: boolean;
-  family: boolean;
   consent: boolean;
   review: boolean;
 }
@@ -38,9 +43,6 @@ export interface Badges {
 export interface VerificationStatus {
   phoneVerified: boolean;
   phoneMasked: string | null;
-  familyDocStatus: FamilyDocStatus;
-  familyVerified: boolean;
-  rejectReason: string | null;
   canCreateProfile: boolean;
 }
 

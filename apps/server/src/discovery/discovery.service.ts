@@ -164,12 +164,7 @@ export class DiscoveryService {
         goals: (goals.get(r.id) ?? []) as RelationshipGoal[],
         primaryPhotoUrl: photoUrls.get(r.id) ?? '',
         introExcerpt: excerpt(r.intro_by_child),
-        badges: badges.get(r.id) ?? {
-          child: false,
-          family: false,
-          consent: false,
-          review: false,
-        },
+        badges: badges.get(r.id) ?? { consent: false, review: false },
       }))
     );
   }

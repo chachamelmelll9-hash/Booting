@@ -53,7 +53,8 @@ export type MeetingStatus =
 
 export type MeetingFeedbackKind = 'continue' | 'friends' | 'thinking' | 'no_more';
 
-export type FamilyDocStatus = 'none' | 'pending' | 'approved' | 'rejected';
+// FamilyDocStatus 는 없앴다 — 가족관계증명서는 더 이상 받지 않는다.
+// DB 컬럼은 과거 기록으로 남아 있지만 어디서도 읽지 않는다.
 
 export type ConsentMethod = 'sms' | 'in_person';
 

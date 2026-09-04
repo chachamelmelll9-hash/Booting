@@ -50,7 +50,7 @@ export const ERROR_CODES = {
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
 
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
-  child_not_verified: '자녀 본인인증과 가족관계 확인을 먼저 완료해주세요',
+  child_not_verified: '자녀 본인인증을 먼저 완료해주세요',
   profile_not_published: '부모님 프로필을 공개한 뒤에 이용할 수 있습니다',
   profile_not_found: '프로필을 찾을 수 없습니다',
   profile_exists: '이미 등록한 부모님 프로필이 있습니다',

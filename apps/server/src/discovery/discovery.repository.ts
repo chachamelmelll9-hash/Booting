@@ -164,25 +164,17 @@ export class DiscoveryRepository {
     return result;
   }
 
-  /** 배지 계산에 쓰는 인증·동의·검수 상태를 한 번에 */
+  /** 배지 계산에 쓰는 동의·검수 상태를 한 번에 */
   async badgesFor(
     profiles: { id: string; user_id: string }[]
-  ): Promise<Map<string, { child: boolean; family: boolean; consent: boolean; review: boolean }>> {
-    const result = new Map<
-      string,
-      { child: boolean; family: boolean; consent: boolean; review: boolean }
-    >();
+  ): Promise<Map<string, { consent: boolean; review: boolean }>> {
+    const result = new Map<string, { consent: boolean; review: boolean }>();
     if (!profiles.length) return result;
 
     const client = this.supabase.getClient();
     const profileIds = profiles.map((p) => p.id);
-    const userIds = profiles.map((p) => p.user_id);
 
-    const [verifications, consents, reviews] = await Promise.all([
-      client
-        .from('child_verifications')
-        .select('user_id, phone_verified_at, family_doc_status')
-        .in('user_id', userIds),
+    const [consents, reviews] = await Promise.all([
       client
         .from('parent_consents')
         .select('parent_profile_id, consented_at, revoked_at')
@@ -195,17 +187,13 @@ export class DiscoveryRepository {
         .eq('status', 'approved'),
     ]);
 
-    const byUser = new Map((verifications.data ?? []).map((v) => [v.user_id, v]));
     const consented = new Set(
       (consents.data ?? []).filter((c) => c.consented_at).map((c) => c.parent_profile_id)
     );
     const reviewed = new Set((reviews.data ?? []).map((r) => r.parent_profile_id));
 
     for (const p of profiles) {
-      const v = byUser.get(p.user_id);
       result.set(p.id, {
-        child: !!v?.phone_verified_at,
-        family: v?.family_doc_status === 'approved',
         consent: consented.has(p.id),
         review: reviewed.has(p.id),
       });

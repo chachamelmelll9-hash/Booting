@@ -63,7 +63,7 @@ export interface DiscoveryItemDto {
   goals: RelationshipGoal[];
   primaryPhotoUrl: string;
   introExcerpt: string;
-  badges: { child: boolean; family: boolean; consent: boolean; review: boolean };
+  badges: { consent: boolean; review: boolean };
 }
 
 export interface PublicProfileDto extends DiscoveryItemDto {

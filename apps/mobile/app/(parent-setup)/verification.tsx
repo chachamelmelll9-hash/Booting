@@ -1,13 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useAuthStore } from '@features/auth';
-import {
-  MockAlbumSheet,
-  pickImage,
-  type SampleImage,
-  uploadToStorage,
-  useVerification,
-  useVerificationMutations,
-} from '@features/parent-profile';
+import { useVerification, useVerificationMutations } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
 import { radius, spacing, typography } from '@shared/config/tokens';
 import {
@@ -24,46 +16,23 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 /**
- * 2단계 — 자녀 인증.
+ * 2단계 — 자녀 본인확인.
  *
- * 본인인증과 가족관계 확인 둘 다 끝나야 프로필을 만들 수 있다.
- * 이게 이 서비스에서 "아무나 남의 부모님을 올리는" 걸 막는 유일한 장치다.
+ * 휴대폰 본인인증 하나다. 가족관계증명서는 받지 않는다 — 남의 부모님을 막는
+ * 실제 장치는 **부모님 본인의 동의**이고(부모님이 링크를 열고 직접 누르셔야
+ * 공개된다), 증명서는 그 위에 서류 한 장을 더 얹어 등록하려는 자녀 모두를
+ * 주민센터로 보냈다.
  */
 export default function VerificationScreen() {
   const router = useRouter();
   const toast = useToast();
-  const user = useAuthStore((s) => s.user);
 
   const { data: status, isLoading } = useVerification();
-  const { submitPhone, submitFamilyDoc } = useVerificationMutations();
+  const { submitPhone } = useVerificationMutations();
 
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [albumOpen, setAlbumOpen] = useState(false);
-
-  const uploadFamilyDoc = async (sample: SampleImage) => {
-    setAlbumOpen(false);
-    if (!user?.id) {
-      toast.show({ message: '로그인 정보를 확인할 수 없습니다' });
-      return;
-    }
-    try {
-      setUploading(true);
-      const image = await pickImage(sample);
-      if (!image) return;
-      const path = await uploadToStorage('family-docs', user.id, image);
-      submitFamilyDoc.mutate(path, {
-        onSuccess: () => toast.show({ message: '가족관계 확인이 완료되었습니다' }),
-        onError: (e: Error) => toast.show({ message: e.message }),
-      });
-    } catch (error) {
-      toast.show({ message: (error as Error).message });
-    } finally {
-      setUploading(false);
-    }
-  };
 
   if (isLoading || !status) {
     return (
@@ -73,7 +42,7 @@ export default function VerificationScreen() {
     );
   }
 
-  const done = status.phoneVerified && status.familyVerified;
+  const done = status.phoneVerified;
 
   return (
     <Screen
@@ -159,33 +128,6 @@ export default function VerificationScreen() {
         )}
       </View>
 
-      <View style={styles.card}>
-        <CheckRow label="가족관계 확인" done={status.familyVerified} />
-        {status.familyVerified ? (
-          <Text style={styles.doneText}>가족관계 확인이 완료되었습니다</Text>
-        ) : (
-          <>
-            <Text style={styles.body}>
-              가족관계증명서를 올려주세요. 원본은 확인 용도로만 쓰이고 다른 사용자에게는
-              절대 공개되지 않습니다.
-            </Text>
-            <AppButton
-              label="가족관계증명서 올리기"
-              variant="secondary"
-              loading={uploading || submitFamilyDoc.isPending}
-              testID="verify-family-doc"
-              onPress={() => setAlbumOpen(true)}
-            />
-          </>
-        )}
-      </View>
-
-      <MockAlbumSheet
-        visible={albumOpen}
-        title="앨범에서 증명서 선택"
-        onSelect={(sample) => void uploadFamilyDoc(sample)}
-        onDismiss={() => setAlbumOpen(false)}
-      />
     </Screen>
   );
 }

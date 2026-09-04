@@ -1,11 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { SupabaseService } from '../supabase/supabase.service';
-import {
-  SubmitFamilyDocDto,
-  SubmitPhoneDto,
-  VerificationStatusDto,
-} from './dto/verification.dto';
+import { SubmitPhoneDto, VerificationStatusDto } from './dto/verification.dto';
 
 @Injectable()
 export class VerificationService {
@@ -17,8 +13,8 @@ export class VerificationService {
     const { data } = await this.supabase
       .getClient()
       .from('child_verifications')
-      // family_doc_path 는 조회하지 않는다 — 실수로 DTO 에 새는 경로를 원천 차단
-      .select('phone, phone_verified_at, family_doc_status, family_verified_at, reject_reason')
+      // 가족관계 컬럼은 더 이상 읽지 않는다 (과거 기록으로만 남는다)
+      .select('phone, phone_verified_at')
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -44,35 +40,7 @@ export class VerificationService {
         },
         { onConflict: 'user_id' }
       )
-      .select('phone, phone_verified_at, family_doc_status, family_verified_at, reject_reason')
-      .single();
-
-    if (error) throw new Error(error.message);
-    return this.toDto(data);
-  }
-
-  async submitFamilyDoc(
-    userId: string,
-    dto: SubmitFamilyDocDto
-  ): Promise<VerificationStatusDto> {
-    // TODO-05: MVP 는 자동 승인이다. 실제 출시 전 반드시 실심사로 교체해야 한다.
-    //          자동 승인이라도 상태 컬럼을 그대로 쓰므로 심사 도입 시 스키마 변경이 없다.
-    const now = new Date().toISOString();
-
-    const { data, error } = await this.supabase
-      .getClient()
-      .from('child_verifications')
-      .upsert(
-        {
-          user_id: userId,
-          family_doc_path: dto.storagePath,
-          family_doc_status: 'approved',
-          family_verified_at: now,
-          reject_reason: null,
-        },
-        { onConflict: 'user_id' }
-      )
-      .select('phone, phone_verified_at, family_doc_status, family_verified_at, reject_reason')
+      .select('phone, phone_verified_at')
       .single();
 
     if (error) throw new Error(error.message);
@@ -81,16 +49,11 @@ export class VerificationService {
 
   private toDto(row: Record<string, any> | null): VerificationStatusDto {
     const phoneVerified = !!row?.phone_verified_at;
-    const familyDocStatus = row?.family_doc_status ?? 'none';
-    const familyVerified = familyDocStatus === 'approved';
 
     return {
       phoneVerified,
       phoneMasked: row?.phone ? maskPhone(row.phone) : null,
-      familyDocStatus,
-      familyVerified,
-      rejectReason: row?.reject_reason ?? null,
-      canCreateProfile: phoneVerified && familyVerified,
+      canCreateProfile: phoneVerified,
     };
   }
 }

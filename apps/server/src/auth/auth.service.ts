@@ -280,14 +280,12 @@ export class AuthService {
 
     const session = await this.login(email, password);
 
-    // 자녀 인증은 통과한 상태로 둔다 (인증 화면을 다시 지나지 않게)
+    // 자녀 본인인증은 통과한 상태로 둔다 (인증 화면을 다시 지나지 않게)
     await client.from('child_verifications').upsert(
       {
         user_id: session.user.id,
         phone: '01000000000',
         phone_verified_at: new Date().toISOString(),
-        family_doc_status: 'approved',
-        family_verified_at: new Date().toISOString(),
       },
       { onConflict: 'user_id' }
     );

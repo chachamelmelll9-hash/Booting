@@ -4,7 +4,6 @@
  * 서버를 거치지 않는 이유:
  *  - 이미지 바이트가 API 서버를 통과할 이유가 없다 (메모리·대역폭)
  *  - Storage RLS 정책이 `{userId}/...` 폴더만 허용하므로 소유권이 이미 강제된다
- *  - 가족관계증명서도 같은 방식이라 경로가 하나로 유지된다
  * 서버에는 업로드된 **경로만** POST 한다.
  */
 import { getAccessToken } from '@features/auth/lib/tokenStorage';
@@ -28,9 +27,9 @@ export interface SampleImage {
 }
 
 export const SAMPLE_IMAGES: SampleImage[] = [
-  { id: 'doc-1', label: '가족관계증명서', tint: '#CCFBF1' },
-  { id: 'doc-2', label: '주민등록등본', tint: '#E0F2FE' },
-  { id: 'photo-1', label: '부모님 사진', tint: '#FEF3C7' },
+  { id: 'photo-1', label: '부모님 사진 1', tint: '#FEF3C7' },
+  { id: 'photo-2', label: '부모님 사진 2', tint: '#CCFBF1' },
+  { id: 'photo-3', label: '부모님 사진 3', tint: '#E0F2FE' },
 ];
 
 /**
@@ -57,7 +56,7 @@ export async function pickImage(sample?: SampleImage): Promise<PickedImage | nul
  * @returns 버킷 내 오브젝트 경로
  */
 export async function uploadToStorage(
-  bucket: 'parent-photos' | 'family-docs',
+  bucket: 'parent-photos',
   userId: string,
   image: PickedImage
 ): Promise<string> {

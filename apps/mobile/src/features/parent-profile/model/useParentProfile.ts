@@ -111,20 +111,17 @@ export function useVerificationMutations() {
         verificationApi.submitPhone(phone, token),
       onSuccess: invalidate,
     }),
-    submitFamilyDoc: useMutation({
-      mutationFn: verificationApi.submitFamilyDoc,
-      onSuccess: invalidate,
-    }),
+    // submitFamilyDoc 은 없앴다 — 가족관계증명서는 더 이상 받지 않는다
   };
 }
 
 /** 등록 플로우가 지금 어느 단계에 있어야 하는지 — 화면이 직접 판정하지 않게 한다 */
 export function nextSetupStep(
-  verification: { phoneVerified: boolean; familyVerified: boolean } | undefined,
+  verification: { phoneVerified: boolean } | undefined,
   profile: ParentProfile | null | undefined
 ): 'onboarding' | 'verification' | 'consent' | 'profile-edit' | 'preview' | 'done' {
   if (!verification) return 'onboarding';
-  if (!verification.phoneVerified || !verification.familyVerified) return 'verification';
+  if (!verification.phoneVerified) return 'verification';
   if (!profile) return 'onboarding';
   // 내용 → 동의 → 공개 순. `missing` 은 서버가 계산해 내려준 값이라
   // 화면과 판정 기준이 어긋나지 않는다.

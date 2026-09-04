@@ -1,4 +1,4 @@
-import {
+﻿import {
   BadRequestException,
   Injectable,
   NotFoundException,
@@ -45,7 +45,7 @@ export class ParentProfileService {
       .eq('user_id', userId)
       .maybeSingle();
 
-    return data ? this.toDto(data, userId) : null;
+    return data ? this.toDto(data) : null;
   }
 
   private async requireOwn(userId: string) {
@@ -91,7 +91,7 @@ export class ParentProfileService {
     if (error) throw this.translate(error);
 
     await this.replaceGoals(data.id, dto.goals);
-    return this.toDto(data, userId);
+    return this.toDto(data);
   }
 
   async update(userId: string, dto: UpdateParentProfileDto): Promise<ParentProfileDto> {
@@ -200,7 +200,7 @@ export class ParentProfileService {
 
   async submit(userId: string): Promise<ParentProfileDto> {
     const profile = await this.requireOwn(userId);
-    const dto = await this.toDto(profile, userId);
+    const dto = await this.toDto(profile);
 
     if (!dto.badges.consent) {
       throw new BadRequestException(domainError(ERROR_CODES.CONSENT_REQUIRED));
@@ -304,10 +304,12 @@ export class ParentProfileService {
       );
   }
 
-  private async toDto(row: Record<string, any>, userId: string): Promise<ParentProfileDto> {
+  private async toDto(row: Record<string, any>): Promise<ParentProfileDto> {
     const client = this.supabase.getClient();
 
-    const [goalsRes, photoRows, sajuRes, regionRes, verificationRes, consent, review] =
+    // 인증 상태는 더 이상 배지에 쓰지 않는다 — 프로필을 만들 수 있었다는 것이
+    // 이미 본인인증을 마쳤다는 뜻이라 늘 같은 값이었다
+    const [goalsRes, photoRows, sajuRes, regionRes, consent, review] =
       await Promise.all([
         client.from('relationship_goals').select('goal').eq('parent_profile_id', row.id),
         client
@@ -317,11 +319,6 @@ export class ParentProfileService {
           .order('sort_order', { ascending: true }),
         client.from('saju_infos').select('*').eq('parent_profile_id', row.id).maybeSingle(),
         client.from('regions').select('sido, sigungu').eq('code', row.region_code).maybeSingle(),
-        client
-          .from('child_verifications')
-          .select('phone_verified_at, family_doc_status')
-          .eq('user_id', userId)
-          .maybeSingle(),
         this.consent.getActive(row.id),
         this.review.getLatest(row.id),
       ]);
@@ -334,8 +331,6 @@ export class ParentProfileService {
       : '';
 
     const badges = {
-      child: !!verificationRes.data?.phone_verified_at,
-      family: verificationRes.data?.family_doc_status === 'approved',
       consent: !!consent?.consented_at && !consent?.revoked_at,
       review: review?.status === 'approved',
     };
