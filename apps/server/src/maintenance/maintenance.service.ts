@@ -52,10 +52,13 @@ export class MaintenanceService implements OnModuleInit, OnModuleDestroy {
     }
     const result = data as Record<string, unknown>;
     if (result && result.skipped !== true) {
+      // 규칙이 늘면 여기도 더한다 — 빠뜨리면 그 규칙만 조용히 돌아, 무엇이
+      // 언제 지워졌는지 나중에 로그로 되짚을 수 없다
       const changed =
         Number(result.hiddenProfiles ?? 0) +
         Number(result.readOnlyNotifications ?? 0) +
-        Number(result.confirmReminders ?? 0);
+        Number(result.confirmReminders ?? 0) +
+        Number(result.expiredHearts ?? 0);
       if (changed > 0) this.logger.log(`maintenance: ${JSON.stringify(result)}`);
     }
     return result;

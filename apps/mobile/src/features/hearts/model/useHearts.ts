@@ -1,4 +1,4 @@
-import { bootingKeys, heartsApi, savedApi } from '@shared/api/booting';
+import { bootingKeys, heartsApi } from '@shared/api/booting';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useReceivedHearts() {
@@ -75,30 +75,11 @@ export function usePassReceivedHeart() {
   });
 }
 
-/** 찜한 프로필 보관함 */
-export function useSavedProfiles() {
-  return useQuery({ queryKey: bootingKeys.saved, queryFn: savedApi.list });
-}
-
-/**
- * 찜하기 / 찜 풀기.
+/*
+ * 찜(보관함)은 없앴다.
  *
- * 받은 관심도 함께 무효화한다 — 찜한 상대는 받은 관심 목록에서 빠지고,
- * 풀면 돌아온다. 둘이 어긋나면 "찜을 풀었는데 어디에도 없는" 상태가 된다.
+ * 받은 관심 카드가 2주 뒤 자동으로 사라지므로, "지금 결정하기 어려운 분"을
+ * 따로 담아 둘 자리가 필요 없다 — 그냥 두면 그게 보류이고, 시간이 지나면
+ * 알아서 정리된다. 담아 두는 자리를 만들면 사용자는 그 목록까지 관리해야 하는데,
+ * 정작 다시 열어 보지 않는다.
  */
-export function useSavedMutations() {
-  const queryClient = useQueryClient();
-
-  const invalidate = async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: bootingKeys.saved }),
-      queryClient.invalidateQueries({ queryKey: bootingKeys.heartsReceived }),
-      queryClient.invalidateQueries({ queryKey: bootingKeys.heartsUnread }),
-    ]);
-  };
-
-  return {
-    save: useMutation({ mutationFn: savedApi.save, onSuccess: invalidate }),
-    unsave: useMutation({ mutationFn: savedApi.unsave, onSuccess: invalidate }),
-  };
-}

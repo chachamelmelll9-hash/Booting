@@ -5,7 +5,6 @@ import { radius, spacing, typography } from '@shared/config/tokens';
 import {
   AppButton,
   EmptyState,
-  HeartActionBar,
   HeartMessageSheet,
   RelationshipGoalChips,
   Screen,
@@ -31,7 +30,7 @@ export default function PublicProfileScreen() {
   const toast = useToast();
 
   const { data: profile, isLoading, isError, error, refetch } = usePublicProfile(id);
-  const { sendHeart, pass } = useHeartActions();
+  const { sendHeart } = useHeartActions();
   const [composeOpen, setComposeOpen] = useState(false);
 
   const sendHeartTo = (message?: string) => {
@@ -94,13 +93,20 @@ export default function PublicProfileScreen() {
       scroll
       footer={
         <View style={styles.footer}>
-          <HeartActionBar
-            heartDisabled={profile.heartSent}
-            busy={sendHeart.isPending || pass.isPending}
-            onHeart={() => setComposeOpen(true)}
-            onPass={() =>
-              pass.mutate(profile.profileId, { onSuccess: () => router.back() })
-            }
+          {/*
+            넘기기가 없다.
+
+            추천은 하루 여섯 장이고 그 카드들은 24시간 뒤 알아서 사라진다.
+            어차피 내일이면 없어질 카드를 되돌릴 수 없는 '넘기기'로 지우게
+            하면, 사용자는 이득 없이 위험만 진다 (PRD: 넘기기는 취소 불가).
+            받은 관심 화면의 넘기기는 상대가 기다리고 있어 성격이 다르므로 그대로 둔다.
+          */}
+          <AppButton
+            label={profile.heartSent ? '관심을 보냈습니다' : '관심 보내기'}
+            disabled={profile.heartSent}
+            loading={sendHeart.isPending}
+            testID="profile-heart"
+            onPress={() => setComposeOpen(true)}
           />
           <HeartMessageSheet
             visible={composeOpen}

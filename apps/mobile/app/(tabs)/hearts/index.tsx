@@ -1,26 +1,33 @@
 import {
   usePassReceivedHeart,
   useReceivedHearts,
-  useSavedMutations,
+  useRevealedHearts,
   useSendHeartBack,
 } from '@features/hearts';
+import type { DiscoveryItem } from '@shared/api/booting.types';
+import { theme } from '@shared/config/colors';
+import { spacing, typography } from '@shared/config/tokens';
 import {
   EmptyState,
+  GemCardGrid,
   HeartMessageSheet,
-  ProfileDeck,
   Screen,
   SkeletonList,
   useToast,
 } from '@shared/ui';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 /**
  * 받은 관심.
  *
- * 홈과 같은 카드 덱이다 — 목록으로 쌓아 두면 한 명씩 제대로 보지 않고
- * 훑어 넘기게 된다. 여기서 하트를 되보내면 상호 하트가 되어 대화가 열린다.
- * 그 시점의 문구는 '대화 연결'이지 '매칭 성공'이 아니다.
+ * 홈(오늘의 추천)과 **같은 원석 카드 그리드**를 쓴다. 한쪽은 카드, 다른 쪽은
+ * 덱으로 두면 같은 프로필을 두 가지 방식으로 익혀야 한다. 카드를 누르면
+ * 뒤집히며 펼쳐지고, 거기서 답하거나 보류(찜)하거나 넘긴다.
+ *
+ * 여기서 하트를 되보내면 상호 하트가 되어 대화가 열린다. 그 시점의 문구는
+ * '대화 연결'이지 '매칭 성공'이 아니다.
  */
 export default function HeartsScreen() {
   const router = useRouter();
@@ -28,24 +35,26 @@ export default function HeartsScreen() {
   const hearts = useReceivedHearts();
   const sendBack = useSendHeartBack();
   const pass = usePassReceivedHeart();
-  const { save } = useSavedMutations();
-  const [index, setIndex] = useState(0);
-  const [composeOpen, setComposeOpen] = useState(false);
+  const { isRevealed, reveal, hydrated } = useRevealedHearts();
+  const [composeFor, setComposeFor] = useState<DiscoveryItem | null>(null);
+  const [answered, setAnswered] = useState<string[]>([]);
 
   const items = useMemo(
     () => hearts.data?.pages.flatMap((page) => page.items) ?? [],
     [hearts.data]
   );
-  const current = items[index];
 
   const sendHeartBack = (message?: string) => {
-    if (!current) return;
+    const target = composeFor;
+    if (!target) return;
+
     sendBack.mutate(
-      { targetProfileId: current.profile.profileId, message },
+      { targetProfileId: target.profileId, message },
       {
         onSuccess: (result) => {
-          setComposeOpen(false);
-          advance();
+          setComposeFor(null);
+          // 목록이 새로 오기 전까지 카드에 '답했음'을 표시해 둔다
+          setAnswered((prev) => [...prev, target.profileId]);
           if (result.mutual && result.connectionId) {
             router.push(`/matched/${result.connectionId}`);
           } else {
@@ -57,34 +66,10 @@ export default function HeartsScreen() {
     );
   };
 
-  const advance = () => {
-    setIndex((i) => i + 1);
-    if (index >= items.length - 3 && hearts.hasNextPage && !hearts.isFetchingNextPage) {
-      void hearts.fetchNextPage();
-    }
-  };
-
-  /**
-   * 찜해놓기 = 지금은 결정하지 않고 보관함으로.
-   *
-   * 넘기기와 달리 되돌릴 수 있고 상대에게 알리지 않는다. 카드는 넘어가고,
-   * 서버가 받은 관심 목록에서 빼 준다 (찜을 풀면 돌아온다).
-   */
-  const saveCurrent = () => {
-    if (!current) return;
-    save.mutate(current.profile.profileId, {
-      onSuccess: () => {
-        advance();
-        toast.show({ message: '보관함에 담았습니다' });
-      },
-      onError: (error: Error) => toast.show({ message: error.message }),
-    });
-  };
-
-  if (hearts.isLoading) {
+  if (hearts.isLoading || !hydrated) {
     return (
       <Screen>
-        <SkeletonList rows={1} shape="card" />
+        <SkeletonList rows={3} shape="card" />
       </Screen>
     );
   }
@@ -101,22 +86,14 @@ export default function HeartsScreen() {
     );
   }
 
-  if (!current) {
+  if (!items.length) {
     return (
       <Screen>
+        <Header count={0} />
         <EmptyState
           icon="heart-o"
-          title={index > 0 ? '받은 관심을 모두 확인했습니다' : '아직 받은 관심이 없습니다'}
-          description={
-            index > 0
-              ? undefined
-              : '부모님 프로필이 공개되어 있으면 다른 자녀분들이 보고 관심을 보낼 수 있습니다.'
-          }
-          cta={
-            index > 0
-              ? { label: '추천 보러 가기', onPress: () => router.push('/(tabs)/home') }
-              : undefined
-          }
+          title="아직 받은 관심이 없습니다"
+          description="부모님 프로필이 공개되어 있으면 다른 자녀분들이 보고 관심을 보낼 수 있습니다."
           testID="hearts-empty"
         />
       </Screen>
@@ -124,26 +101,52 @@ export default function HeartsScreen() {
   }
 
   return (
-    <Screen>
-      <ProfileDeck
-        profiles={items.map((item) => item.profile)}
-        index={index}
-        busy={sendBack.isPending || pass.isPending || save.isPending}
-        note={`받은 관심 ${index + 1} / ${items.length}`}
-        highlight={current.message}
-        testID="hearts-deck"
-        onSave={saveCurrent}
-        onHeart={() => setComposeOpen(true)}
-        onPass={() => pass.mutate(current.profile.profileId, { onSuccess: advance })}
+    <Screen scroll>
+      <Header count={items.length} />
+
+      <GemCardGrid
+        items={items.map((item) => ({ profile: item.profile, message: item.message }))}
+        isRevealed={isRevealed}
+        isHearted={(profileId) => answered.includes(profileId)}
+        busy={sendBack.isPending || pass.isPending}
+        heartLabel="관심 답하기"
+        heartedLabel="답했습니다"
+        onReveal={(profile) => reveal(profile.profileId)}
+        onHeart={(profile) => setComposeFor(profile)}
+        onDetail={(profile) => router.push(`/profile/${profile.profileId}`)}
+        onPass={(profile) => pass.mutate(profile.profileId)}
       />
 
       <HeartMessageSheet
-        visible={composeOpen}
-        toName={current.profile.nickname}
+        visible={!!composeFor}
+        toName={composeFor?.nickname}
         busy={sendBack.isPending}
         onSend={(message) => sendHeartBack(message)}
-        onDismiss={() => setComposeOpen(false)}
+        onDismiss={() => setComposeFor(null)}
       />
     </Screen>
   );
 }
+
+/**
+ * 제목과 보관 기간 안내.
+ *
+ * 2주 삭제를 **미리** 알려 둔다. 카드가 말없이 사라지면 사용자는 자기가
+ * 실수로 지운 줄 알고, 그 다음부터는 답할 시간이 있어도 서둘러 결정한다.
+ */
+function Header({ count }: { count: number }) {
+  // 제목('받은 관심')은 네비게이션 헤더가 이미 달고 있다 — 여기서 또 쓰면
+  // 같은 말이 화면 위에 두 번 겹친다
+  return (
+    <View style={styles.header}>
+      {count > 0 ? <Text style={styles.count}>{count}명이 관심을 보냈습니다</Text> : null}
+      <Text style={styles.hint}>모든 카드는 2주 뒤에 자동 삭제됩니다.</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: { marginBottom: spacing.md, gap: spacing.xxs },
+  count: { ...typography.bodyStrong, color: theme.colors.text },
+  hint: { ...typography.caption, color: theme.colors.textMuted },
+});

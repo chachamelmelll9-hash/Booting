@@ -19,7 +19,7 @@ export default function ParentLayout() {
       <Stack.Screen name="code" options={{ headerShown: false }} />
       <Stack.Screen name="home" options={{ headerShown: false }} />
       <Stack.Screen
-        name="profile/[connectionId]"
+        name="shared-profile/[connectionId]"
         options={{ title: '자녀분이 보내신 프로필' }}
       />
     </Stack>

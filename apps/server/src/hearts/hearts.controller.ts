@@ -1,10 +1,8 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
-  Param,
   Post,
   Query,
   Req,
@@ -15,7 +13,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { PublishedProfileGuard } from '../common/guards/published-profile.guard';
-import { PassDto, SaveProfileDto, SendHeartDto } from './dto/hearts.dto';
+import { PassDto, SendHeartDto } from './dto/hearts.dto';
 import { HeartsService } from './hearts.service';
 
 @Controller('hearts')
@@ -60,26 +58,3 @@ export class PassesController {
   }
 }
 
-/** 찜(보류) 보관함 */
-@Controller('saved')
-@UseGuards(AuthGuard, PublishedProfileGuard)
-export class SavedController {
-  constructor(private readonly hearts: HeartsService) {}
-
-  @Post()
-  @HttpCode(200)
-  save(@User('id') userId: string, @Body() dto: SaveProfileDto) {
-    return this.hearts.save(userId, dto.targetProfileId);
-  }
-
-  @Get()
-  list(@User('id') userId: string, @Req() req: { parentProfileId: string }) {
-    return this.hearts.listSaved(userId, req.parentProfileId);
-  }
-
-  @Delete(':profileId')
-  @HttpCode(204)
-  async unsave(@User('id') userId: string, @Param('profileId') profileId: string) {
-    await this.hearts.unsave(userId, profileId);
-  }
-}

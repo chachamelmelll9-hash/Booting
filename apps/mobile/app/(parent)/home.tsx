@@ -78,7 +78,7 @@ export default function ParentHomeScreen() {
               testID={`parent-card-${item.connectionId}`}
               accessibilityRole="button"
               accessibilityLabel={`${item.profile.nickname} 님 프로필${item.unseen ? ', 아직 안 보심' : ''}`}
-              onPress={() => router.push(`/(parent)/profile/${item.connectionId}`)}
+              onPress={() => router.push(`/(parent)/shared-profile/${item.connectionId}`)}
               style={({ pressed }) => [
                 styles.card,
                 // 아직 안 열어보신 카드 — 초록 강조

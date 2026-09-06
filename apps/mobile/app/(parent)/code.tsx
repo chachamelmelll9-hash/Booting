@@ -30,7 +30,7 @@ export default function ParentCodeScreen() {
        * 목록에 떨어뜨리면 방금 무엇을 누르셨는지 다시 찾아야 한다.
        */
       const shared = takePendingSharedProfile();
-      router.replace(shared ? `/(parent)/profile/${shared}` : '/(parent)/home');
+      router.replace(shared ? `/(parent)/shared-profile/${shared}` : '/(parent)/home');
     },
     onError: (e: Error) => setError(e.message),
   });
@@ -82,6 +82,19 @@ export default function ParentCodeScreen() {
       <Text style={styles.help}>
         코드를 모르시면 자녀분께 &apos;부팅 앱 부모님 코드&apos;를 여쭤봐 주세요.
       </Text>
+
+      {/*
+        돌아갈 길. 로그인 화면이 이 화면을 replace 로 열기 때문에 뒤로가기가 없다 —
+        이 버튼이 없으면 잘못 누른 자녀는 앱을 강제 종료하는 수밖에 없다.
+        여기서도 replace 다: push 로 되돌아가면 자녀 로그인 화면 아래에 부모님
+        화면이 남아, 로그인 뒤 뒤로가기로 다시 튀어나온다.
+      */}
+      <AppButton
+        label="자녀분이신가요? 로그인으로"
+        variant="ghost"
+        testID="parent-code-back-to-login"
+        onPress={() => router.replace('/(auth)/login')}
+      />
     </Screen>
   );
 }

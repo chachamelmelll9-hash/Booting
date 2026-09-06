@@ -206,7 +206,7 @@ function RootLayoutNav() {
       if (!inParent) {
         // 이미 로그인해 계신 부모님이 카드를 누르셨다면 코드를 다시 묻지 않는다
         const shared = takePendingSharedProfile();
-        router.replace(shared ? `/(parent)/profile/${shared}` : '/(parent)/home');
+        router.replace(shared ? `/(parent)/shared-profile/${shared}` : '/(parent)/home');
       }
       return;
     }

@@ -233,7 +233,7 @@ export interface ParentProfileDto {
   status: ProfileStatus;
   publishedAt: string | null;
   /**
-   * 부모님 접속 코드 6자리.
+   * 부모님 접속 코드 숫자 8자리.
    *
    * 공개된 뒤에만 내려보낸다 — 검수 전에 알려주면 부모님이 넣어봐도 안 들어가고,
    * 그러면 자녀가 "코드가 안 된다" 는 문의를 하게 된다.

@@ -299,12 +299,17 @@ export default function LoginScreen() {
         {/*
           부모님 진입 — 회원가입도 비밀번호도 없이 자녀가 알려준 코드 하나로 들어간다.
           부모님은 이 화면의 다른 항목(이메일·비밀번호·카카오)을 전부 못 쓰신다.
+
+          push 가 아니라 replace 다. push 로 쌓으면 부모님 화면 위에서 뒤로가기 한 번에
+          아래 깔린 자녀 화면(추천 피드·대화)이 그대로 드러난다 — _layout 이 막으려는
+          '한 기기에서 두 역할이 섞이는' 사고가 스택 때문에 그대로 일어난다.
+          돌아갈 길은 코드 화면 안의 '자녀분이신가요?' 가 맡는다.
         */}
         <FormButton
           testID="parent-code-entry"
           title="부모님이신가요? 코드로 시작"
           variant="secondary"
-          onPress={() => router.push('/(parent)/code')}
+          onPress={() => router.replace('/(parent)/code')}
         />
 
         {/* 개발 빌드에서만 보인다. 릴리스 번들에는 아예 포함되지 않는다. */}

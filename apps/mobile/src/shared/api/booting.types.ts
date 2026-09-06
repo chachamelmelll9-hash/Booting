@@ -91,7 +91,7 @@ export interface ParentProfile {
   } | null;
   status: ProfileStatus;
   publishedAt: string | null;
-  /** 부모님 접속 코드 6자리. 공개 전에는 null */
+  /** 부모님 접속 코드 숫자 8자리. 공개 전에는 null */
   accessCode: string | null;
   consent: {
     method: 'sms' | 'in_person';
@@ -218,12 +218,6 @@ export interface Message {
   read: boolean;
   /** system 은 앱이 남긴 기록 — 말풍선이 아니라 가운데 한 줄로 보인다 */
   kind: 'text' | 'system';
-}
-
-/** 찜(보류)한 프로필. 매칭이 아니고 상대는 알지 못한다 */
-export interface SavedProfile {
-  savedAt: string;
-  profile: DiscoveryItem;
 }
 
 // --- 부모님 화면 --------------------------------------------------------------

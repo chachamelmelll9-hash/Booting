@@ -5,7 +5,7 @@ import { ConnectionsModule } from '../connections/connections.module';
 import { DiscoveryModule } from '../discovery/discovery.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { SupabaseModule } from '../supabase/supabase.module';
-import { HeartsController, PassesController, SavedController } from './hearts.controller';
+import { HeartsController, PassesController } from './hearts.controller';
 import { HeartsService } from './hearts.service';
 
 @Module({
@@ -16,7 +16,7 @@ import { HeartsService } from './hearts.service';
     NotificationsModule,
     ConnectionsModule,
   ],
-  controllers: [HeartsController, PassesController, SavedController],
+  controllers: [HeartsController, PassesController],
   providers: [HeartsService],
 })
 export class HeartsModule {}

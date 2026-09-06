@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { DailyPicksGrid, useDailyPicks } from '@features/daily-picks';
 import {
   filterSummary,
   radiusLabel,
@@ -7,13 +8,13 @@ import {
   useHydratedFilter,
 } from '@features/discovery';
 import { nextSetupStep, useParentProfile, useVerification } from '@features/parent-profile';
+import type { DiscoveryItem } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import {
   BootingLogo,
   EmptyState,
   HeartMessageSheet,
-  ProfileDeck,
   Screen,
   SkeletonList,
   useToast,
@@ -23,10 +24,14 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 /**
- * 홈 — 추천 피드.
+ * 홈 — 오늘의 추천 프로필.
  *
- * 카드 스택은 **탭으로도 전부 조작된다.** 스와이프 전용으로 만들면 손 떨림이
- * 있는 사용자가 아예 못 쓴다 (test-scenarios S11.4 가 탭만으로 완주한다).
+ * 하루에 카드 여섯 장을 뽑아 두고, 사용자가 한 장씩 뒤집어 본다. 무한 스택을
+ * 걷어낸 이유: 끝없이 넘길 수 있으면 한 사람 한 사람을 보는 대신 스크롤을 하게
+ * 된다. 부모님을 소개하는 자리에서 그건 맞지 않는다.
+ *
+ * 카드 조작은 **전부 탭이다.** 스와이프 제스처를 쓰지 않으므로 손 떨림이 있는
+ * 사용자도 그대로 쓸 수 있다 (test-scenarios S11.4).
  */
 export default function HomeScreen() {
   const router = useRouter();
@@ -40,39 +45,35 @@ export default function HomeScreen() {
   const ready = setupStep === 'done';
 
   const feed = useDiscoveryFeed();
-  const { sendHeart, pass } = useHeartActions();
-  const [index, setIndex] = useState(0);
-  const [composeOpen, setComposeOpen] = useState(false);
+  const { sendHeart } = useHeartActions();
+  const [composeFor, setComposeFor] = useState<DiscoveryItem | null>(null);
 
-  const cards = useMemo(
+  const candidates = useMemo(
     () => feed.data?.pages.flatMap((page) => page.items) ?? [],
     [feed.data]
   );
-  const current = cards[index];
 
-  const advance = () => {
-    setIndex((i) => i + 1);
-    // 남은 카드가 얼마 없으면 미리 다음 페이지를 당겨 온다
-    if (index >= cards.length - 3 && feed.hasNextPage && !feed.isFetchingNextPage) {
-      void feed.fetchNextPage();
-    }
-  };
+  const { picks, revealedCount, isRevealed, isHearted, reveal, markHearted, hydrated } =
+    useDailyPicks(candidates);
 
   /**
    * 관심 보내기 = 인사말 작성.
    *
-   * 버튼(또는 오른쪽 스와이프)을 누르면 바로 보내지 않고 인사말 시트를 연다.
-   * 확인 다이얼로그가 아니라 **작성 단계**다 — 시트에서 비워 두고 보내면
-   * 인사말 없는 관심이 되므로 그냥 보내는 길도 막히지 않는다.
+   * 카드의 하트를 누르면 바로 보내지 않고 인사말 시트를 연다. 확인 다이얼로그가
+   * 아니라 **작성 단계**다 — 비워 두고 보내면 인사말 없는 관심이 되므로 그냥
+   * 보내는 길도 막히지 않는다.
    */
   const sendHeartTo = (message?: string) => {
-    if (!current) return;
+    const target = composeFor;
+    if (!target) return;
+
     sendHeart.mutate(
-      { targetProfileId: current.profileId, message },
+      { targetProfileId: target.profileId, message },
       {
         onSuccess: (result) => {
-          setComposeOpen(false);
-          advance();
+          setComposeFor(null);
+          // 카드는 오늘 하루 그 자리에 남는다 — 보냈다는 표시만 바꾼다
+          markHearted(target.profileId);
           if (result.mutual && result.connectionId) {
             router.push(`/matched/${result.connectionId}`);
           } else {
@@ -84,12 +85,6 @@ export default function HomeScreen() {
         onError: (error: Error) => toast.show({ message: error.message }),
       }
     );
-  };
-
-  const onPass = () => {
-    if (!current) return;
-    // 넘기기는 되돌릴 수 없다 (PRD) — 그래서 토스트에 실행 취소를 달지 않는다
-    pass.mutate(current.profileId, { onSuccess: advance });
   };
 
   if (profileLoading) {
@@ -118,7 +113,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <Screen>
+    <Screen scroll>
       <Header />
 
       <Pressable
@@ -138,8 +133,10 @@ export default function HomeScreen() {
         </Text>
       </Pressable>
 
-      {feed.isLoading ? (
-        <SkeletonList rows={1} shape="card" />
+      {/* 저장소 복원 전에 빈 화면을 보여주면, 어제 뒤집어 둔 카드가 잠깐
+          닫힌 채로 나타났다가 열린다 */}
+      {feed.isLoading || !hydrated ? (
+        <SkeletonList rows={3} shape="card" />
       ) : feed.isError ? (
         <EmptyState
           icon="exclamation-circle"
@@ -147,7 +144,7 @@ export default function HomeScreen() {
           description="잠시 후 다시 시도해주세요."
           cta={{ label: '다시 시도', onPress: () => void feed.refetch() }}
         />
-      ) : !current ? (
+      ) : !picks.length ? (
         <EmptyState
           icon="search"
           title="조건에 맞는 분이 더 없습니다"
@@ -158,24 +155,24 @@ export default function HomeScreen() {
           testID="home-empty"
         />
       ) : (
-        <ProfileDeck
-          profiles={cards}
-          index={index}
-          busy={sendHeart.isPending || pass.isPending}
-          note={`${index + 1}번째 · 남은 추천 ${Math.max(cards.length - index - 1, 0)}명`}
-          testID="home-deck"
-          onDetail={() => router.push(`/profile/${current.profileId}`)}
-          onHeart={() => setComposeOpen(true)}
-          onPass={onPass}
+        <DailyPicksGrid
+          picks={picks}
+          revealedCount={revealedCount}
+          isRevealed={isRevealed}
+          isHearted={isHearted}
+          busy={sendHeart.isPending}
+          onReveal={(item) => reveal(item.profileId)}
+          onOpen={(item) => router.push(`/profile/${item.profileId}`)}
+          onHeart={(item) => setComposeFor(item)}
         />
       )}
 
       <HeartMessageSheet
-        visible={composeOpen}
-        toName={current?.nickname}
+        visible={!!composeFor}
+        toName={composeFor?.nickname}
         busy={sendHeart.isPending}
         onSend={(message) => sendHeartTo(message)}
-        onDismiss={() => setComposeOpen(false)}
+        onDismiss={() => setComposeFor(null)}
       />
     </Screen>
   );
