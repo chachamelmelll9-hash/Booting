@@ -3,10 +3,8 @@ import {
   type DraftErrors,
   hasErrors,
   leaksRealName,
-  MockAlbumSheet,
   pickImage,
   RegionPicker,
-  type SampleImage,
   uploadToStorage,
   useParentProfile,
   useParentProfileMutations,
@@ -58,17 +56,22 @@ export default function ProfileEditScreen() {
   const [errors, setErrors] = useState<DraftErrors>({});
   const [regionOpen, setRegionOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [albumOpen, setAlbumOpen] = useState(false);
 
-  const addPhotoFrom = async (sample: SampleImage) => {
-    setAlbumOpen(false);
+  /**
+   * 앨범을 열기 **전에** 기본 정보를 확인한다.
+   *
+   * 사진을 고르게 해 놓고 "기본 정보를 먼저 입력하세요"로 되돌리면, 방금 고른
+   * 사진이 버려진 것처럼 보인다. 막을 거면 앨범을 열기 전에 막는 게 맞다.
+   */
+  const handleAddPhoto = async () => {
     if (!user?.id) return;
     try {
       setUploading(true);
       // 기본 정보가 유효하면 프로필을 먼저 만든다 (사진은 프로필에 딸린 자원)
       const target = await ensureProfile();
       if (!target) return;
-      const image = await pickImage(sample);
+      const image = await pickImage();
+      // 앨범에서 취소하신 것 — 아무 일도 일어나지 않는다
       if (!image) return;
       const path = await uploadToStorage('parent-photos', user.id, image);
       addPhoto.mutate({
@@ -364,7 +367,7 @@ export default function ProfileEditScreen() {
       <PhotoUploader
         photos={profile?.photos ?? []}
         busy={uploading || addPhoto.isPending}
-        onAdd={() => setAlbumOpen(true)}
+        onAdd={() => void handleAddPhoto()}
         onRemove={(photoId) => removePhoto.mutate(photoId)}
       />
 
@@ -528,13 +531,6 @@ export default function ProfileEditScreen() {
           maxLength={500}
         />
       </FormSection>
-
-      <MockAlbumSheet
-        visible={albumOpen}
-        title="앨범에서 사진 선택"
-        onSelect={(sample) => void addPhotoFrom(sample)}
-        onDismiss={() => setAlbumOpen(false)}
-      />
 
       <RegionPicker
         visible={regionOpen}

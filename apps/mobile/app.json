@@ -43,6 +43,14 @@
       "expo-web-browser",
       "expo-secure-store",
       "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "부모님 프로필에 넣을 사진을 앨범에서 고르기 위해 사진 접근이 필요합니다.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
       "./plugins/withAndroidInstallReferrer",
       "./plugins/withKakaoMaven",
       "./plugins/withKakaoLinkScheme",

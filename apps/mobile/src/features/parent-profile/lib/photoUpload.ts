@@ -7,7 +7,7 @@
  * 서버에는 업로드된 **경로만** POST 한다.
  */
 import { getAccessToken } from '@features/auth/lib/tokenStorage';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as ImagePicker from 'expo-image-picker';
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
 const SUPABASE_KEY = process.env.EXPO_PUBLIC_SUPABASE_KEY ?? '';
@@ -18,36 +18,65 @@ export interface PickedImage {
   fileName: string;
 }
 
-/** 개발용 앨범에 표시할 샘플 항목 */
-export interface SampleImage {
-  id: string;
-  label: string;
-  /** 시트에서 구분되게 보여줄 색 (업로드되는 바이트와는 무관하다) */
-  tint: string;
-}
-
-export const SAMPLE_IMAGES: SampleImage[] = [
-  { id: 'photo-1', label: '부모님 사진 1', tint: '#FEF3C7' },
-  { id: 'photo-2', label: '부모님 사진 2', tint: '#CCFBF1' },
-  { id: 'photo-3', label: '부모님 사진 3', tint: '#E0F2FE' },
-];
+/**
+ * 앨범이 돌려주는 형식은 기기마다 다르다 (아이폰은 heic 가 흔하다).
+ * 확장자를 mime 에서 되짚어야 Storage 에 올라간 파일이 브라우저에서 열린다.
+ */
+const EXTENSION_BY_MIME: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+};
 
 /**
- * 이미지 선택.
+ * 기기 앨범에서 사진 한 장을 고른다.
  *
- * TODO: `expo-image-picker` 가 붙으면 이 함수 **하나만** 갈아끼우면 된다
- * (네이티브 모듈이라 설치 시 앱 재빌드가 필요해 지금은 보류했다).
+ * 권한을 먼저 묻는다. 거부되면 던져서 호출부가 토스트로 알리게 한다 — 조용히
+ * null 을 돌려주면 사용자는 버튼이 고장난 줄 안다. 다시 물을 수 없는 상태
+ * (`canAskAgain === false`)면 설정으로 가야 한다는 걸 문장으로 알려준다.
  *
- * 지금은 로컬에서 자리표시자 파일을 만들어 넘긴다. 업로드·Storage 정책·서버
- * 기록은 전부 진짜로 동작하고, 바뀌는 건 이미지 출처뿐이다.
+ * 취소는 실패가 아니다. `canceled` 는 null 로 돌려보내 아무 일도 일어나지 않게 한다.
  */
-export async function pickImage(sample?: SampleImage): Promise<PickedImage | null> {
-  const base64 = PLACEHOLDER_PNG_BASE64;
-  const prefix = sample?.id ?? 'photo';
-  const fileName = `${prefix}-${Date.now()}.png`;
-  const uri = `${FileSystem.cacheDirectory}${fileName}`;
-  await FileSystem.writeAsStringAsync(uri, base64, { encoding: 'base64' });
-  return { uri, mimeType: 'image/png', fileName };
+export async function pickImage(): Promise<PickedImage | null> {
+  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permission.granted) {
+    throw new Error(
+      permission.canAskAgain
+        ? '사진을 올리려면 앨범 접근을 허용해 주세요'
+        : '설정에서 부팅의 사진 접근을 허용해 주세요'
+    );
+  }
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    /**
+     * 정사각형으로 잘라 받는다.
+     *
+     * 프로필 카드·목록·미리보기가 전부 정사각 썸네일이라, 원본 비율을 그대로
+     * 받으면 화면마다 다른 곳이 잘려 얼굴이 사라지는 일이 생긴다. 어디가 남을지는
+     * 올리는 사람이 정하는 게 맞다. 자르는 과정에서 원본이 다시 인코딩되므로
+     * 촬영 위치 같은 EXIF 도 함께 떨어진다.
+     */
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 0.8,
+  });
+
+  if (result.canceled) return null;
+
+  const asset = result.assets?.[0];
+  if (!asset) return null;
+
+  const mimeType = asset.mimeType ?? 'image/jpeg';
+  const extension = EXTENSION_BY_MIME[mimeType] ?? 'jpg';
+
+  /**
+   * 파일명은 새로 짓는다. 앨범 원본 이름에는 공백·한글·중복이 섞여 있고,
+   * 그대로 쓰면 Storage 경로에서 충돌하거나 인코딩 문제가 된다.
+   */
+  return { uri: asset.uri, mimeType, fileName: `photo-${Date.now()}.${extension}` };
 }
 
 /**
@@ -91,9 +120,3 @@ export async function uploadToStorage(
 
   return objectPath;
 }
-
-/** 1x1 회색 PNG — 자리표시자 */
-const PLACEHOLDER_PNG_BASE64 =
-  'iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAIAAAD/gAIDAAAAWklEQVR4nO3BAQ0AAADCoPdPbQ8H' +
-  'FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' +
-  'AAAAAAAAAAAAAAAAvAYtAAABAKuVvQAAAABJRU5ErkJggg==';
