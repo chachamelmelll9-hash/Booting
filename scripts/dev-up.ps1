@@ -34,10 +34,23 @@ if (Test-Port 3000) {
 }
 
 # --- Metro --------------------------------------------------------------------
+# EXPO_NO_DEPENDENCY_VALIDATION: 시작 직후 죽는 것을 막는다.
+#
+# @expo/cli 는 기동하면서 api.expo.dev 로 번들 네이티브 모듈 버전을 받아 의존성을
+# 검증하는데, 그 요청이 실패하면 응답 본문을 두 번 읽으며 크래시한다:
+#
+#   TypeError: Body is unusable: Body has already been read
+#     at getNativeModuleVersionsAsync (@expo/cli/src/api/getNativeModuleVersions.ts:47)
+#     at validateDependenciesVersionsAsync (...)
+#     at startAsync (...)
+#
+# Metro 가 포트를 잠깐 잡았다가 사라지므로 이 스크립트의 기동 확인은 UP 을 찍고
+# 넘어가고, 정작 앱은 "Unable to load script" 로 떨어진다. 원인을 앱에서 찾게 된다.
+# 이 검증은 개발에 필요하지 않으니 끈다 (버전 확인은 `npx expo install --check`).
 if (Test-Port 8081) {
   Write-Host 'Metro 이미 실행 중 (8081)'
 } else {
-  Start-Detached 'metro' (Join-Path $root 'apps\mobile') 'npx expo start --port 8081'
+  Start-Detached 'metro' (Join-Path $root 'apps\mobile') 'set "EXPO_NO_DEPENDENCY_VALIDATION=1" && npx expo start --port 8081'
 }
 
 # --- cloudflared 터널 ----------------------------------------------------------

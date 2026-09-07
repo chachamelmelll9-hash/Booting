@@ -18,6 +18,54 @@ sed_in_place() {
   fi
 }
 
+# --- Windows: 빌드 경로에서 비ASCII 문자를 몰아낸다 ---
+#
+# AGP 는 prefab 호출을 `prefab_command.bat` 로 써서 cmd.exe 에 넘긴다. 그 파일은
+# UTF-8 로 쓰이는데 cmd.exe 는 시스템 ANSI 코드페이지(한국어 Windows 는 949)로
+# 읽는다. 그래서 홈 디렉터리에 한글이 있으면 경로가 통째로 깨진다:
+#
+#   "C:\Users\?쒗솕?먰빐蹂댄뿕\.gradle\caches\...\cli-2.1.0-all.jar"
+#
+# java 가 실행되지 않고, 이어지는 `^` 연결 줄들이 개별 명령으로 실행되면서
+# "'.AppKt'은(는) ... 명령이 아닙니다" 로 끝난다. 빌드는 prefab 단계에서 죽는데
+# 에러 메시지는 경로 이야기를 하지 않아 원인을 찾기 어렵다 (실측: 사용자명
+# "한화손해보험" 에서 arm64-v8a prefab 실패).
+#
+# scripts/ensure-emulator.ps1 이 SDK·AVD 경로에 대해 이미 막아둔 것과 같은 결함이라,
+# 같은 방식으로 Gradle 홈과 임시 디렉터리를 ASCII 경로로 옮긴다.
+# 비ASCII 가 없으면 아무것도 건드리지 않는다.
+has_non_ascii() {
+  printf '%s' "$1" | LC_ALL=C grep -q '[^ -~]'
+}
+
+# 판정 기준은 **홈 디렉터리**다. Gradle 캐시(~/.gradle)도 Windows 임시 디렉터리
+# (%LOCALAPPDATA%\Temp)도 둘 다 홈 아래에 있어서, 홈에 한글이 있으면 둘 다 깨진다.
+# TEMP 값을 직접 보면 안 된다 — git bash 는 TEMP 를 "/tmp" 로 덮어써서 ASCII 처럼
+# 보이지만, 정작 JVM 이 쓰는 경로는 여전히 프로필 아래다.
+case "$(uname -s)" in
+  MINGW* | MSYS* | CYGWIN*)
+    if has_non_ascii "$HOME"; then
+      ASCII_GRADLE_HOME="${BOOTING_GRADLE_HOME:-C:/gradle-home}"
+      ASCII_TMP="${BOOTING_BUILD_TMP:-C:/temp}"
+
+      echo "  NOTE: 홈 경로에 비ASCII 문자가 있다 ($HOME)."
+      echo "        빌드 경로를 ASCII 로 옮긴다 — Gradle: $ASCII_GRADLE_HOME, TEMP: $ASCII_TMP"
+
+      if has_non_ascii "${GRADLE_USER_HOME:-$HOME/.gradle}"; then
+        echo "        (Gradle 홈이 비어 있으면 의존성을 다시 받으므로 첫 빌드는 오래 걸린다)"
+        mkdir -p "$ASCII_GRADLE_HOME"
+        export GRADLE_USER_HOME="$ASCII_GRADLE_HOME"
+      fi
+
+      mkdir -p "$ASCII_TMP"
+      export TEMP="$ASCII_TMP"
+      export TMP="$ASCII_TMP"
+      # AGP 의 prefab staging 디렉터리는 java.io.tmpdir 를 따른다
+      export GRADLE_OPTS="${GRADLE_OPTS:-} -Djava.io.tmpdir=$ASCII_TMP"
+    fi
+    ;;
+esac
+
 echo "=== Android Production Local Build ==="
 
 # --- 0. Extract app info from app.json ---
