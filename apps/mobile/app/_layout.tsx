@@ -120,6 +120,25 @@ function RootLayout() {
 
 export default isSentryEnabled ? Sentry.wrap(RootLayout) : RootLayout;
 
+/**
+ * 부모님이 공유를 통해 앱을 여신 주소인가.
+ *
+ * 들어오는 길이 **둘**이고, 둘 다 expo-router 의 경로 체계와 무관해서 여기서
+ * 직접 받는다:
+ *
+ *   1. 카카오톡 카드의 앱 실행 — `kakao{앱키}://kakaolink?...connectionId=...`
+ *   2. 웹 안내 페이지의 '부팅 앱에서 열기' — `booting-mobile://parent/open?connectionId=...`
+ *      (서버 `open-page.controller.ts` 가 만든다. 아이폰이거나 카드에서 앱이
+ *      바로 열리지 않은 경우 부모님이 지나시는 길이다)
+ *
+ * 2번을 받지 않으면 `(parent)` 가 라우트 그룹이라 URL 에 없어서 `/parent/open`
+ * 이 어디에도 없는 경로가 되고, 부모님이 +not-found 나 **자녀 로그인 화면**으로
+ * 떨어진다. 카드를 눌러 여기까지 오신 분에게 그건 길이 끊긴 것이다.
+ */
+function isParentShareLink(url: string): boolean {
+  return url.includes('://kakaolink') || url.includes('://parent/open');
+}
+
 function RootLayoutNav() {
   const { isAuthenticated, isInitialized } = useAuth();
   const parentToken = useParentSession((s) => s.token);
@@ -146,15 +165,12 @@ function RootLayoutNav() {
   const navigationRef = useNavigationContainerRef();
 
   /**
-   * 카카오톡 공유 카드를 눌러 열렸는지.
+   * 공유를 통해 **부모님**이 앱을 여셨는지.
    *
-   * 카드를 받는 사람은 **부모님**이다. 앱이 이 경로로 열렸다면 자녀 화면이 아니라
-   * 부모님 자리로 보내야 한다 — 부모님 세션이 있으면 부모님 홈, 없으면 코드 입력.
-   *
-   * 카카오톡은 `kakao{앱키}://kakaolink?...` 로 부른다. expo-router 의 경로 체계와
-   * 무관한 주소라 여기서 직접 받는다.
+   * 이 경로로 열렸다면 자녀 화면이 아니라 부모님 자리로 보내야 한다 — 부모님
+   * 세션이 있으면 부모님 홈, 없으면 코드 입력.
    */
-  const [fromKakaoShare, setFromKakaoShare] = useState(false);
+  const [fromParentShare, setFromParentShare] = useState(false);
 
   useEffect(() => {
     /**
@@ -162,10 +178,10 @@ function RootLayoutNav() {
      * **그 프로필**로 보낸다 — 카드를 누른 이유가 그것이기 때문이다.
      */
     const handle = (url: string | null) => {
-      if (!url || !url.includes('://kakaolink')) return;
+      if (!url || !isParentShareLink(url)) return;
       const connectionId = /[?&]connectionId=([^&]+)/.exec(url)?.[1];
       setPendingSharedProfile(connectionId ? decodeURIComponent(connectionId) : null);
-      setFromKakaoShare(true);
+      setFromParentShare(true);
     };
 
     void Linking.getInitialURL().then(handle);
@@ -214,12 +230,12 @@ function RootLayoutNav() {
     if (inParent) return;
 
     /**
-     * 카카오톡 공유 카드로 열렸다 = 부모님이 여신 것이다.
+     * 공유 링크로 열렸다 = 부모님이 여신 것이다.
      * 자녀 세션이 남아 있어도 부모님 자리로 보낸다 — 카드를 받은 분에게
      * 자녀 화면(추천 피드·대화)을 보여드리는 건 이 서비스가 하면 안 되는 일이다.
      */
-    if (fromKakaoShare) {
-      setFromKakaoShare(false);
+    if (fromParentShare) {
+      setFromParentShare(false);
       router.replace('/(parent)/code');
       return;
     }
@@ -245,7 +261,7 @@ function RootLayoutNav() {
     isInitialized,
     parentToken,
     parentHydrated,
-    fromKakaoShare,
+    fromParentShare,
     segments,
     router,
     navigationRef,
