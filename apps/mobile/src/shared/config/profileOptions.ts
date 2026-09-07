@@ -20,7 +20,7 @@ export const SMOKING_OPTIONS = ['비흡연', '흡연'] as const;
 
 /** 경제 활동 — 단일 선택 */
 export const ECONOMIC_OPTIONS = [
-  { key: 'active', label: '현재 하고 계심', economicallyActive: true },
+  { key: 'active', label: '경제활동중', economicallyActive: true },
   { key: 'retired', label: '은퇴하셨음', economicallyActive: false },
 ] as const;
 
