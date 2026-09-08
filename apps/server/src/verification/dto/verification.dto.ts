@@ -1,22 +1,34 @@
 import { Matches } from 'class-validator';
 
 /**
- * TODO-04: 실 SMS 인증이 붙기 전까지의 **개발 스텁**이다.
+ * 휴대폰 번호.
  *
- * 숫자이기만 하면 통과시킨다 — 에뮬레이터·테스트에서 실제 문자를 받을 수 없어
- * 엄격한 형식 검사가 등록 동선을 통째로 막기 때문이다.
- * 실 연동 시 아래 두 줄을 원래 형식으로 되돌린다:
- *   phone  /^01[016789]\d{7,8}$/
- *   token  /^\d{6}$/
+ * 하이픈 없이 숫자만 받는다 — 화면이 숫자 자판을 띄우고, 서버도 저장 전에
+ * 숫자만 남긴다. 형식을 느슨하게 두면(예전 `\d{4,15}`) 아무 숫자나 '인증된
+ * 번호' 로 남아, 정작 그 번호로 연락할 수 없다.
  */
+const KR_MOBILE = /^01[016789]\d{7,8}$/;
+
+export class RequestPhoneCodeDto {
+  @Matches(KR_MOBILE, { message: '휴대폰 번호를 확인해주세요 (예: 01012345678)' })
+  phone!: string;
+}
+
 export class SubmitPhoneDto {
-  @Matches(/^\d{4,15}$/, {
-    message: '휴대폰 번호는 숫자로 입력해주세요',
-  })
+  @Matches(KR_MOBILE, { message: '휴대폰 번호를 확인해주세요 (예: 01012345678)' })
   phone!: string;
 
-  @Matches(/^\d{1,10}$/, { message: '인증번호는 숫자로 입력해주세요' })
+  /** 발송한 인증번호는 항상 여섯 자리다 */
+  @Matches(/^\d{6}$/, { message: '인증번호 여섯 자리를 입력해주세요' })
   token!: string;
+}
+
+/** 인증번호를 보냈다 — 언제 다시 보낼 수 있는지까지 알려준다 */
+export interface PhoneCodeSentDto {
+  /** 재발송이 가능해지기까지 남은 초 */
+  resendAfterSec: number;
+  /** 입력 제한 시간(초) — 화면의 남은 시간 표시에 쓴다 */
+  expiresInSec: number;
 }
 
 /**

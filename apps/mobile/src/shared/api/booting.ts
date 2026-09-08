@@ -37,6 +37,12 @@ function qs(params: Record<string, string | number | undefined | null>): string 
 
 export const verificationApi = {
   status: () => serverFetch<VerificationStatus>('/me/verification'),
+  /** 인증번호 발송 — 발급·만료·재발송 간격은 서버가 정한다 */
+  requestPhoneCode: (phone: string) =>
+    serverFetch<{ resendAfterSec: number; expiresInSec: number }>(
+      '/me/verification/phone/code',
+      { method: 'POST', body: { phone } }
+    ),
   submitPhone: (phone: string, token: string) =>
     serverFetch<VerificationStatus>('/me/verification/phone', {
       method: 'POST',

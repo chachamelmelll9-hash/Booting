@@ -2,7 +2,7 @@ import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
-import { SubmitPhoneDto } from './dto/verification.dto';
+import { RequestPhoneCodeDto, SubmitPhoneDto } from './dto/verification.dto';
 import { VerificationService } from './verification.service';
 
 @Controller('me/verification')
@@ -13,6 +13,12 @@ export class VerificationController {
   @Get()
   getStatus(@User('id') userId: string) {
     return this.verification.getStatus(userId);
+  }
+
+  /** 인증번호 발송 — 발급·만료·재발송 간격은 서버가 정한다 */
+  @Post('phone/code')
+  requestCode(@User('id') userId: string, @Body() dto: RequestPhoneCodeDto) {
+    return this.verification.requestCode(userId, dto);
   }
 
   @Post('phone')

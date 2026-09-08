@@ -12,7 +12,7 @@ import {
   useToast,
 } from '@shared/ui';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect,useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 /**
@@ -28,11 +28,41 @@ export default function VerificationScreen() {
   const toast = useToast();
 
   const { data: status, isLoading } = useVerification();
-  const { submitPhone } = useVerificationMutations();
+  const { requestPhoneCode, submitPhone } = useVerificationMutations();
 
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
+  /** 재발송까지 남은 초 — 서버가 정한 간격을 화면이 그대로 센다 */
+  const [resendIn, setResendIn] = useState(0);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((s) => s - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
+
+  /**
+   * 형식은 서버가 최종 판정한다. 여기서 한 번 더 보는 이유는 오타 때문에
+   * 문자 한 통을 낭비하지 않기 위해서다.
+   */
+  const sendCode = () => {
+    if (!/^01[016789]\d{7,8}$/.test(phone)) {
+      toast.show({ message: '휴대폰 번호를 확인해주세요 (예: 01012345678)' });
+      return;
+    }
+    requestPhoneCode.mutate(
+      { phone },
+      {
+        onSuccess: (result) => {
+          setCodeSent(true);
+          setResendIn(result.resendAfterSec);
+          toast.show({ message: '인증번호를 문자로 보냈습니다' });
+        },
+        onError: (e: Error) => toast.show({ message: e.message }),
+      }
+    );
+  };
 
   if (isLoading || !status) {
     return (
@@ -83,18 +113,10 @@ export default function VerificationScreen() {
             {!codeSent ? (
               <AppButton
                 label="인증번호 받기"
-                variant="secondary"
+                loading={requestPhoneCode.isPending}
                 testID="verify-send-code"
-                onPress={() => {
-                  // TODO-04 개발 스텁: 실 SMS 연동 전까지는 숫자면 통과시킨다.
-                  // 실제 문자를 받을 수 없는 환경에서 형식 검사가 등록을 막는다.
-                  if (!/^\d{4,15}$/.test(phone)) {
-                    toast.show({ message: '숫자로 입력해주세요' });
-                    return;
-                  }
-                  setCodeSent(true);
-                  toast.show({ message: '인증번호를 전송했습니다 (개발용: 아무 숫자나 입력)' });
-                }}
+                variant="secondary"
+                onPress={() => sendCode()}
               />
             ) : (
               <>
@@ -121,6 +143,14 @@ export default function VerificationScreen() {
                       }
                     )
                   }
+                />
+                {/* 문자가 안 올 수 있다. 다시 받을 길이 화면에 없으면 여기서 막힌다 */}
+                <AppButton
+                  label={resendIn > 0 ? `인증번호 다시 받기 (${resendIn}초)` : '인증번호 다시 받기'}
+                  variant="secondary"
+                  disabled={resendIn > 0 || requestPhoneCode.isPending}
+                  testID="verify-resend-code"
+                  onPress={() => sendCode()}
                 />
               </>
             )}

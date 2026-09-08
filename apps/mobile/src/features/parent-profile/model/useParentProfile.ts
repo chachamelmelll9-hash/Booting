@@ -106,6 +106,9 @@ export function useVerificationMutations() {
     queryClient.invalidateQueries({ queryKey: bootingKeys.verification });
 
   return {
+    requestPhoneCode: useMutation({
+      mutationFn: ({ phone }: { phone: string }) => verificationApi.requestPhoneCode(phone),
+    }),
     submitPhone: useMutation({
       mutationFn: ({ phone, token }: { phone: string; token: string }) =>
         verificationApi.submitPhone(phone, token),
