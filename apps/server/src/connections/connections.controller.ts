@@ -52,7 +52,7 @@ export class ConnectionsController {
     return {
       token: this.connections.parentShareToken(id, userId),
       userId,
-      openUrl: this.connections.parentOpenUrl(id),
+      openUrl: this.connections.parentOpenUrl(id, userId),
     };
   }
 

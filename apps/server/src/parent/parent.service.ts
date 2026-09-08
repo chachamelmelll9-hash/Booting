@@ -6,6 +6,7 @@ import { domainError, ERROR_CODES } from '../common/constants/errors';
 import { maskName } from '../common/privacy';
 import { ConnectionsService } from '../connections/connections.service';
 import { DiscoveryService } from '../discovery/discovery.service';
+import { PublicProfileDto } from '../discovery/dto/discovery.dto';
 import { SupabaseService } from '../supabase/supabase.service';
 import {
   ParentInboxItemDto,
@@ -196,6 +197,146 @@ export class ParentService {
     return { ...card, profile };
   }
 
+  /**
+   * 부모님이 **웹 링크**로 여시는 프로필.
+   *
+   * 앱의 상세(`detail`)와 두 가지가 다르다.
+   *
+   * 하나, 신원을 부모님 세션이 아니라 **링크의 서명**에서 얻는다. 부모님께는
+   * 계정이 없고, 앱을 깔고 코드를 넣으시라고 요구하지 않기로 했다.
+   *
+   * 둘, `parent_shares` 행을 요구하지 않는다. 그 행은 카카오 서버 콜백이 도착해야
+   * 생기는데 링크는 공유 **직전에** 만들어진다. 콜백이 늦거나 오지 않았다고 해서
+   * 부모님이 받으신 링크가 열리지 않으면, 정작 카드를 받은 분만 막힌다.
+   * 링크를 가지고 계신 것 자체가 자녀가 보내드렸다는 증거다.
+   *
+   * @returns 인연이 끝났거나 상대 프로필이 내려갔으면 null
+   */
+  async webShareView(
+    connectionId: string,
+    sharerUserId: string
+  ): Promise<PublicProfileDto | null> {
+    const parties = await this.webParties(connectionId, sharerUserId);
+    if (!parties) return null;
+
+    // 공개가 내려간 프로필은 보여 주지 않는다 — 동의를 거두신 분일 수 있다
+    const { data: partner } = await this.supabase
+      .getClient()
+      .from('parent_profiles')
+      .select('id, status')
+      .eq('id', parties.partnerProfileId)
+      .maybeSingle();
+    if (!partner || partner.status !== 'published') return null;
+
+    // 앱에서 여신 것과 같게 '봤다'를 찍는다 (행이 없으면 조용히 지나간다)
+    await this.markViewed(parties.myProfileId, connectionId);
+
+    return this.discovery.getPublicProfile(
+      sharerUserId,
+      parties.myProfileId,
+      parties.partnerProfileId
+    );
+  }
+
+  /**
+   * 링크 하나로 **지금까지 받으신 프로필 전부**를 보실 수 있게 한다.
+   *
+   * 링크는 인연 하나를 가리키지만, 그 서명이 이미 "이 부모님"을 특정한다. 자녀가
+   * 두 번째 프로필을 보내드릴 때마다 부모님이 지난 카톡을 뒤져 링크를 찾아야
+   * 한다면, 그건 목록이 없는 것과 같다.
+   */
+  async webInbox(connectionId: string, sharerUserId: string): Promise<ParentInboxItemDto[]> {
+    const parties = await this.webParties(connectionId, sharerUserId);
+    if (!parties) return [];
+    return this.inbox(parties.myProfileId);
+  }
+
+  /**
+   * 목록에서 고른 **다른** 프로필을 여신다.
+   *
+   * 링크는 인연 하나에 발급되지만 부모님은 그 링크로 목록까지 보신다. 그래서
+   * "이 링크로 저 인연을 열어도 되는가" 를 여기서 가른다 — 링크가 가리키는
+   * 인연이거나, **자녀가 실제로 보내드린** 인연이어야 한다. 자녀의 다른 인연이
+   * 라고 해서 다 열리면, 아직 보여드릴 생각이 없던 상대까지 보시게 된다.
+   */
+  async webShareViewByConnection(
+    tokenConnectionId: string,
+    sharerUserId: string,
+    targetConnectionId: string
+  ): Promise<PublicProfileDto | null> {
+    if (!(await this.webAllows(tokenConnectionId, sharerUserId, targetConnectionId))) return null;
+    return this.webShareView(targetConnectionId, sharerUserId);
+  }
+
+  /** 웹에서 누르신 "대화해보고 싶어요" */
+  async webExpress(
+    tokenConnectionId: string,
+    sharerUserId: string,
+    targetConnectionId: string
+  ): Promise<ParentInterestResponse | null> {
+    if (!(await this.webAllows(tokenConnectionId, sharerUserId, targetConnectionId))) return null;
+    const parties = await this.webParties(targetConnectionId, sharerUserId);
+    if (!parties) return null;
+    return this.recordInterest(parties.myProfileId, parties.partnerProfileId, targetConnectionId);
+  }
+
+  /** 웹에서 누르신 "아니요" */
+  async webDecline(
+    tokenConnectionId: string,
+    sharerUserId: string,
+    targetConnectionId: string
+  ): Promise<boolean> {
+    if (!(await this.webAllows(tokenConnectionId, sharerUserId, targetConnectionId))) return false;
+    const parties = await this.webParties(targetConnectionId, sharerUserId);
+    if (!parties) return false;
+    await this.recordDecline(parties.myProfileId, targetConnectionId);
+    return true;
+  }
+
+  /** 이 링크로 저 인연을 건드려도 되는가 (`webShareViewByConnection` 과 같은 규칙) */
+  private async webAllows(
+    tokenConnectionId: string,
+    sharerUserId: string,
+    targetConnectionId: string
+  ): Promise<boolean> {
+    if (targetConnectionId === tokenConnectionId) return true;
+    const shared = await this.webInbox(tokenConnectionId, sharerUserId);
+    return shared.some((item) => item.connectionId === targetConnectionId);
+  }
+
+  /**
+   * 링크의 서명에서 "누가 누구를 보는가"를 푼다.
+   *
+   * `requireShared` 를 쓰지 않는다. 그 검사는 `parent_shares` 행을 요구하는데 그
+   * 행은 카카오 서버 콜백이 도착해야 생기고, 링크는 공유 **직전에** 만들어진다.
+   * 콜백이 늦었다고 부모님이 받으신 링크가 닫히면 정작 카드를 받은 분만 막힌다.
+   * 대신 서명이 가리키는 사람이 이 인연의 당사자인지를 여기서 확인한다 — 남의
+   * 인연 ID 를 넣어 봐도 서명이 맞지 않으면 여기까지 오지 못한다.
+   */
+  private async webParties(
+    connectionId: string,
+    sharerUserId: string
+  ): Promise<{ myProfileId: string; partnerProfileId: string } | null> {
+    const { data: conn } = await this.supabase
+      .getClient()
+      .from('connections')
+      .select('id, status, user_a_id, user_b_id, parent_profile_a_id, parent_profile_b_id')
+      .eq('id', connectionId)
+      .maybeSingle();
+    if (!conn || conn.status === 'ended') return null;
+
+    const isA = conn.user_a_id === sharerUserId;
+    if (!isA && conn.user_b_id !== sharerUserId) return null;
+
+    const myProfileId = (isA ? conn.parent_profile_a_id : conn.parent_profile_b_id) as string;
+    const partnerProfileId = (isA
+      ? conn.parent_profile_b_id
+      : conn.parent_profile_a_id) as string;
+    if (!myProfileId || !partnerProfileId) return null;
+
+    return { myProfileId, partnerProfileId };
+  }
+
   /** 부모님이 카드를 열었다 — 초록 강조를 끈다 */
   async markViewed(parentProfileId: string, connectionId: string): Promise<void> {
     const client = this.supabase.getClient();
@@ -217,8 +358,23 @@ export class ParentService {
    * 드러나지 않아야 두 분 다 편하게 결정한다.
    */
   async express(parentProfileId: string, connectionId: string): Promise<ParentInterestResponse> {
-    const client = this.supabase.getClient();
     const { partnerProfileId } = await this.requireShared(parentProfileId, connectionId);
+    return this.recordInterest(parentProfileId, partnerProfileId, connectionId);
+  }
+
+  /**
+   * 앱과 웹이 함께 쓰는 본체.
+   *
+   * 갈리는 것은 **누구인지 알아내는 방법**뿐이다 (앱은 부모님 세션, 웹은 링크
+   * 서명). 여기서부터는 같은 규칙이어야 한다 — 두 경로가 다르게 판정하면
+   * 어느 쪽으로 누르셨는지에 따라 매칭 결과가 달라진다.
+   */
+  private async recordInterest(
+    parentProfileId: string,
+    partnerProfileId: string,
+    connectionId: string
+  ): Promise<ParentInterestResponse> {
+    const client = this.supabase.getClient();
 
     const { error } = await client.from('parent_interests').upsert(
       { connection_id: connectionId, parent_profile_id: parentProfileId, kind: 'interested' },
@@ -279,8 +435,13 @@ export class ParentService {
    * 계속 붙들고 있게 된다. 되돌릴 수 없다고 화면에서 먼저 확인받는다.
    */
   async decline(parentProfileId: string, connectionId: string): Promise<void> {
-    const client = this.supabase.getClient();
     await this.requireShared(parentProfileId, connectionId);
+    await this.recordDecline(parentProfileId, connectionId);
+  }
+
+  /** 앱과 웹이 함께 쓰는 본체 — `recordInterest` 와 같은 이유로 나눠 둔다 */
+  private async recordDecline(parentProfileId: string, connectionId: string): Promise<void> {
+    const client = this.supabase.getClient();
 
     await client.from('parent_interests').upsert(
       { connection_id: connectionId, parent_profile_id: parentProfileId, kind: 'declined' },

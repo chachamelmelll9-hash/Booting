@@ -23,8 +23,13 @@ async function bootstrap() {
     exclude: [
       'consent/:token',
       'consent/:token/agree',
-      // 카카오톡 카드의 버튼이 오는 자리 — 이것도 부모님이 보시는 주소다
-      'open/:connectionId',
+      // 부모님이 프로필을 보고 결정하시는 자리. 앱을 대신하는 화면이라
+      // 목록·상세·버튼이 모두 여기 있다. 대화방에 남는 주소라 가장 짧게 둔다.
+      'p/:token',
+      'p/:token/all',
+      'p/:token/c/:connectionId',
+      'p/:token/c/:connectionId/interest',
+      'p/:token/c/:connectionId/decline',
     ],
   });
   const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:4200')

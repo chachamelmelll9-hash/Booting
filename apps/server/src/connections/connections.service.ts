@@ -14,6 +14,15 @@ import { DiscoveryService } from '../discovery/discovery.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { ConnectionDto } from './dto/connections.dto';
 
+/**
+ * 부모님 웹 링크의 수명.
+ *
+ * 카드는 카카오톡 대화방에 남아 있어서 부모님이 며칠 뒤에 여시는 일이 흔하다.
+ * 그렇다고 무기한이면 대화방을 넘겨받은 누구든 언제까지나 열 수 있다. 30일은
+ * "생각해 보고 다시 열어 보시는" 기간은 덮으면서, 잊힌 링크는 닫는 길이다.
+ */
+const PARENT_VIEW_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
 export interface ConnectionContext {
   row: Record<string, any>;
   meUserId: string;
@@ -198,16 +207,24 @@ export class ConnectionsService {
   }
 
   /**
-   * 카카오톡 카드의 버튼이 갈 주소.
+   * 카카오톡 카드의 버튼이 갈 주소 — **부모님이 웹에서 프로필을 여시는 링크**.
    *
    * 앱 실행 파라미터만 넣으면 카카오톡이 버튼을 지운다 — 부모님 폰에 앱이 없고
    * (아이폰이면 더더욱) 갈 곳이 없다고 보기 때문이다. 실제로 카드는 왔는데
    * '자세히 보기' 가 없었다 (실측). 어느 기기에서나 열리는 웹 주소를 준다.
    *
+   * 예전에는 이 주소가 프로필을 보여 주지 않고 "앱을 받아 코드를 넣으세요" 만
+   * 안내했다. 그건 PRD 에 없는 요구다 — 부모님의 디지털 접점은 **동의 하나**이고,
+   * 프로필은 자녀가 보여 드리는 것으로 돼 있다. 60~70대 부모님께 앱 설치와 8자리
+   * 코드를 요구하면 마지막 한 걸음에서 대부분이 멈춘다.
+   *
+   * 대신 링크 자체에 신원을 담는다. 토큰이 곧 열쇠이므로 추측할 수 없어야 하고,
+   * 대화방에 남아 오래 떠도는 주소라 **만료**가 있어야 한다.
+   *
    * 바깥에서 닿는 주소여야 한다 — localhost 나 10.0.2.2 를 보내면 부모님
    * 폰에서 열리지 않는다. 동의 링크와 같은 환경변수를 쓴다.
    */
-  parentOpenUrl(connectionId: string): string {
+  parentOpenUrl(connectionId: string, userId: string): string {
     const base = process.env.PUBLIC_BASE_URL;
     if (!base) {
       throw new BadRequestException({
@@ -215,7 +232,45 @@ export class ConnectionsService {
         message: '공유 링크 주소가 설정되지 않았습니다',
       });
     }
-    return `${base.replace(/\/$/, '')}/open/${connectionId}`;
+    return `${base.replace(/\/$/, '')}/p/${this.parentViewToken(connectionId, userId)}`;
+  }
+
+  /**
+   * 부모님 웹 링크의 열쇠.
+   *
+   * DB 에 저장하지 않는다 — 서명 안에 필요한 것(누구의 어느 인연인지, 언제까지)이
+   * 전부 들어 있어서 조회할 것이 없고, 링크를 만드는 시점에 쓰기가 없으면 공유
+   * 버튼이 DB 를 기다리지 않는다.
+   *
+   * 대신 **철회할 수 없다**. 그래서 수명을 짧게 둔다 — 만료된 뒤에는 자녀에게
+   * 다시 보내 달라고 안내하는 편이, 한 번 새어 나간 주소가 영원히 열리는 것보다 낫다.
+   */
+  parentViewToken(connectionId: string, userId: string): string {
+    const expiresAt = Date.now() + PARENT_VIEW_TTL_MS;
+    const body = Buffer.from(`${connectionId}.${userId}.${expiresAt}`).toString('base64url');
+    const sig = createHmac('sha256', this.shareSecret()).update(body).digest('base64url');
+    return `${body}.${sig}`;
+  }
+
+  /** @returns 서명·만료가 모두 성립할 때만 값을 돌려준다 */
+  verifyParentViewToken(token: string): { connectionId: string; userId: string } | null {
+    const dot = token.lastIndexOf('.');
+    if (dot < 1) return null;
+
+    const body = token.slice(0, dot);
+    const sig = token.slice(dot + 1);
+    const expected = createHmac('sha256', this.shareSecret()).update(body).digest('base64url');
+    // 길이가 다르면 timingSafeEqual 이 던진다
+    if (expected.length !== sig.length) return null;
+    if (!timingSafeEqual(Buffer.from(expected), Buffer.from(sig))) return null;
+
+    const [connectionId, userId, expiresAt] = Buffer.from(body, 'base64url')
+      .toString('utf8')
+      .split('.');
+    if (!connectionId || !userId || !expiresAt) return null;
+    if (Number(expiresAt) < Date.now()) return null;
+
+    return { connectionId, userId };
   }
 
   verifyParentShareToken(connectionId: string, userId: string, token: string): boolean {
