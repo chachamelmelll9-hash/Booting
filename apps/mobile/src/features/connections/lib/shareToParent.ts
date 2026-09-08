@@ -54,31 +54,22 @@ export function parentShareMessage(profile: DiscoveryItem): string {
 /**
  * 카카오톡 피드 템플릿 — 사진 + 이름 + 소개가 한 장 카드로 간다.
  *
- * 버튼(`buttonTitle`)을 달지 않는 이유: 눌러서 갈 곳이 없다. 부모님은 이 앱을
- * 쓰지 않고, 공개 프로필 웹페이지도 아직 없다. 죽은 버튼을 달면 부모님이
- * 눌러보고 아무 일도 안 일어나는 경험만 남는다.
- *
  * 템플릿 ID 를 쓰지 않는다 — `shareFeedTemplate` 은 카카오 개발자 콘솔에
  * 템플릿을 만들지 않아도 앱에서 만든 카드를 그대로 보낸다.
  */
-function feedTemplate(profile: DiscoveryItem, connectionId: string, openUrl?: string) {
+function feedTemplate(profile: DiscoveryItem, openUrl?: string) {
   const goals = (profile.goals ?? []).map(goalLabel).filter(Boolean);
   /**
-   * 웹 주소와 앱 실행을 **둘 다** 넣는다.
+   * **웹 주소만** 넣는다. 앱 실행 파라미터는 넣지 않는다.
    *
-   * 앱 실행 파라미터만 두면 카카오톡이 버튼을 통째로 지운다 — 부모님 폰에 앱이
-   * 없고, 아이폰이면 iOS 플랫폼도 콘솔에 없어서 갈 곳이 없다고 보기 때문이다.
-   * 실제로 카드는 왔는데 '자세히 보기' 가 없었다 (실측).
+   * 부모님은 이 앱을 받지 않으신다 — 링크를 눌러 웹에서 프로필을 보고 결정하신다.
+   * 예전에는 앱 실행 파라미터를 함께 넣어 두었는데, 그러면 **안드로이드에 앱이
+   * 깔린 부모님만** 웹 대신 앱이 열리고, 그 안에 부모님 화면이 없어져서 자녀
+   * 로그인 화면을 보시게 된다. 카드를 눌러 오신 분에게 그건 길이 끊긴 것이다.
    *
-   * 안드로이드에 앱이 있으면 실행 파라미터가 먼저 먹어 앱이 열리고, 없으면 웹
-   * 주소로 간다. 그 페이지가 앱 열기와 부모님 코드 안내를 보여 드린다.
    * (`openUrl` 도메인은 카카오 콘솔 [플랫폼 > Web] 에 등록돼 있어야 한다.)
    */
-  const link = {
-    ...(openUrl ? { webUrl: openUrl, mobileWebUrl: openUrl } : {}),
-    androidExecutionParams: { connectionId },
-    iosExecutionParams: { connectionId },
-  };
+  const link = openUrl ? { webUrl: openUrl, mobileWebUrl: openUrl } : {};
   const description = [
     subtitle(profile),
     profile.introExcerpt,
@@ -126,8 +117,6 @@ export type ShareOutcome =
  */
 export async function shareProfileToParent(
   profile: DiscoveryItem,
-  /** 카드를 눌러 앱이 열렸을 때 이 프로필로 보내기 위한 값 */
-  connectionId: string,
   /**
    * 카카오 서버 콜백에 되돌려 받을 값.
    *
@@ -144,7 +133,7 @@ export async function shareProfileToParent(
 
   try {
     await kakao.shareFeedTemplate({
-      template: feedTemplate(profile, connectionId, openUrl),
+      template: feedTemplate(profile, openUrl),
       // 카카오톡이 없으면 웹으로 우회하지 않는다 — 아무 화면도 없이 성공이
       // 돌아와 보내지도 않은 걸 보냈다고 표시하게 된다 (에뮬레이터에서 실측)
       useWebBrowserIfKakaoTalkNotAvailable: false,
@@ -174,7 +163,6 @@ export async function shareProfileToParent(
  */
 export async function sendProfileCardToMyKakao(
   profile: DiscoveryItem,
-  connectionId: string,
   openUrl?: string
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
   const kakao = isKakaoConfigured ? loadKakaoShare() : null;
@@ -186,7 +174,7 @@ export async function sendProfileCardToMyKakao(
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const auth = require('@features/auth/lib/kakaoAuth') as typeof KakaoAuth;
     await auth.ensureKakaoMessageScope();
-    const template = feedTemplate(profile, connectionId, openUrl);
+    const template = feedTemplate(profile, openUrl);
     // 카드에 버튼이 안 나올 때 무엇이 실려 나갔는지 봐야 한다. 사진 주소는
     // 서명이 붙어 길기만 하므로 버튼과 링크만 찍는다.
     if (__DEV__) console.log('[kakao card]', JSON.stringify(template.buttons));

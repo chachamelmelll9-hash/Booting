@@ -103,11 +103,7 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
     }
     // 카드 버튼이 갈 주소는 서버만 안다 (개발 터널은 띄울 때마다 바뀐다)
     const { openUrl } = await connectionsApi.shareToken(connection.id);
-    const result = await sendProfileCardToMyKakao(
-      connection.partner,
-      connection.id,
-      openUrl
-    );
+    const result = await sendProfileCardToMyKakao(connection.partner, openUrl);
     toast.show({
       message: result.ok
         ? '개발 빌드: 카카오톡이 없어 내 카카오톡(나와의 채팅)으로 보냈습니다'
@@ -122,7 +118,6 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
       const { token, userId, openUrl } = await connectionsApi.shareToken(connection.id);
       const outcome = await shareProfileToParent(
         connection.partner,
-        connection.id,
         { connectionId: connection.id, userId, t: token },
         openUrl
       );

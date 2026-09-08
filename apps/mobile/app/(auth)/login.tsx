@@ -7,7 +7,6 @@ import { parseAuthError } from '@features/auth/lib/auth-errors';
 import { signInWithKakao } from '@features/auth/lib/kakaoAuth';
 import { saveLastLoginMethod } from '@features/auth/lib/lastLoginMethod';
 import { saveTokens, saveUser, type StoredUser } from '@features/auth/lib/tokenStorage';
-import { setPendingSharedProfile, useParentSession } from '@features/parent-view';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EMAIL_KEYBOARD_TYPE } from '@shared/lib';
 import {
@@ -53,23 +52,7 @@ export default function LoginScreen() {
   const [appleLoading, setAppleLoading] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
 
-  /**
-   * 자녀가 로그인하면 이 기기의 부모님 세션은 끝난다.
-   *
-   * 한 기기에 두 역할이 함께 있으면 안 된다. 루트 라우팅은 부모님 세션을 자녀
-   * 로그인보다 먼저 판정하므로(그게 맞다 — 부모님이 자녀 화면을 보시면 안 된다),
-   * 부모님 세션이 남아 있는 기기에서는 자녀가 로그인해도 부모님 화면으로
-   * 끌려갔다. 실제로 부모님으로 한 번 들어가 본 기기에서 자녀 로그인이
-   * 삭제된 프로필 화면으로 떨어졌다 (실측).
-   *
-   * 지우는 자리는 로그인 성공 **직전**이다. `setAuth` 뒤에 지우면 그 사이에
-   * 라우팅 effect 가 먼저 돌아 이미 부모님 화면으로 가 있다.
-   */
-  const startChildSession = (user: StoredUser) => {
-    useParentSession.getState().signOut();
-    setPendingSharedProfile(null);
-    setAuth(user);
-  };
+  const startChildSession = (user: StoredUser) => setAuth(user);
 
   const {
     control,
@@ -294,22 +277,6 @@ export default function LoginScreen() {
           title={t('login')}
           onPress={handleSubmit(onSubmit)}
           loading={isSubmitting || loginMutation.isPending}
-        />
-
-        {/*
-          부모님 진입 — 회원가입도 비밀번호도 없이 자녀가 알려준 코드 하나로 들어간다.
-          부모님은 이 화면의 다른 항목(이메일·비밀번호·카카오)을 전부 못 쓰신다.
-
-          push 가 아니라 replace 다. push 로 쌓으면 부모님 화면 위에서 뒤로가기 한 번에
-          아래 깔린 자녀 화면(추천 피드·대화)이 그대로 드러난다 — _layout 이 막으려는
-          '한 기기에서 두 역할이 섞이는' 사고가 스택 때문에 그대로 일어난다.
-          돌아갈 길은 코드 화면 안의 '자녀분이신가요?' 가 맡는다.
-        */}
-        <FormButton
-          testID="parent-code-entry"
-          title="부모님이신가요? 코드로 시작"
-          variant="secondary"
-          onPress={() => router.replace('/(parent)/code')}
         />
 
         {/* 개발 빌드에서만 보인다. 릴리스 번들에는 아예 포함되지 않는다. */}

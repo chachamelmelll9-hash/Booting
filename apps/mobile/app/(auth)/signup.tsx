@@ -4,7 +4,6 @@ import { AuthStyles,useAuthStore } from '@features/auth';
 import { signUpApi } from '@features/auth/api';
 import { parseAuthError } from '@features/auth/lib/auth-errors';
 import { saveTokens, saveUser } from '@features/auth/lib/tokenStorage';
-import { setPendingSharedProfile, useParentSession } from '@features/parent-view';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { EMAIL_KEYBOARD_TYPE } from '@shared/lib';
 import {
@@ -59,10 +58,6 @@ export default function SignupScreen() {
           expiresAt: result.data.expiresAt,
         });
         await saveUser(result.data.user);
-        // 로그인과 같은 순서다: 이 기기의 부모님 세션을 **먼저** 끝내고 세션을
-        // 연다. 뒤집으면 그 사이에 라우팅이 돌아 부모님 화면으로 끌려간다.
-        useParentSession.getState().signOut();
-        setPendingSharedProfile(null);
         setAuth(result.data.user);
         router.replace('/(parent-setup)/welcome');
       }

@@ -5,7 +5,6 @@ import { initI18nMobile } from '@chachamelmelll9-hash-service/i18n/config/mobile
 import { isAdMobEnabled } from '@features/ads';
 import { AnalyticsProvider } from '@features/analytics';
 import { useAuth } from '@features/auth';
-import { setPendingSharedProfile, takePendingSharedProfile, useParentSession } from '@features/parent-view';
 import { useLanguageStore } from '@features/settings';
 import { initializeKakaoSDK } from '@react-native-kakao/core';
 import {
@@ -120,29 +119,8 @@ function RootLayout() {
 
 export default isSentryEnabled ? Sentry.wrap(RootLayout) : RootLayout;
 
-/**
- * 부모님이 공유를 통해 앱을 여신 주소인가.
- *
- * 들어오는 길이 **둘**이고, 둘 다 expo-router 의 경로 체계와 무관해서 여기서
- * 직접 받는다:
- *
- *   1. 카카오톡 카드의 앱 실행 — `kakao{앱키}://kakaolink?...connectionId=...`
- *   2. 웹 안내 페이지의 '부팅 앱에서 열기' — `booting-mobile://parent/open?connectionId=...`
- *      (서버 `open-page.controller.ts` 가 만든다. 아이폰이거나 카드에서 앱이
- *      바로 열리지 않은 경우 부모님이 지나시는 길이다)
- *
- * 2번을 받지 않으면 `(parent)` 가 라우트 그룹이라 URL 에 없어서 `/parent/open`
- * 이 어디에도 없는 경로가 되고, 부모님이 +not-found 나 **자녀 로그인 화면**으로
- * 떨어진다. 카드를 눌러 여기까지 오신 분에게 그건 길이 끊긴 것이다.
- */
-function isParentShareLink(url: string): boolean {
-  return url.includes('://kakaolink') || url.includes('://parent/open');
-}
-
 function RootLayoutNav() {
   const { isAuthenticated, isInitialized } = useAuth();
-  const parentToken = useParentSession((s) => s.token);
-  const parentHydrated = useParentSession((s) => s.hydrated);
   const router = useRouter();
   const segments = useSegments();
   const previousAuth = useRef<boolean | null>(null);
@@ -164,31 +142,6 @@ function RootLayoutNav() {
   const rootNavigationState = useRootNavigationState();
   const navigationRef = useNavigationContainerRef();
 
-  /**
-   * 공유를 통해 **부모님**이 앱을 여셨는지.
-   *
-   * 이 경로로 열렸다면 자녀 화면이 아니라 부모님 자리로 보내야 한다 — 부모님
-   * 세션이 있으면 부모님 홈, 없으면 코드 입력.
-   */
-  const [fromParentShare, setFromParentShare] = useState(false);
-
-  useEffect(() => {
-    /**
-     * 어느 프로필 카드를 누르셨는지 기억해 둔다. 코드 입력이 끝나면 목록이 아니라
-     * **그 프로필**로 보낸다 — 카드를 누른 이유가 그것이기 때문이다.
-     */
-    const handle = (url: string | null) => {
-      if (!url || !isParentShareLink(url)) return;
-      const connectionId = /[?&]connectionId=([^&]+)/.exec(url)?.[1];
-      setPendingSharedProfile(connectionId ? decodeURIComponent(connectionId) : null);
-      setFromParentShare(true);
-    };
-
-    void Linking.getInitialURL().then(handle);
-    const sub = Linking.addEventListener('url', ({ url }) => handle(url));
-    return () => sub.remove();
-  }, []);
-
   useEffect(() => {
     /**
      * 가드가 **두 개**인 이유.
@@ -204,41 +157,10 @@ function RootLayoutNav() {
      */
     if (!rootNavigationState?.key) return;
     if (!navigationRef?.isReady?.()) return;
-    if (!parentHydrated) return;
     if (!isInitialized) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inIndex = segments.length < 1 || segments[0] === 'index';
-    const inParent = segments[0] === '(parent)';
-
-    /**
-     * 부모님 세션이 있으면 부모님 화면이 이 기기의 전부다.
-     *
-     * 자녀 로그인 여부와 무관하게 먼저 판정한다 — 한 기기에서 두 역할이 섞이면
-     * 부모님이 자녀 화면(추천 피드·대화)을 보게 되고, 그건 이 서비스가 절대
-     * 하면 안 되는 일이다.
-     */
-    if (parentToken) {
-      if (!inParent) {
-        // 이미 로그인해 계신 부모님이 카드를 누르셨다면 코드를 다시 묻지 않는다
-        const shared = takePendingSharedProfile();
-        router.replace(shared ? `/(parent)/shared-profile/${shared}` : '/(parent)/home');
-      }
-      return;
-    }
-    // 코드 입력 화면에 계신 중 — 자녀 로그인 규칙으로 밀어내지 않는다
-    if (inParent) return;
-
-    /**
-     * 공유 링크로 열렸다 = 부모님이 여신 것이다.
-     * 자녀 세션이 남아 있어도 부모님 자리로 보낸다 — 카드를 받은 분에게
-     * 자녀 화면(추천 피드·대화)을 보여드리는 건 이 서비스가 하면 안 되는 일이다.
-     */
-    if (fromParentShare) {
-      setFromParentShare(false);
-      router.replace('/(parent)/code');
-      return;
-    }
 
     if (!isAuthenticated && !inAuthGroup && !inIndex) {
       router.replace('/(auth)/login');
@@ -259,9 +181,6 @@ function RootLayoutNav() {
   }, [
     isAuthenticated,
     isInitialized,
-    parentToken,
-    parentHydrated,
-    fromParentShare,
     segments,
     router,
     navigationRef,
@@ -282,8 +201,6 @@ function RootLayoutNav() {
                   <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                   {/* 탭 밖의 흐름 — 등록 플로우와 전역 모달 3종 */}
                   <Stack.Screen name="(parent-setup)" options={{ headerShown: false }} />
-                  {/* 부모님 화면 — 자녀 세션과 완전히 분리된 표면 */}
-                  <Stack.Screen name="(parent)" options={{ headerShown: false }} />
                   <Stack.Screen
                     name="profile/[id]"
                     options={{ title: '프로필', presentation: 'modal' }}
