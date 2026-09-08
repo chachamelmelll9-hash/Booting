@@ -28,15 +28,41 @@ export class VerificationService {
   ) {}
 
   async getStatus(userId: string): Promise<VerificationStatusDto> {
+    const client = this.supabase.getClient();
+
+    const [{ data }, kakaoLinked] = await Promise.all([
+      client
+        .from('child_verifications')
+        // 가족관계 컬럼은 더 이상 읽지 않는다 (과거 기록으로만 남는다)
+        .select('phone, phone_verified_at')
+        .eq('user_id', userId)
+        .maybeSingle(),
+      this.kakaoLinked(userId),
+    ]);
+
+    return this.toDto(data, kakaoLinked);
+  }
+
+  /**
+   * 카카오 계정이 붙어 있는가.
+   *
+   * `social_identities` 의 기본키가 (provider, provider_uid) 라 **카카오 계정
+   * 하나는 부팅 계정 하나에만** 붙는다. 그래서 이 연결 자체가 "계정을 몇 개든
+   * 만들 수는 없다" 를 담보한다 — 지금 본인확인에 남은 일이 그것이다.
+   *
+   * 전화번호까지 받아오지는 못한다. 카카오의 `phone_number` 동의항목은 비즈니스
+   * 앱 전환(사업자등록번호)이 있어야 열린다. 그래서 이 확인은 '실명확인' 이
+   * 아니고, 화면 문구도 그렇게 말하지 않는다.
+   */
+  private async kakaoLinked(userId: string): Promise<boolean> {
     const { data } = await this.supabase
       .getClient()
-      .from('child_verifications')
-      // 가족관계 컬럼은 더 이상 읽지 않는다 (과거 기록으로만 남는다)
-      .select('phone, phone_verified_at')
+      .from('social_identities')
+      .select('user_id')
+      .eq('provider', 'kakao')
       .eq('user_id', userId)
       .maybeSingle();
-
-    return this.toDto(data);
+    return !!data;
   }
 
   /**
@@ -175,13 +201,28 @@ export class VerificationService {
     return this.toDto(data);
   }
 
-  private toDto(row: Record<string, unknown> | null): VerificationStatusDto {
+  /**
+   * @param kakaoLinked 확인하지 않았으면 undefined — 그때는 이 값으로 문을 열지 않는다.
+   *   (인증 직후처럼 방금 갱신한 행만 들고 있는 경우다. 화면은 곧 status 를 다시 묻는다.)
+   */
+  private toDto(
+    row: Record<string, unknown> | null,
+    kakaoLinked = false
+  ): VerificationStatusDto {
     const phoneVerified = !!row?.phone_verified_at;
 
     return {
       phoneVerified,
+      kakaoLinked,
       phoneMasked: row?.phone ? maskPhone(row.phone as string) : null,
-      canCreateProfile: phoneVerified,
+      /**
+       * 둘 중 **하나만** 되면 연다.
+       *
+       * 지금 실제로 열리는 문은 카카오 쪽이다 — 문자 발송은 사업자 계약이 있어야
+       * 하고, 그때까지 운영에서는 SmsService 가 막는다. 그렇다고 문자 경로를
+       * 지우지는 않는다. 계약이 붙는 순간 이 줄을 고치지 않고도 살아난다.
+       */
+      canCreateProfile: phoneVerified || kakaoLinked,
     };
   }
 }

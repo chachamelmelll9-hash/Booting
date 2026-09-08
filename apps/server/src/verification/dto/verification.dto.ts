@@ -40,8 +40,16 @@ export interface PhoneCodeSentDto {
  */
 export interface VerificationStatusDto {
   phoneVerified: boolean;
+  /**
+   * 카카오 계정이 붙어 있는가.
+   *
+   * 카카오 계정 하나는 부팅 계정 하나에만 붙으므로(social_identities 기본키),
+   * 이 연결이 "한 사람이 계정을 몇 개든 만들 수는 없다" 를 담보한다.
+   * 전화번호·실명까지 받아오지는 못한다 — 그 동의항목은 비즈니스 앱 전용이다.
+   */
+  kakaoLinked: boolean;
   /** 마스킹된 번호 (010-****-1234) */
   phoneMasked: string | null;
-  /** 본인인증이 끝나 프로필을 만들 수 있는 상태인가 */
+  /** 확인이 끝나 프로필을 만들 수 있는 상태인가 (문자 인증 **또는** 카카오 연결) */
   canCreateProfile: boolean;
 }

@@ -1,5 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { getKakaoIdToken, isKakaoCancel, kakaoLinkApi } from '@features/auth';
 import { useVerification, useVerificationMutations } from '@features/parent-profile';
+import { bootingKeys } from '@shared/api/booting';
 import { theme } from '@shared/config/colors';
 import { radius, spacing, typography } from '@shared/config/tokens';
 import {
@@ -11,6 +13,7 @@ import {
   TextField,
   useToast,
 } from '@shared/ui';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useEffect,useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -29,6 +32,29 @@ export default function VerificationScreen() {
 
   const { data: status, isLoading } = useVerification();
   const { requestPhoneCode, submitPhone } = useVerificationMutations();
+
+  const queryClient = useQueryClient();
+  /**
+   * 카카오 계정을 이 계정에 붙인다.
+   *
+   * 카카오 계정 하나는 부팅 계정 하나에만 붙으므로(서버 `social_identities`),
+   * 이 연결이 곧 "계정을 몇 개든 만들 수는 없다" 가 된다. 전화번호나 실명은
+   * 받아오지 않는다 — 그 동의항목은 비즈니스 앱 전환이 있어야 열린다.
+   */
+  const linkKakao = useMutation({
+    mutationFn: async () => kakaoLinkApi.link(await getKakaoIdToken()),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: bootingKeys.verification });
+      toast.show({ message: '카카오 계정이 확인되었습니다' });
+    },
+    onError: (error: unknown) => {
+      // 사용자가 카카오 화면에서 그냥 나오신 것 — 실패로 알릴 일이 아니다
+      if (isKakaoCancel(error)) return;
+      toast.show({
+        message: error instanceof Error ? error.message : '확인하지 못했습니다',
+      });
+    },
+  });
 
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -72,7 +98,7 @@ export default function VerificationScreen() {
     );
   }
 
-  const done = status.phoneVerified;
+  const done = status.canCreateProfile;
 
   return (
     <Screen
@@ -86,12 +112,39 @@ export default function VerificationScreen() {
         />
       }
     >
-      <StepProgressBar current={2} total={5} label="자녀 인증" />
+      <StepProgressBar current={2} total={5} label="계정 확인" />
 
-      <Text style={styles.title}>자녀분 본인 확인</Text>
+      <Text style={styles.title}>계정을 한 번 확인합니다</Text>
       <Text style={styles.body}>
-        부모님을 대신해 등록하시는 분이 실제 자녀인지 확인합니다.
+        한 분이 계정을 여러 개 만들어 등록하시는 것을 막기 위한 절차입니다.
+        아래 중 하나만 하시면 됩니다.
       </Text>
+
+      {/*
+        카카오를 먼저 둔다. 지금 실제로 열리는 문이 이쪽이고(문자 발송은 사업자
+        계약이 있어야 한다), 부모님께 프로필과 동의 링크를 보내는 통로도 카카오라
+        어차피 한 번은 거치시게 된다.
+      */}
+      <View style={styles.card}>
+        <CheckRow label="카카오 계정 확인" done={status.kakaoLinked} />
+        {status.kakaoLinked ? (
+          <Text style={styles.doneText}>카카오 계정이 연결되었습니다</Text>
+        ) : (
+          <>
+            <Text style={styles.cardHint}>
+              카카오 계정 하나로는 한 분만 등록하실 수 있습니다.
+            </Text>
+            <AppButton
+              label="카카오로 확인하기"
+              loading={linkKakao.isPending}
+              testID="verify-kakao"
+              onPress={() => linkKakao.mutate()}
+            />
+          </>
+        )}
+      </View>
+
+      <Text style={styles.orLabel}>또는</Text>
 
       <View style={styles.card}>
         <CheckRow label="휴대폰 본인인증" done={status.phoneVerified} />
@@ -190,4 +243,11 @@ const styles = StyleSheet.create({
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   checkLabel: { ...typography.subheading, color: theme.colors.text },
   doneText: { ...typography.caption, color: theme.colors.primaryDark },
+  cardHint: { ...typography.caption, color: theme.colors.textTertiary },
+  orLabel: {
+    ...typography.caption,
+    color: theme.colors.textTertiary,
+    textAlign: 'center',
+    marginTop: spacing.md,
+  },
 });
