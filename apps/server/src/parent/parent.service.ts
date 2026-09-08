@@ -217,7 +217,8 @@ export class ParentService {
     sharerUserId: string
   ): Promise<PublicProfileDto | null> {
     const parties = await this.webParties(connectionId, sharerUserId);
-    if (!parties) return null;
+    // 이미 정리된 인연은 열지 않는다 (목록에서는 애초에 빠진다)
+    if (!parties || parties.ended) return null;
 
     // 공개가 내려간 프로필은 보여 주지 않는다 — 동의를 거두신 분일 수 있다
     const { data: partner } = await this.supabase
@@ -276,7 +277,7 @@ export class ParentService {
   ): Promise<ParentInterestResponse | null> {
     if (!(await this.webAllows(tokenConnectionId, sharerUserId, targetConnectionId))) return null;
     const parties = await this.webParties(targetConnectionId, sharerUserId);
-    if (!parties) return null;
+    if (!parties || parties.ended) return null;
     return this.recordInterest(parties.myProfileId, parties.partnerProfileId, targetConnectionId);
   }
 
@@ -289,7 +290,8 @@ export class ParentService {
     if (!(await this.webAllows(tokenConnectionId, sharerUserId, targetConnectionId))) return false;
     const parties = await this.webParties(targetConnectionId, sharerUserId);
     if (!parties) return false;
-    await this.recordDecline(parties.myProfileId, targetConnectionId);
+    // 이미 정리된 인연이면 다시 지우지 않는다 — 같은 결과라 조용히 성공으로 둔다
+    if (!parties.ended) await this.recordDecline(parties.myProfileId, targetConnectionId);
     return true;
   }
 
@@ -316,15 +318,23 @@ export class ParentService {
   private async webParties(
     connectionId: string,
     sharerUserId: string
-  ): Promise<{ myProfileId: string; partnerProfileId: string } | null> {
+  ): Promise<{ myProfileId: string; partnerProfileId: string; ended: boolean } | null> {
     const { data: conn } = await this.supabase
       .getClient()
       .from('connections')
       .select('id, status, user_a_id, user_b_id, parent_profile_a_id, parent_profile_b_id')
       .eq('id', connectionId)
       .maybeSingle();
-    if (!conn || conn.status === 'ended') return null;
+    if (!conn) return null;
 
+    /**
+     * 끝난 인연이어도 **신원은 여기서 나온다.**
+     *
+     * 예전에는 여기서 바로 null 을 돌려줬다. 그랬더니 링크가 가리키는 그 프로필을
+     * 거절하신 순간 링크 전체가 죽어, 받으신 프로필 세 개가 한꺼번에 사라졌다
+     * (실측). 거절은 그 프로필 하나를 닫는 일이지 부모님의 목록을 닫는 일이 아니다.
+     * 그 인연을 볼 수 있는지는 보는 쪽(`webShareView`)에서 가른다.
+     */
     const isA = conn.user_a_id === sharerUserId;
     if (!isA && conn.user_b_id !== sharerUserId) return null;
 
@@ -334,7 +344,7 @@ export class ParentService {
       : conn.parent_profile_a_id) as string;
     if (!myProfileId || !partnerProfileId) return null;
 
-    return { myProfileId, partnerProfileId };
+    return { myProfileId, partnerProfileId, ended: conn.status === 'ended' };
   }
 
   /** 부모님이 카드를 열었다 — 초록 강조를 끈다 */

@@ -102,6 +102,42 @@ export class ParentViewController {
     );
   }
 
+  /**
+   * 거절은 **되돌릴 수 없다** — 인연이 끝나고 자녀 화면에서도 사라진다.
+   * 그래서 누르는 즉시 지우지 않고 한 번 여쭙는다. 앱도 같은 규칙이다.
+   */
+  @Get(':token/c/:connectionId/decline')
+  @Header('Content-Type', 'text/html; charset=utf-8')
+  @Header('Cache-Control', 'no-store')
+  async declineConfirm(
+    @Param('token') token: string,
+    @Param('connectionId') connectionId: string
+  ): Promise<string> {
+    const claim = this.connections.verifyParentViewToken(token);
+    if (!claim) return expiredNotice();
+
+    const profile = await this.parent.webShareViewByConnection(
+      claim.connectionId,
+      claim.userId,
+      connectionId
+    );
+    if (!profile) return notice('지금은 처리할 수 없습니다', '자녀분께 확인해 보세요.', token);
+
+    return shell(
+      '부팅 · 확인',
+      `<div class="lead">
+         <h1>${esc(profile.nickname)} 님을<br>목록에서 지울까요?</h1>
+         <p class="sub">한 번 지우시면 되돌릴 수 없습니다. 이 프로필은 자녀분 화면에서도 사라지고, 다시 보실 수 없습니다.</p>
+       </div>
+       <div class="actions">
+         <form method="post" action="/p/${esc(token)}/c/${esc(connectionId)}/decline">
+           <button class="button danger" type="submit">네, 지우겠습니다</button>
+         </form>
+         <a class="button ghost" href="/p/${esc(token)}/c/${esc(connectionId)}">아니요, 그대로 둘게요</a>
+       </div>`
+    );
+  }
+
   @Post(':token/c/:connectionId/decline')
   @Header('Content-Type', 'text/html; charset=utf-8')
   @Header('Cache-Control', 'no-store')
@@ -136,8 +172,9 @@ export class ParentViewController {
       );
     }
 
-    const others = await this.parent.webInbox(claim.connectionId, claim.userId);
-    return profilePage(profile, token, target, others.length);
+    const shared = await this.parent.webInbox(claim.connectionId, claim.userId);
+    const state = shared.find((item) => item.connectionId === target) ?? null;
+    return profilePage(profile, token, target, shared.length, state);
   }
 }
 
@@ -234,6 +271,23 @@ const STYLE = `
     font-family: inherit; cursor: pointer;
   }
   .button.ghost { background: #fff; color: #0F766E; border: 1px solid #99F6E4; }
+  .button.danger { background: #DC2626; }
+
+  /* 마음이 통한 자리 — 여기서는 연락처가 주인공이다 */
+  .matched-box {
+    margin: 28px 20px 0; padding: 22px 20px; border-radius: 18px;
+    background: #CCFBF1; color: #0F766E; text-align: center;
+    display: grid; gap: 8px;
+  }
+  .matched-box strong { font-size: 21px; }
+  .matched-box span { color: #0F766E; font-size: 17px; }
+  .matched-box .phone {
+    font-size: 28px; font-weight: 800; letter-spacing: 1px;
+    color: #0F766E; text-decoration: none;
+  }
+  .matched-box.waiting { background: #F1F5F9; color: #475569; }
+  .matched-box.waiting strong { color: #334155; }
+  .matched-box.waiting span { color: #64748B; }
 
   .cards { display: grid; gap: 12px; padding: 4px 20px 0; }
   .card {
@@ -324,11 +378,49 @@ function listPage(token: string, items: ParentInboxItemDto[]): string {
   );
 }
 
+/**
+ * 상세 아래의 결정 자리.
+ *
+ * 이미 마음이 통한 분께 다시 "대화해보고 싶으신가요?" 를 묻지 않는다 — 끝난
+ * 질문을 계속 내밀면 부모님은 자기가 뭘 잘못 눌렀나 하신다. 그 자리에는 결과와
+ * 연락처만 둔다.
+ */
+function decisionBlock(
+  p: PublicProfileDto,
+  token: string,
+  connectionId: string,
+  state: ParentInboxItemDto | null
+): string {
+  if (state?.matched && state.partnerPhone) {
+    return `<div class="matched-box">
+      <strong>${esc(p.nickname)} 님과 마음이 통했습니다</strong>
+      <a class="phone" href="tel:${esc(state.partnerPhone)}">${esc(state.partnerPhone)}</a>
+      <span>편하실 때 연락해 보세요.</span>
+    </div>`;
+  }
+
+  if (state?.interested) {
+    return `<div class="matched-box waiting">
+      <strong>대화해보고 싶다고 전해드렸습니다</strong>
+      <span>상대분도 원하시면 그때 연락처를 알려드립니다.</span>
+    </div>`;
+  }
+
+  return `<div class="closing">이 분과 대화해보고 싶으신가요?</div>
+    <div class="actions">
+      <form method="post" action="/p/${esc(token)}/c/${esc(connectionId)}/interest">
+        <button class="button" type="submit">대화해보고 싶어요</button>
+      </form>
+      <a class="button ghost" href="/p/${esc(token)}/c/${esc(connectionId)}/decline">아니요, 괜찮습니다</a>
+    </div>`;
+}
+
 function profilePage(
   p: PublicProfileDto,
   token: string,
   connectionId: string,
-  totalShared: number
+  totalShared: number,
+  state: ParentInboxItemDto | null
 ): string {
   const marital = MARITAL_LABEL[p.maritalStatus] ?? '';
   const goals = (p.goals ?? []).map((g) => GOAL_LABEL[g]).filter(Boolean);
@@ -393,20 +485,18 @@ function profilePage(
        ${marital || p.region ? `<p class="sub">${esc([p.region, marital].filter(Boolean).join(' · '))}</p>` : ''}
      </div>
      ${blocks}
-     <div class="closing">이 분과 대화해보고 싶으신가요?</div>
+     ${decisionBlock(p, token, connectionId, state)}
      <div class="actions">
-       <form method="post" action="/p/${esc(token)}/c/${esc(connectionId)}/interest">
-         <button class="button" type="submit">대화해보고 싶어요</button>
-       </form>
-       <form method="post" action="/p/${esc(token)}/c/${esc(connectionId)}/decline">
-         <button class="button ghost" type="submit">아니요, 괜찮습니다</button>
-       </form>
        ${
-         totalShared > 1
+         totalShared
            ? `<a class="button ghost" href="/p/${esc(token)}/all">받으신 프로필 모두 보기 (${totalShared})</a>`
            : ''
        }
      </div>
-     <p class="quiet">두 분이 모두 원하실 때만 연락처가 전해집니다.<br>실명·생년월일·정확한 주소는 공개되지 않습니다.</p>`
+     <p class="quiet">${
+       state?.matched
+         ? '연락처는 두 분이 모두 원하셨기에 전해드렸습니다.'
+         : '두 분이 모두 원하실 때만 연락처가 전해집니다.'
+     }<br>실명·생년월일·정확한 주소는 공개되지 않습니다.</p>`
   );
 }
