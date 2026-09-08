@@ -214,6 +214,9 @@ export class VerificationService {
     return {
       phoneVerified,
       kakaoLinked,
+      // 이미 인증하신 분께는 계속 보여드린다 — 사업자가 빠졌다고 지난 인증이
+      // 화면에서 사라지면 무슨 일이 있었는지 알 수 없다
+      phoneAvailable: this.sms.configured || phoneVerified,
       phoneMasked: row?.phone ? maskPhone(row.phone as string) : null,
       /**
        * 둘 중 **하나만** 되면 연다.

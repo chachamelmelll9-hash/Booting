@@ -44,6 +44,8 @@ export interface VerificationStatus {
   phoneVerified: boolean;
   /** 카카오 계정이 붙어 있는가 — 카카오 하나는 부팅 계정 하나에만 붙는다 */
   kakaoLinked: boolean;
+  /** 문자 사업자가 꽂혀 있는가 — false 면 화면에서 휴대폰 항목을 감춘다 */
+  phoneAvailable: boolean;
   phoneMasked: string | null;
   /** 문자 인증 **또는** 카카오 연결 중 하나면 열린다 */
   canCreateProfile: boolean;

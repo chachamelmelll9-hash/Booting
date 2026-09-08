@@ -117,7 +117,7 @@ export default function VerificationScreen() {
       <Text style={styles.title}>계정을 한 번 확인합니다</Text>
       <Text style={styles.body}>
         한 분이 계정을 여러 개 만들어 등록하시는 것을 막기 위한 절차입니다.
-        아래 중 하나만 하시면 됩니다.
+        {status.phoneAvailable ? ' 아래 중 하나만 하시면 됩니다.' : ''}
       </Text>
 
       {/*
@@ -144,6 +144,13 @@ export default function VerificationScreen() {
         )}
       </View>
 
+      {/*
+        문자 사업자가 없으면 아예 감춘다.
+        못 보내는 동안 버튼만 두면 눌러도 에러가 나는 길이 하나 생긴다. 서버가
+        `phoneAvailable` 로 알려주므로, 사업자가 붙는 순간 이 화면은 저절로 살아난다.
+      */}
+      {status.phoneAvailable ? (
+        <>
       <Text style={styles.orLabel}>또는</Text>
 
       <View style={styles.card}>
@@ -210,7 +217,8 @@ export default function VerificationScreen() {
           </>
         )}
       </View>
-
+        </>
+      ) : null}
     </Screen>
   );
 }
