@@ -21,7 +21,9 @@ export default function ParentSetupLayout() {
           '뒤로'로 로그인 화면에 돌아갈 자리도 아니다 */}
       <Stack.Screen name="welcome" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ title: '부모님 프로필 등록' }} />
-      <Stack.Screen name="verification" options={{ title: '자녀 인증' }} />
+      {/* '본인 확인' 이라 부르지 않는다 — 실제로 확인하는 것은 계정이 하나라는 것뿐이다
+          (카카오 연결). 전화번호·실명은 받아오지 못한다. */}
+      <Stack.Screen name="verification" options={{ title: '계정 확인' }} />
       {/* 동의는 프로필 뒤에 온다 — 동의 기록이 프로필에 붙기 때문이다.
           공개(submit) 는 여전히 동의 없이는 불가능하므로 PRD 제약은 그대로다. */}
       <Stack.Screen name="profile-edit" options={{ title: '프로필 작성' }} />
