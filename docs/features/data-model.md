@@ -14,7 +14,7 @@
 | ParentProfile.height_cm | 부모님 키 (cm, 120~220 CHECK). 상세에서만 노출 | integer | parent-profile-consent, profile-discovery |
 | RelationshipGoal | 관계 목적 (프로필당 최대 2개) | id, parent_profile_id, goal(remarriage/serious/travel_hobby/same_sex_friend/meal_walk/undecided) | parent-profile-consent, profile-discovery |
 | ProfileReview | 운영 검수 결과 | id, parent_profile_id, status(pending/approved/rejected), reject_reason, reviewed_at, created_at | parent-profile-consent |
-| DiscoveryFilter | 자녀가 저장한 추천 조건 | id, user_id, target_gender, age_min, age_max, region_code, radius_km(10/30/50/null=전국), marital_filter(bereaved/divorced/any), goals[], religion, drinking, smoking, economically_active, **sort(recent/compatibility)**, **min_compatibility(null/50/60/70/80)**, updated_at | profile-discovery, saju-compatibility |
+| DiscoveryFilter | 자녀가 저장한 추천 조건. **정렬·궁합 항목은 없다** — 조건에 맞는 분들 안에서의 순서는 서버가 정한다 (saju-compatibility) | id, user_id, target_gender, age_min, age_max, region_code, radius_km(10/30/50/null=전국), marital_filter(bereaved/divorced/any), goals[], religion, drinking, smoking, economically_active, updated_at | profile-discovery |
 | Heart | 하트 (관심 보내기) | id, sender_user_id, target_parent_profile_id, created_at | profile-discovery, heart-conversation |
 | Pass | 넘긴 프로필 (재추천 제외용) | id, user_id, target_parent_profile_id, created_at | profile-discovery |
 | Block | 차단 (양방향 제외) | id, user_id, blocked_user_id, created_at | profile-discovery, heart-conversation |

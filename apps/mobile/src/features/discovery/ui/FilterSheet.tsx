@@ -1,6 +1,5 @@
 import type { DiscoveryFilter } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
-import { MIN_COMPATIBILITY_OPTIONS } from '@shared/config/saju';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import { AppButton } from '@shared/ui/AppButton';
 import { FormSection, TextField } from '@shared/ui/FormSection';
@@ -12,13 +11,6 @@ import { RADIUS_OPTIONS } from '../model/useDiscoveryFilterStore';
 
 interface Props {
   initial: DiscoveryFilter;
-  /**
-   * 우리 부모님 사주가 등록돼 있는가.
-   *
-   * 없으면 궁합 조건은 서버가 무시한다 — 그래서 고를 수 있는 것처럼 보이면
-   * 안 된다. 조건을 감추는 대신 **왜 못 쓰는지와 어디서 넣는지**를 보여준다.
-   */
-  sajuAvailable: boolean;
   onApply: (filter: DiscoveryFilter) => void;
   onReset: () => void;
   saving?: boolean;
@@ -31,13 +23,7 @@ interface Props {
  * 걸러내는 순간 이 서비스는 부모님을 조건표로 만드는 앱이 된다.
  * 두 항목은 상세 화면에서만 보인다.
  */
-export function FilterSheet({
-  initial,
-  sajuAvailable,
-  onApply,
-  onReset,
-  saving = false,
-}: Props) {
+export function FilterSheet({ initial, onApply, onReset, saving = false }: Props) {
   const [filter, setFilter] = useState<DiscoveryFilter>(initial);
   const patch = (p: Partial<DiscoveryFilter>) => setFilter((f) => ({ ...f, ...p }));
 
@@ -133,58 +119,6 @@ export function FilterSheet({
           ) : null}
         </FormSection>
 
-        <FormSection
-          label="사주 궁합"
-          helper={
-            sajuAvailable
-              ? '우리 부모님 사주로 계산합니다 · 재미로 보는 참고 정보입니다'
-              : undefined
-          }
-        >
-          {sajuAvailable ? (
-            <>
-              <View style={styles.row}>
-                <Chip
-                  label="최근 활동 순"
-                  selected={(filter.sort ?? 'recent') === 'recent'}
-                  onPress={() => patch({ sort: 'recent' })}
-                />
-                <Chip
-                  label="궁합 좋은 순"
-                  selected={filter.sort === 'compatibility'}
-                  onPress={() => patch({ sort: 'compatibility' })}
-                />
-              </View>
-
-              <Text style={styles.subLabel}>최소 궁합</Text>
-              <View style={styles.row}>
-                {MIN_COMPATIBILITY_OPTIONS.map((option) => (
-                  <Chip
-                    key={option.label}
-                    label={option.label}
-                    selected={filter.minCompatibility === option.value}
-                    onPress={() => patch({ minCompatibility: option.value })}
-                  />
-                ))}
-              </View>
-              {/*
-                사주를 안 적은 분은 점수가 없다. 최소 궁합을 걸면 그분들도 함께
-                빠지는데, 이건 사용자가 의도한 게 아닐 수 있어서 미리 말해 준다.
-              */}
-              {filter.minCompatibility ? (
-                <Text style={styles.goalNotice}>
-                  사주를 등록하지 않으신 분은 궁합을 낼 수 없어 함께 제외됩니다.
-                </Text>
-              ) : null}
-            </>
-          ) : (
-            <Text style={styles.goalNotice}>
-              부모님 사주 정보를 등록하시면 궁합순으로 볼 수 있습니다. 내 정보 &gt; 부모님
-              프로필 &gt; 프로필 수정하기에서 양력·음력과 태어난 시간을 골라주세요.
-            </Text>
-          )}
-        </FormSection>
-
         <Text style={styles.note}>
           자녀 수와 동거 가족은 조건으로 고르지 않습니다. 프로필 상세에서 확인하실 수 있습니다.
           {'\n\n'}
@@ -246,11 +180,6 @@ const styles = StyleSheet.create({
   chipTextSelected: { color: theme.colors.primaryDark, fontWeight: '600' },
   ageRow: { flexDirection: 'row', gap: spacing.sm },
   ageField: { flex: 1 },
-  subLabel: {
-    ...typography.caption,
-    color: theme.colors.textTertiary,
-    marginTop: spacing.xs,
-  },
   note: { ...typography.caption, color: theme.colors.textTertiary, marginBottom: spacing.sm },
   goalNotice: {
     ...typography.caption,

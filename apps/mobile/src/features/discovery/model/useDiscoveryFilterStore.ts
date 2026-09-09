@@ -9,7 +9,7 @@ export const RADIUS_OPTIONS = [
   { km: 0, label: '전국' },
 ] as const;
 
-export const DEFAULT_FILTER: DiscoveryFilter = { radiusKm: 30, goals: [], sort: 'recent' };
+export const DEFAULT_FILTER: DiscoveryFilter = { radiusKm: 30, goals: [] };
 
 interface FilterState {
   filter: DiscoveryFilter;
@@ -71,10 +71,7 @@ export function filterSummary(filter: DiscoveryFilter): string {
   if (filter.goals?.length) {
     parts.push(`관계 목적 ${filter.goals.length}개`);
   }
-  // 궁합 조건은 결과를 크게 줄이는 쪽이라, 비었을 때 원인으로 먼저 의심해야 한다
-  if (filter.minCompatibility) {
-    parts.push(`궁합 ${filter.minCompatibility}점 이상`);
-  }
+  // 궁합은 여기 없다 — 조건이 아니라 순서다 (PRD 8.4)
 
   return parts.join(' · ');
 }

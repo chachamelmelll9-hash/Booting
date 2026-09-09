@@ -93,11 +93,6 @@ export function confidenceNote(confidence: 'high' | 'medium'): string | null {
 /** 어느 화면에서도 빠지면 안 되는 한 줄 */
 export const SAJU_DISCLAIMER = '재미로 보는 참고 정보입니다';
 
-/** 최소 궁합 필터 선택지 — 서버 COMPATIBILITY_THRESHOLDS 와 같은 값이어야 한다 */
-export const MIN_COMPATIBILITY_OPTIONS = [
-  { value: undefined, label: '제한 없음' },
-  { value: 50, label: '50점 이상' },
-  { value: 60, label: '60점 이상' },
-  { value: 70, label: '70점 이상' },
-  { value: 80, label: '80점 이상' },
-] as const;
+// 궁합에는 필터도 정렬 선택지도 없다 — 조건에 맞는 분들 안에서 궁합이 높은
+// 순으로 서버가 항상 정렬한다. 점수로 사람을 걸러내면 선택 입력인 사주가
+// 사실상의 자격 요건이 된다 (PRD 8.4).

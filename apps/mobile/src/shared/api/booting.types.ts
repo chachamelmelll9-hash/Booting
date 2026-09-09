@@ -213,9 +213,12 @@ export interface PublicProfile extends DiscoveryItem {
   heartSent: boolean;
 }
 
-/** 추천 정렬 */
-export type DiscoverySort = 'recent' | 'compatibility';
-
+/**
+ * 추천 조건.
+ *
+ * 정렬 항목이 **없다.** 조건에 맞는 분들 안에서 누구를 먼저 보여줄지는 서버가
+ * 정한다 — 우리 부모님 사주가 있으면 궁합이 높은 순, 없으면 최근 활동 순이다.
+ */
 export interface DiscoveryFilter {
   targetGender?: 'male' | 'female';
   ageMin?: number;
@@ -228,9 +231,6 @@ export interface DiscoveryFilter {
   drinking?: string;
   smoking?: string;
   economicallyActive?: boolean;
-  sort?: DiscoverySort;
-  /** 이 점수 미만 제외. 없으면 제한 없음 */
-  minCompatibility?: number;
 }
 
 export interface Region {

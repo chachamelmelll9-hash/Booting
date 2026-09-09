@@ -16,7 +16,7 @@ import {
 } from './dto/discovery.dto';
 
 /**
- * 궁합으로 정렬·거를 때 한 번에 훑는 후보 수.
+ * 궁합으로 줄 세울 때 한 번에 훑는 후보 수.
  *
  * 궁합은 DB 가 모르는 값이라 SQL 로 정렬할 수 없다 — 후보를 받아 와서 서버가
  * 매긴다. 그래서 상한이 필요하다. 홈은 하루 여섯 장을 보여주므로 최근 활동
@@ -24,7 +24,7 @@ import {
  */
 const COMPATIBILITY_POOL = 200;
 
-/** 궁합 정렬의 커서는 타임스탬프가 아니라 **정렬된 목록에서의 위치**다 */
+/** 궁합 순서의 커서는 타임스탬프가 아니라 **정렬된 목록에서의 위치**다 */
 const OFFSET_CURSOR_PREFIX = 'o:';
 
 @Injectable()
@@ -63,7 +63,6 @@ export class DiscoveryService {
         targetGender: me?.gender === 'male' ? 'female' : me?.gender === 'female' ? 'male' : undefined,
         radiusKm: DEFAULT_RADIUS_KM,
         goals: [],
-        sort: 'recent',
       };
     }
 
@@ -79,8 +78,6 @@ export class DiscoveryService {
       drinking: data.drinking ?? undefined,
       smoking: data.smoking ?? undefined,
       economicallyActive: data.economically_active ?? undefined,
-      sort: data.sort ?? 'recent',
-      minCompatibility: data.min_compatibility ?? undefined,
     };
   }
 
@@ -102,8 +99,6 @@ export class DiscoveryService {
           drinking: dto.drinking ?? null,
           smoking: dto.smoking ?? null,
           economically_active: dto.economicallyActive ?? null,
-          sort: dto.sort ?? 'recent',
-          min_compatibility: dto.minCompatibility ?? null,
         },
         { onConflict: 'user_id' }
       );
@@ -132,16 +127,6 @@ export class DiscoveryService {
     const filter = await this.getFilter(userId);
     const mySaju = await this.saju.pillarsOf(myProfileId);
 
-    /**
-     * 궁합은 우리 부모님 사주가 있어야 낼 수 있다.
-     *
-     * 없는데도 저장된 조건을 그대로 적용하면 홈이 통째로 빈다 — 사주를 안 적은
-     * 것이 사람을 못 보는 이유가 되면 안 된다. 그래서 조용히 최근 활동 순으로
-     * 돌아가고, 화면은 "사주를 적으면 궁합순으로 볼 수 있다"고 안내한다.
-     */
-    const scored =
-      !!mySaju && (filter.sort === 'compatibility' || filter.minCompatibility != null);
-
     const base = {
       userId,
       myProfileId,
@@ -151,9 +136,15 @@ export class DiscoveryService {
       filter,
     };
 
-    if (!scored) {
-      // 정렬을 바꾸면 커서 뜻도 바뀐다 — 옛 커서를 그대로 쓰면 타임스탬프
-      // 자리에 위치 값이 들어가 쿼리가 깨진다. 첫 페이지로 되돌린다.
+    /**
+     * 우리 부모님 사주가 없으면 궁합을 낼 수 없다 — 최근 활동 순으로 돌아간다.
+     *
+     * 사주를 안 적은 것이 사람을 못 보는 이유가 되면 안 된다. 이 경로는 조건에
+     * 맞는 분을 평소와 같은 수로 돌려주고, 카드에 궁합 배지만 없다.
+     */
+    if (!mySaju) {
+      // 커서 뜻이 다르다 — 사주를 지운 직후라면 옛 위치 커서가 남아 있을 수
+      // 있고, 그걸 타임스탬프 자리에 넣으면 쿼리가 깨진다. 첫 페이지로 되돌린다.
       const timeCursor = cursor?.startsWith(OFFSET_CURSOR_PREFIX) ? undefined : cursor;
       const rows = await this.repository.findCandidates({ ...base, cursor: timeCursor, limit });
       const hasMore = rows.length > limit;
@@ -165,7 +156,16 @@ export class DiscoveryService {
       };
     }
 
-    // 궁합을 쓰는 경로 — 후보를 한 번에 받아 서버가 매기고 자른다
+    /**
+     * 조건에 맞는 분들을 **궁합이 높은 순으로** 돌려준다.
+     *
+     * 사용자가 고르는 정렬이 아니다. 조건(거리·나이·목적…)은 사용자가 정하고,
+     * 그 안에서 누구를 먼저 보여줄지는 서비스가 정한다 — 그게 궁합이다.
+     *
+     * 사주를 적지 않은 분은 점수가 없어 **뒤로 밀릴 뿐 빠지지는 않는다.**
+     * 사주는 선택 입력이고(PRD 5.3), 안 적었다는 이유로 추천에서 사라지면
+     * 그건 선택이 아니라 사실상의 필수가 된다.
+     */
     const pool = await this.repository.findCandidates({
       ...base,
       cursor: undefined,
@@ -173,15 +173,12 @@ export class DiscoveryService {
     });
     const sajus = await this.saju.pillarsFor(pool.map((r) => r.id));
 
-    const ranked = pool
-      .map((row) => ({ row, score: this.saju.compare(mySaju, sajus.get(row.id) ?? null)?.score }))
-      // 사주를 안 적은 분은 점수가 없다 — 최소 궁합을 걸면 그분들도 함께 빠진다
-      .filter((c) => filter.minCompatibility == null || (c.score ?? -1) >= filter.minCompatibility);
-
-    // 최소 궁합만 걸고 정렬은 그대로 두는 경우가 있어, 정렬은 조건부다
-    if (filter.sort === 'compatibility') {
-      ranked.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
-    }
+    const ranked = pool.map((row) => ({
+      row,
+      score: this.saju.compare(mySaju, sajus.get(row.id) ?? null)?.score ?? -1,
+    }));
+    // 동점이면 pool 순서(최근 활동 순)가 그대로 남는다 — Array.sort 는 안정 정렬이다
+    ranked.sort((a, b) => b.score - a.score);
 
     const offset = parseOffsetCursor(cursor);
     const page = ranked.slice(offset, offset + limit).map((c) => c.row);

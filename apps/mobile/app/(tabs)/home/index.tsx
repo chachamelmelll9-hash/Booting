@@ -130,7 +130,6 @@ export default function HomeScreen() {
           {filter.ageMin || filter.ageMax
             ? ` · ${filter.ageMin ?? ''}~${filter.ageMax ?? ''}세`
             : ''}
-          {filter.sort === 'compatibility' ? ' · 궁합순' : ''}
         </Text>
       </Pressable>
 
