@@ -6,14 +6,9 @@ import { compatibility, computePillars } from './lib';
 
 export interface ProfileSaju {
   pillars: FourPillars;
-  /**
-   * 원본 생년월일·출생시각을 **상대에게 보여도 되는가** (`saju_infos.is_public`).
-   *
-   * 궁합 계산 자체는 이 값과 무관하게 돌아간다. 점수와 일주만으로는 생년월일이
-   * 복원되지 않기 때문이다. 이 플래그는 상세 화면의 '사주 정보' 섹션에
-   * **날짜 자체를 찍을지**만 가른다. 보정값을 적지 않은 분은 기본 비공개다.
-   */
-  isPublic: boolean;
+  // `saju_infos.is_public` 은 읽지 않는다. 원본 생년월일·출생시각은 공개 설정과
+  // 상관없이 **아무에게도 나가지 않고**(PRD 7), 나가는 값은 일주와 궁합뿐이다.
+  // 그래서 켜고 끌 것이 남지 않았다.
 }
 
 /**
@@ -40,7 +35,7 @@ export class SajuService {
     const [sajuRes, profileRes] = await Promise.all([
       client
         .from('saju_infos')
-        .select('parent_profile_id, birth_date, calendar_type, birth_time, birth_time_unknown, is_public')
+        .select('parent_profile_id, birth_date, calendar_type, birth_time, birth_time_unknown')
         .in('parent_profile_id', profileIds),
       // 보정값이 없을 때 기준이 되는 필수 생년월일
       client.from('parent_profiles').select('id, birth_date').in('id', profileIds),
@@ -70,9 +65,7 @@ export class SajuService {
             }
       );
       // 날짜가 깨졌거나 음력 변환표 밖일 때만 빠진다
-      if (pillars) {
-        result.set(profile.id as string, { pillars, isPublic: row?.is_public ?? false });
-      }
+      if (pillars) result.set(profile.id as string, { pillars });
     }
     return result;
   }

@@ -301,7 +301,15 @@ export class ParentProfileService {
           calendar_type: saju.calendarType,
           birth_time: saju.birthTimeUnknown ? null : saju.birthTime ?? null,
           birth_time_unknown: saju.birthTimeUnknown,
-          is_public: saju.isPublic,
+          /**
+           * **항상 false 다.** 사용자가 고르는 값이 아니다.
+           *
+           * 이 컬럼이 실제로 여는 문은 RLS 정책 `saju_public_read` 다 — true 면
+           * 인증된 아무나 PostgREST 로 이 행(정확한 생년월일·출생시각)을 직접
+           * 읽을 수 있다. 우리 API 는 사주에서 일주와 궁합만 내보내므로
+           * (PRD 7: 정확한 생년월일 비공개) 그 문을 열어 둘 이유가 없다.
+           */
+          is_public: false,
         },
         { onConflict: 'parent_profile_id' }
       );
@@ -397,7 +405,6 @@ export class ParentProfileService {
             calendarType: saju.calendar_type,
             birthTime: saju.birth_time,
             birthTimeUnknown: saju.birth_time_unknown,
-            isPublic: saju.is_public,
           }
         : null,
       status: row.status,

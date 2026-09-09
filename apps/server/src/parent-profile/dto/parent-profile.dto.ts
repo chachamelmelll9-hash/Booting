@@ -66,12 +66,17 @@ export class CreateParentProfileDto {
 
 // UpdateParentProfileDto 보다 먼저 선언해야 한다 — @Type(() => SajuInput) 의
 // emitDecoratorMetadata 가 클래스 참조를 모듈 평가 시점에 읽기 때문이다 (TDZ).
+/**
+ * 사주 **보정값**. 사주 자체는 프로필 생년월일로 항상 세워진다.
+ *
+ * 공개 여부를 받지 않는다 — 원본 생년월일·출생시각은 누구에게도 나가지 않고
+ * (PRD 7), 나가는 값은 일주와 궁합뿐이라 켜고 끌 것이 없다.
+ */
 export class SajuInput {
   @IsDateString() birthDate!: string;
   @IsIn(['solar', 'lunar']) calendarType!: 'solar' | 'lunar';
   @IsOptional() @Matches(/^\d{2}:\d{2}$/) birthTime?: string;
   @IsBoolean() birthTimeUnknown!: boolean;
-  @IsBoolean() isPublic!: boolean;
 }
 
 export class UpdateParentProfileDto {
@@ -229,7 +234,6 @@ export interface ParentProfileDto {
     calendarType: 'solar' | 'lunar';
     birthTime: string | null;
     birthTimeUnknown: boolean;
-    isPublic: boolean;
   } | null;
   status: ProfileStatus;
   publishedAt: string | null;

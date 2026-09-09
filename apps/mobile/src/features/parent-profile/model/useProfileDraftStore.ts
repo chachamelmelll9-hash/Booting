@@ -45,8 +45,8 @@ export interface ProfileDraft {
   /** 'HH:mm' */
   sajuBirthTime: string;
   sajuTimeUnknown: boolean;
-  /** 생년월일·출생시각 자체를 상대에게 보일지. 꺼도 궁합은 계산된다 */
-  sajuPublic: boolean;
+  // 공개 여부는 받지 않는다 — 궁합은 끄고 켜는 기능이 아니고,
+  // 원본 생년월일은 애초에 아무에게도 나가지 않는다 (PRD 7)
 }
 
 const EMPTY: ProfileDraft = {
@@ -75,7 +75,6 @@ const EMPTY: ProfileDraft = {
   sajuCalendar: 'solar',
   sajuBirthTime: '',
   sajuTimeUnknown: false,
-  sajuPublic: false,
 };
 
 interface DraftState {

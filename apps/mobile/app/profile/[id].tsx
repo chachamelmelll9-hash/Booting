@@ -213,15 +213,11 @@ export default function PublicProfileScreen() {
         <Detail label="동거 가족" value={profile.livingWith} />
       </Section>
 
-      {profile.saju ? (
-        <Section title="사주 정보">
-          <Detail label="생년월일" value={profile.saju.birthDate} />
-          <Detail
-            label="태어난 시간"
-            value={profile.saju.birthTimeUnknown ? '모름' : profile.saju.birthTime}
-          />
-        </Section>
-      ) : null}
+      {/*
+        원본 생년월일·출생시각은 이 화면에 없다.
+        사주는 맨 위 `을사일주 · 궁합 74점` 한 줄이 전부이고, 정확한 생년월일은
+        PRD 7 이 비공개로 못박은 값이다 — 사주 때문에 그 원칙이 뚫리면 안 된다.
+      */}
     </Screen>
   );
 }

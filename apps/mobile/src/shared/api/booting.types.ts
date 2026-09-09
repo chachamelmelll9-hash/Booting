@@ -92,7 +92,6 @@ export interface ParentProfile {
     calendarType: 'solar' | 'lunar';
     birthTime: string | null;
     birthTimeUnknown: boolean;
-    isPublic: boolean;
   } | null;
   status: ProfileStatus;
   publishedAt: string | null;
@@ -190,12 +189,8 @@ export interface PublicProfile extends DiscoveryItem {
   /** 상세에서만 노출. 필터 항목이 아니다 (PRD) */
   childrenCount: string | null;
   livingWith: string | null;
-  saju: {
-    birthDate: string;
-    calendarType: 'solar' | 'lunar';
-    birthTime: string | null;
-    birthTimeUnknown: boolean;
-  } | null;
+  // 원본 생년월일·출생시각은 오지 않는다 — 정확한 생년월일은 비공개다 (PRD 7).
+  // 사주로 나가는 값은 `dayPillar` 와 `compatibility` 뿐이다.
   heartSent: boolean;
 }
 

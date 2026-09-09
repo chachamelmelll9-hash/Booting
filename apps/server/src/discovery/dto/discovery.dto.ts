@@ -119,13 +119,9 @@ export interface PublicProfileDto extends DiscoveryItemDto {
   /** 상세에서만 보인다 — 필터로는 쓸 수 없다 (PRD) */
   childrenCount: string | null;
   livingWith: string | null;
-  saju: {
-    birthDate: string;
-    calendarType: 'solar' | 'lunar';
-    birthTime: string | null;
-    birthTimeUnknown: boolean;
-  } | null;
-  // 네 기둥은 내보내지 않는다. 화면이 쓰는 사주 값은 일주(`dayPillar`) 하나뿐이고,
+  // 원본 생년월일·출생시각은 내보내지 않는다 — 정확한 생년월일은 비공개다 (PRD 7).
+  // 사주로 나가는 값은 `dayPillar` 와 `compatibility` 뿐이다.
+  // 네 기둥도 내보내지 않는다. 화면이 쓰는 사주 값은 일주(`dayPillar`) 하나뿐이고,
   // 기둥 넷이 다 나가면 60갑자 안에서 생년월일이 거의 특정된다 — 아무도 안 그리는
   // 값 때문에 그 위험을 질 이유가 없다.
   /** 내가 이미 관심을 보냈는가 — 버튼 상태 판정용 */

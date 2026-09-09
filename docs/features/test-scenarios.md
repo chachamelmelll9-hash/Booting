@@ -1146,13 +1146,20 @@ Scenario: 증명서 경로는 어떤 응답에도 없다
   Then 두 응답 모두 family_doc_path 를 포함하지 않는다
 ```
 
-#### SEC.4: 사주 공개 설정 준수
+#### SEC.4: 원본 생년월일·출생시각 미노출
 
 ```gherkin
-Scenario: 비공개 사주는 타인 응답에 포함되지 않는다
-  Given 상대 프로필의 saju_infos.is_public 이 false 이다
+Scenario: 사주가 있어도 원본 날짜는 타인 응답에 없다
   When 다른 사용자가 GET /api/profiles/:id 를 호출한다
-  Then 응답에 saju 필드가 null 이거나 존재하지 않는다
+  Then 응답에 saju 필드가 존재하지 않는다
+  And 응답 어디에도 생년월일 문자열이 없다 (age 만 있다)
+
+Scenario: RLS 로도 직접 읽히지 않는다
+  Given 어떤 프로필이 사주를 등록했다
+  Then saju_infos.is_public 이 false 다
+  # 이 컬럼이 true 면 정책 saju_public_read 로 인증된 아무나
+  # PostgREST 에서 그 행(정확한 생년월일)을 직접 읽는다.
+  # 서버는 사용자 입력과 무관하게 항상 false 로 쓴다
 ```
 
 #### SEC.5: 네 기둥은 어느 응답에도 없다

@@ -273,18 +273,12 @@ export class DiscoveryService {
     // 아래에서 어차피 읽으므로, 넘기면 같은 조회가 두 번 돈다
     const [base] = await this.toItems([row], await this.myRegionCode(myProfileId));
 
-    const [photoRows, sajuRes, heartRes, mySaju, theirSaju] = await Promise.all([
+    const [photoRows, heartRes, mySaju, theirSaju] = await Promise.all([
       client
         .from('parent_photos')
         .select('*')
         .eq('parent_profile_id', profileId)
         .order('sort_order', { ascending: true }),
-      client
-        .from('saju_infos')
-        .select('*')
-        .eq('parent_profile_id', profileId)
-        .eq('is_public', true) // 비공개 사주는 아예 읽지 않는다
-        .maybeSingle(),
       client
         .from('hearts')
         .select('id')
@@ -319,14 +313,6 @@ export class DiscoveryService {
       hobbies: row.hobbies ?? [],
       childrenCount: row.children_count,
       livingWith: row.living_with,
-      saju: sajuRes.data
-        ? {
-            birthDate: sajuRes.data.birth_date,
-            calendarType: sajuRes.data.calendar_type,
-            birthTime: sajuRes.data.birth_time,
-            birthTimeUnknown: sajuRes.data.birth_time_unknown,
-          }
-        : null,
       heartSent: !!heartRes.data,
     };
     // 실제 성명·생년월일·연락처·정확한 주소·family_doc_path 는 어느 필드에도 없다.

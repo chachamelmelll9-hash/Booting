@@ -122,7 +122,6 @@ export default function ProfileEditScreen() {
       // DB 는 'HH:mm:ss' 로 돌려준다 — 화면은 분까지만 다룬다
       sajuBirthTime: profile.saju?.birthTime?.slice(0, 5) ?? '',
       sajuTimeUnknown: profile.saju?.birthTimeUnknown ?? false,
-      sajuPublic: profile.saju?.isPublic ?? false,
     });
     // profile 이 바뀔 때만 — set 은 안정적인 zustand 액션이다
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -341,6 +340,80 @@ export default function ProfileEditScreen() {
           placeholder="1958-04-11"
           invalid={!!errors.birthDate}
         />
+        {/*
+          이 날짜가 나이 계산에만 쓰이는 게 아니라는 걸 **적는 자리에서** 알린다.
+          아래 양력·음력 칸까지 내려가서야 눈치채면, 이미 대충 적은 뒤다.
+        */}
+        <Text style={styles.goalNotice} testID="birth-saju-notice">
+          이 날짜로 사주를 세웁니다. 사주를 기반으로 프로필을 추천해드리고 상대
+          부모님과의 궁합 점수를 보여드립니다.
+        </Text>
+      </FormSection>
+
+      {/*
+        양·음력과 태어난 시간은 **생년월일 바로 아래**에 둔다.
+        별도 '사주 정보' 섹션으로 빼 두면 방금 적은 날짜를 한참 아래에서 다시
+        설명하게 되고, 그 사이에 사진·생활·소개가 끼어 두 값이 남남으로 읽힌다.
+        사주는 이 날짜를 어떻게 읽느냐의 문제라 같은 자리에 있어야 한다.
+      */}
+      <FormSection
+        label="양력 · 음력"
+        required
+        helper="위에 적으신 날짜가 어느 쪽인지 골라주세요"
+      >
+        <View style={styles.row}>
+          {(
+            [
+              { key: 'solar' as const, label: '양력' },
+              { key: 'lunar' as const, label: '음력' },
+            ]
+          ).map((option) => (
+            <Chip
+              key={option.label}
+              label={option.label}
+              selected={draft.sajuCalendar === option.key}
+              testID={`saju-calendar-${option.key}`}
+              onPress={() => set({ sajuCalendar: option.key })}
+            />
+          ))}
+        </View>
+      </FormSection>
+
+      <FormSection
+        label="태어난 시간"
+        helper="숫자만 누르시면 됩니다 (예: 0730 → 07:30). 모르시면 '모름'을 골라주세요"
+        error={errors.sajuBirthTime}
+      >
+        <TextField
+          testID="saju-time"
+          value={draft.sajuBirthTime}
+          onChangeText={(v) =>
+            set({ sajuBirthTime: formatBirthTime(v), sajuTimeUnknown: false })
+          }
+          placeholder="07:30"
+          keyboardType="number-pad"
+          maxLength={5}
+          invalid={!!errors.sajuBirthTime}
+        />
+        <View style={styles.row}>
+          <Chip
+            label="모름"
+            selected={draft.sajuTimeUnknown}
+            testID="saju-time-unknown"
+            onPress={() =>
+              set({ sajuTimeUnknown: !draft.sajuTimeUnknown, sajuBirthTime: '' })
+            }
+          />
+        </View>
+        {/*
+          비워 둔 것도 '모름'으로 저장된다. 그 사실을 말해 주지 않으면
+          사용자는 시간을 안 적었을 뿐인데 무엇이 저장됐는지 모른 채 넘어간다.
+        */}
+        {draft.sajuTimeUnknown || !draft.sajuBirthTime.trim() ? (
+          <Text style={styles.sectionNote}>
+            시간을 모르시면 시주를 빼고 세 기둥으로 봅니다. 궁합은 그대로 나옵니다.
+          </Text>
+        ) : null}
       </FormSection>
 
       <FormSection label="거주 지역" required helper="시·군·구까지만 공개됩니다" error={errors.regionCode}>
@@ -547,94 +620,6 @@ export default function ProfileEditScreen() {
         />
       </FormSection>
 
-      {/*
-        사주 자체는 생년월일만 있으면 세워진다 (필수 항목이다). 여기서 받는 건
-        그 날짜를 어떻게 읽을지에 대한 **보정값**뿐이라 '입력 안 함'이 없다.
-        필수 항목들과 섞어 두면 "이것도 채워야 하나" 하고 멈추게 되므로
-        소개 뒤에 따로 둔다.
-      */}
-      <Text style={styles.section}>사주 정보</Text>
-      <Text style={styles.sectionNote}>
-        위에 적으신 생년월일로 사주를 세워 상대 부모님과의 궁합을 보여드립니다.
-        태어난 시간까지 알려주시면 더 정확해집니다.
-      </Text>
-
-      <FormSection label="생년월일 기준" helper="위에 적으신 날짜가 양력인지 음력인지 골라주세요">
-        <View style={styles.row}>
-          {(
-            [
-              { key: 'solar' as const, label: '양력' },
-              { key: 'lunar' as const, label: '음력' },
-            ]
-          ).map((option) => (
-            <Chip
-              key={option.label}
-              label={option.label}
-              selected={draft.sajuCalendar === option.key}
-              testID={`saju-calendar-${option.key}`}
-              onPress={() => set({ sajuCalendar: option.key })}
-            />
-          ))}
-        </View>
-      </FormSection>
-
-      <FormSection
-        label="태어난 시간"
-        helper="숫자만 누르시면 됩니다 (예: 0730 → 07:30). 모르시면 '모름'을 골라주세요"
-        error={errors.sajuBirthTime}
-      >
-        <TextField
-          testID="saju-time"
-          value={draft.sajuBirthTime}
-          onChangeText={(v) =>
-            set({ sajuBirthTime: formatBirthTime(v), sajuTimeUnknown: false })
-          }
-          placeholder="07:30"
-          keyboardType="number-pad"
-          maxLength={5}
-          invalid={!!errors.sajuBirthTime}
-        />
-        <View style={styles.row}>
-          <Chip
-            label="모름"
-            selected={draft.sajuTimeUnknown}
-            testID="saju-time-unknown"
-            onPress={() =>
-              set({ sajuTimeUnknown: !draft.sajuTimeUnknown, sajuBirthTime: '' })
-            }
-          />
-        </View>
-        {/*
-          비워 둔 것도 '모름'으로 저장된다. 그 사실을 말해 주지 않으면
-          사용자는 시간을 안 적었을 뿐인데 무엇이 저장됐는지 모른 채 넘어간다.
-        */}
-        {draft.sajuTimeUnknown || !draft.sajuBirthTime.trim() ? (
-          <Text style={styles.sectionNote}>
-            시간을 모르시면 시주를 빼고 세 기둥으로 봅니다. 궁합은 그대로 나옵니다.
-          </Text>
-        ) : null}
-      </FormSection>
-
-      <FormSection
-        label="사주 공개"
-        helper="생년월일과 시간 자체를 상대에게 보일지에 대한 선택입니다. 비공개로 두셔도 궁합과 일주는 나옵니다"
-      >
-        <View style={styles.row}>
-          <Chip
-            label="공개"
-            selected={draft.sajuPublic}
-            testID="saju-public"
-            onPress={() => set({ sajuPublic: true })}
-          />
-          <Chip
-            label="비공개"
-            selected={!draft.sajuPublic}
-            testID="saju-private"
-            onPress={() => set({ sajuPublic: false })}
-          />
-        </View>
-      </FormSection>
-
       <RegionPicker
         visible={regionOpen}
         onDismiss={() => setRegionOpen(false)}
@@ -663,7 +648,10 @@ function formatBirthTime(input: string): string {
  * 저장할 사주 보정값.
  *
  * 사주 자체는 생년월일만 있으면 서버가 세운다 — 여기서 보내는 건 그 날짜를
- * 어떻게 읽을지(양·음력)와 시각·공개 여부뿐이라 **항상 값이 있다.**
+ * 어떻게 읽을지(양·음력)와 시각뿐이라 **항상 값이 있다.**
+ *
+ * 공개 여부를 묻지 않는다. 궁합은 이 서비스의 핵심 기능이라 끄고 켜는 값이
+ * 아니고, 원본 생년월일은 애초에 아무에게도 나가지 않는다 (PRD 7).
  */
 function sajuPayload(draft: ProfileDraft) {
   const time = draft.sajuBirthTime.trim();
@@ -675,7 +663,6 @@ function sajuPayload(draft: ProfileDraft) {
     calendarType: draft.sajuCalendar,
     birthTime: unknown ? undefined : time,
     birthTimeUnknown: unknown,
-    isPublic: draft.sajuPublic,
   };
 }
 

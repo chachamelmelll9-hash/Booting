@@ -164,13 +164,14 @@ const PROFILES = [
 );
 
 /**
- * 시드 사주 (궁합 확인용).
+ * 시드 사주 보정값.
  *
- * 전원에게 넣지 않는다 — 사주를 적지 않은 분의 카드에는 궁합 배지가 없어야 하고,
- * 최소 궁합 필터를 걸면 그분들이 빠지는 것까지가 확인 대상이다. 5명 중 1명은
- * 비워 두고, 넣을 때도 양력/음력·시각 모름·공개 여부를 골고루 섞는다.
+ * 5명 중 1명은 **일부러 비워 둔다.** 사주 보정값이 없어도 서버가 프로필
+ * 생년월일로 팔자를 세우는지(양력·시각 모름 폴백)를 확인하는 자리다 — 그분들도
+ * 카드에 일주와 궁합이 나와야 한다. 넣을 때는 양력/음력과 시각 모름을 섞는다.
  *
  * 날짜는 프로필 생년월일을 그대로 쓴다 (앱도 같은 값 하나만 쓴다).
+ * 공개 여부는 보내지 않는다 — 원본 생년월일은 누구에게도 나가지 않는다.
  */
 function sajuFor(index, birthDate) {
   if (index % 5 === 4) return null;
@@ -181,7 +182,6 @@ function sajuFor(index, birthDate) {
     calendarType: index % 4 === 3 ? 'lunar' : 'solar',
     birthTime: timeUnknown ? undefined : ['05:20', '09:40', '13:10', '19:50'][index % 4],
     birthTimeUnknown: timeUnknown,
-    isPublic: index % 2 === 0,
   };
 }
 
