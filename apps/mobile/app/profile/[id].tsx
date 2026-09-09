@@ -256,8 +256,9 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginTop: spacing.xs,
   },
-  dayPillar: { ...typography.subheading, color: theme.colors.text },
-  sajuSeparator: { ...typography.subheading, color: theme.colors.textMuted },
+  // 일주와 점수는 한 덩어리로 읽혀야 해서 같은 민트를 쓴다
+  dayPillar: { ...typography.subheading, color: theme.colors.primaryDark },
+  sajuSeparator: { ...typography.subheading, color: theme.colors.primary },
   score: { ...typography.subheading, color: theme.colors.primaryDark },
   badges: { marginTop: spacing.sm },
   section: { marginTop: spacing.lg, gap: spacing.xs },

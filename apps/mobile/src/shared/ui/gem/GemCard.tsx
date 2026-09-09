@@ -270,7 +270,7 @@ function ProfileFace({
             {dayPillarLabel(profile.dayPillar)}
           </Text>
         ) : null}
-        <CompatibilityBadge compatibility={profile.compatibility} variant="photo" />
+        <CompatibilityBadge compatibility={profile.compatibility} />
       </View>
     </View>
   );
@@ -353,10 +353,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  /**
+   * 일주 — 민트로 쓴다.
+   *
+   * 사진 위 어두운 막 위에 얹히므로 진한 민트(#0D9488)는 읽히지 않는다.
+   * 원석의 밝은 면(#CCFBF1)을 쓰면 민트로 보이면서 11px 에서도 또렷하다.
+   */
   frontMeta: {
     fontSize: 11,
     lineHeight: 15,
-    fontWeight: '500',
-    color: '#E2E8F0',
+    fontWeight: '600',
+    color: GEM_MINT.light,
   },
 });

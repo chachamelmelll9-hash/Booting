@@ -1,6 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import type { DiscoveryItem } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
+import { dayPillarLabel } from '@shared/config/saju';
 import { elevation, radius, spacing, typography } from '@shared/config/tokens';
 import { useCallback, useEffect } from 'react';
 import {
@@ -23,7 +24,6 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AppButton } from '../AppButton';
-import { CompatibilityBadge } from '../CompatibilityBadge';
 import { RelationshipGoalChips } from '../RelationshipGoalChips';
 import { VerificationBadgeRow } from '../VerificationBadgeRow';
 import { Gem, GEM_MINT, type GemKind } from './Gem';
@@ -281,9 +281,24 @@ function ProfileDetail({
           {` · ${MARITAL_LABEL[profile.maritalStatus] ?? ''}`}
         </Text>
 
-        {/* 근거는 여기 늘어놓지 않는다 — 카드에서 정하는 건 "관심을 보낼까"
-            하나이고, 자세한 풀이는 전체 프로필에 있다 */}
-        <CompatibilityBadge compatibility={profile.compatibility} />
+        {/*
+          일주와 점수를 상세 화면과 **똑같은 모양**으로 둔다. 작은 카드 →
+          펼친 카드 → 전체 프로필로 이어지는 세 화면이 같은 두 값을 보여주는데
+          한 곳만 표기가 다르면 다른 정보처럼 읽힌다.
+        */}
+        {profile.dayPillar || profile.compatibility ? (
+          <View style={styles.sajuRow}>
+            {profile.dayPillar ? (
+              <Text style={styles.dayPillar}>{dayPillarLabel(profile.dayPillar)}</Text>
+            ) : null}
+            {profile.dayPillar && profile.compatibility ? (
+              <Text style={styles.sajuSeparator}>·</Text>
+            ) : null}
+            {profile.compatibility ? (
+              <Text style={styles.sajuScore}>궁합 {profile.compatibility.score}점</Text>
+            ) : null}
+          </View>
+        ) : null}
 
         {/*
           인사말이 관계 목적·소개글보다 위다.
@@ -414,6 +429,10 @@ const styles = StyleSheet.create({
   },
   name: { ...typography.heading, color: theme.colors.text },
   meta: { ...typography.caption, color: theme.colors.textTertiary },
+  sajuRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.xxs },
+  dayPillar: { ...typography.bodyStrong, color: theme.colors.primaryDark },
+  sajuSeparator: { ...typography.bodyStrong, color: theme.colors.primary },
+  sajuScore: { ...typography.bodyStrong, color: theme.colors.primaryDark },
   intro: { ...typography.body, color: theme.colors.textSecondary },
   messageBox: {
     backgroundColor: theme.colors.primarySurface,
