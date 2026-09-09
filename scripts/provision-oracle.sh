@@ -411,20 +411,20 @@ if [ "$SKIP_GH_SECRETS" = false ] && command -v gh &>/dev/null; then
 
   SSH_KEY_CONTENT=$(cat "$SSH_KEY_PATH")
 
-  gh secret set ORACLE_HOST --body "$PUBLIC_IP"
-  gh secret set ORACLE_SSH_USER --body "ubuntu"
-  gh secret set ORACLE_SSH_KEY --body "$SSH_KEY_CONTENT"
+  gh secret set DEPLOY_HOST --body "$PUBLIC_IP"
+  gh secret set DEPLOY_SSH_USER --body "ubuntu"
+  gh secret set DEPLOY_SSH_KEY --body "$SSH_KEY_CONTENT"
 
-  print_success "GitHub secrets set: ORACLE_HOST, ORACLE_SSH_USER, ORACLE_SSH_KEY"
+  print_success "GitHub secrets set: DEPLOY_HOST, DEPLOY_SSH_USER, DEPLOY_SSH_KEY"
 else
   print_step "Step 8: GitHub secrets (skipped)"
   if [ "$SKIP_GH_SECRETS" = true ]; then
     print_info "Skipped by --skip-gh-secrets flag"
   else
     print_info "gh CLI not found. Set secrets manually:"
-    echo "  gh secret set ORACLE_HOST --body \"$PUBLIC_IP\""
-    echo "  gh secret set ORACLE_SSH_USER --body \"ubuntu\""
-    echo "  gh secret set ORACLE_SSH_KEY < $SSH_KEY_PATH"
+    echo "  gh secret set DEPLOY_HOST --body \"$PUBLIC_IP\""
+    echo "  gh secret set DEPLOY_SSH_USER --body \"ubuntu\""
+    echo "  gh secret set DEPLOY_SSH_KEY < $SSH_KEY_PATH"
   fi
 fi
 

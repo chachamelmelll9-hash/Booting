@@ -72,9 +72,9 @@ Then edit `/home/ubuntu/app/.env` on the VM with real values (or run `scripts/se
 
 Server deploy workflow:
 
-- `ORACLE_HOST`
-- `ORACLE_SSH_USER`
-- `ORACLE_SSH_KEY`
+- `DEPLOY_HOST`
+- `DEPLOY_SSH_USER`
+- `DEPLOY_SSH_KEY`
 
 WebView deploy workflow:
 

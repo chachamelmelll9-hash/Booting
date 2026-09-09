@@ -1,4 +1,10 @@
-name: Deploy Server to Oracle Cloud
+# 서버 배포 — 어느 클라우드인지 묻지 않는다.
+#
+# 하는 일은 "이미지를 GHCR 에 올리고, SSH 로 들어가 docker compose 를 다시 띄운다"
+# 뿐이라 Oracle·AWS EC2·그 밖의 Ubuntu VM 어디서든 같다. 그래서 비밀값 이름도
+# 특정 업체를 박지 않는다 (예전에는 ORACLE_* 였고, AWS 로 옮기며 바뀌었다 —
+# 업체를 또 옮길 때 이름을 다시 바꾸지 않아도 되게 둔다).
+name: Deploy Server
 
 on:
   workflow_dispatch:
@@ -10,7 +16,7 @@ on:
       - 'pnpm-lock.yaml'
       - '.github/workflows/deploy.yml'
       - '.dockerignore'
-      - 'infra/oracle/**'
+      - 'infra/**'
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -47,21 +53,21 @@ jobs:
     steps:
       - name: Check required secrets
         env:
-          ORACLE_HOST: ${{ secrets.ORACLE_HOST }}
-          ORACLE_SSH_USER: ${{ secrets.ORACLE_SSH_USER }}
-          ORACLE_SSH_KEY: ${{ secrets.ORACLE_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
           MISSING=""
-          [ -z "$ORACLE_HOST" ] && MISSING="$MISSING ORACLE_HOST"
-          [ -z "$ORACLE_SSH_USER" ] && MISSING="$MISSING ORACLE_SSH_USER"
-          [ -z "$ORACLE_SSH_KEY" ] && MISSING="$MISSING ORACLE_SSH_KEY"
+          [ -z "$DEPLOY_HOST" ] && MISSING="$MISSING DEPLOY_HOST"
+          [ -z "$DEPLOY_SSH_USER" ] && MISSING="$MISSING DEPLOY_SSH_USER"
+          [ -z "$DEPLOY_SSH_KEY" ] && MISSING="$MISSING DEPLOY_SSH_KEY"
           if [ -n "$MISSING" ]; then
             echo "::warning::Deploy skipped — missing GitHub Secrets:$MISSING"
             echo "::notice::To enable server deployment, add the following secrets in Settings → Secrets and variables → Actions:"
-            echo "::notice::  ORACLE_HOST — Oracle Cloud VM public IP"
-            echo "::notice::  ORACLE_SSH_USER — SSH username (e.g. ubuntu)"
-            echo "::notice::  ORACLE_SSH_KEY — SSH private key for the VM"
-            echo "::notice::Run ./scripts/provision-oracle.sh to set up Oracle Cloud infrastructure"
+            echo "::notice::  DEPLOY_HOST — server public IP (AWS EC2: the Elastic IP)"
+            echo "::notice::  DEPLOY_SSH_USER — SSH username (Ubuntu AMI: ubuntu)"
+            echo "::notice::  DEPLOY_SSH_KEY — SSH private key (the .pem contents)"
+            echo "::notice::Setup guide: infra/EC2_GUIDE.md"
             exit 0
           fi
           echo "SECRETS_OK=true" >> "$GITHUB_ENV"
@@ -90,13 +96,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Deploy to Oracle Cloud
+      - name: Deploy to server
         if: env.SECRETS_OK == 'true'
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.ORACLE_HOST }}
-          username: ${{ secrets.ORACLE_SSH_USER }}
-          key: ${{ secrets.ORACLE_SSH_KEY }}
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_SSH_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
           envs: GITHUB_TOKEN,SERVER_IMAGE
           script: |
             echo "$GITHUB_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin

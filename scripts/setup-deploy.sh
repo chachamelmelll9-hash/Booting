@@ -81,8 +81,8 @@ if [ -n "$ORACLE_HOST" ]; then
 else
   print_error "No Oracle VM IP in $STATE_FILE — provision-oracle.sh may have failed"
 fi
-if command -v gh &>/dev/null && gh secret list 2>/dev/null | grep -q ORACLE_HOST; then
-  print_success "GitHub secret ORACLE_HOST is set"
+if command -v gh &>/dev/null && gh secret list 2>/dev/null | grep -q DEPLOY_HOST; then
+  print_success "GitHub secret DEPLOY_HOST is set"
 fi
 export ORACLE_HOST
 
