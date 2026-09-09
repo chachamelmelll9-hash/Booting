@@ -25,8 +25,6 @@ import {
 } from './ganji';
 import type { FourPillars } from './pillars';
 
-export type SajuGrade = 'soulmate' | 'excellent' | 'good' | 'fair' | 'mixed';
-
 /**
  * 점수의 근거. **코드만 내려보낸다** — 문구는 모바일이 만든다.
  */
@@ -53,9 +51,14 @@ export type SajuReasonCode =
   | 'hour_clash';
 
 export interface SajuCompatibility {
-  /** 30~99 */
+  /**
+   * 30~99.
+   *
+   * **등급 문구를 함께 내리지 않는다.** '천생연분'·'무난한 궁합' 같은 말은
+   * 서비스가 두 사람 사이를 판정하는 것처럼 읽힌다. 숫자와 근거만 주고
+   * 해석은 보는 사람에게 맡긴다.
+   */
   score: number;
-  grade: SajuGrade;
   /** 최대 4개. 비중이 큰 자리부터 (일간 → 일지 → 띠 → 월지 → 오행 → 음양 → 시지) */
   reasons: SajuReasonCode[];
   /** 양쪽 다 출생시각을 알면 high, 한쪽이라도 모르면 medium */
@@ -196,14 +199,6 @@ function yinYangPart(pillars: readonly Pillar[]): Part {
   return { ...bounds, value };
 }
 
-function gradeOf(score: number): SajuGrade {
-  if (score >= 90) return 'soulmate';
-  if (score >= 80) return 'excellent';
-  if (score >= 70) return 'good';
-  if (score >= 60) return 'fair';
-  return 'mixed';
-}
-
 /** 기둥 묶음 — 시주가 없으면 세 기둥 */
 function knownPillars(p: FourPillars): Pillar[] {
   return p.hour ? [p.year, p.month, p.day, p.hour] : [p.year, p.month, p.day];
@@ -233,7 +228,6 @@ export function compatibility(a: FourPillars, b: FourPillars): SajuCompatibility
 
   return {
     score,
-    grade: gradeOf(score),
     reasons: parts
       .map((p) => p.reason)
       .filter((r): r is SajuReasonCode => !!r)

@@ -116,8 +116,6 @@ export interface ParentProfile {
 
 // --- 사주 궁합 ----------------------------------------------------------------
 
-export type SajuGrade = 'soulmate' | 'excellent' | 'good' | 'fair' | 'mixed';
-
 /** 점수의 근거. 서버는 **코드만** 보내고 문구는 `shared/config/saju.ts` 가 만든다 */
 export type SajuReasonCode =
   | 'stem_union'
@@ -142,9 +140,8 @@ export type SajuReasonCode =
   | 'hour_clash';
 
 export interface SajuCompatibility {
-  /** 30~99 */
+  /** 30~99. **등급 문구는 없다** — 서비스가 두 사람 사이를 판정하지 않는다 */
   score: number;
-  grade: SajuGrade;
   reasons: SajuReasonCode[];
   /** 양쪽 다 출생시각을 알면 high */
   confidence: 'high' | 'medium';
@@ -178,6 +175,8 @@ export interface DiscoveryItem {
   badges: Badges;
   /** 우리 부모님과의 궁합. 한쪽이라도 사주를 안 적었으면 null */
   compatibility: SajuCompatibility | null;
+  /** 이 분 본인의 일주 — 카드에 '을사일주'로 찍는다. 사주를 안 적었으면 null */
+  dayPillar: SajuPillar | null;
 }
 
 export interface PublicProfile extends DiscoveryItem {

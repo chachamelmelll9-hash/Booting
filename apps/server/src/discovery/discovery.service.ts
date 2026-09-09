@@ -234,6 +234,8 @@ export class DiscoveryService {
         introExcerpt: excerpt(r.intro_by_child),
         badges: badges.get(r.id) ?? { consent: false, review: false },
         compatibility: this.saju.compare(viewerSaju, sajus?.get(r.id) ?? null),
+        // 일주는 본인 것이라 내 사주가 없어도, 상대가 비공개여도 나간다
+        dayPillar: sajus?.get(r.id)?.pillars.day ?? null,
       }))
     );
   }
@@ -298,6 +300,8 @@ export class DiscoveryService {
     return {
       ...base,
       compatibility,
+      // base 는 viewerProfileId 없이 만들어서 둘 다 비어 있다 — 여기서 채운다
+      dayPillar: theirSaju?.pillars.day ?? null,
       photoUrls: photos.map((p) => p.url),
       maritalSince: row.marital_since,
       heightCm: row.height_cm,

@@ -5,12 +5,7 @@
  * 인덱스). 한글은 전부 여기서 붙는다 — 서버가 '갑자'라는 글자를 만들기 시작하면
  * 같은 표가 양쪽에 생기고 언젠가 어긋난다.
  */
-import type {
-  SajuGrade,
-  SajuPillar,
-  SajuPillars,
-  SajuReasonCode,
-} from '@shared/api/booting.types';
+import type { SajuPillar, SajuPillars, SajuReasonCode } from '@shared/api/booting.types';
 
 /** 천간 10 */
 const STEMS = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'] as const;
@@ -24,19 +19,12 @@ const ZODIAC = [
 ] as const;
 
 /**
- * 등급 문구.
+ * 등급 문구는 **두지 않는다.**
  *
- * 낮은 쪽을 '나쁜 궁합'이라 쓰지 않는다. 이 앱에서 점수가 낮게 나온 상대는
- * 누군가의 부모님이고, 자녀가 그 문장을 읽는다. 사주는 참고이지 판정이 아니다.
+ * '천생연분'·'무난한 궁합' 같은 말은 서비스가 두 사람 사이를 판정하는 것처럼
+ * 읽힌다. 점수가 낮게 나온 상대도 누군가의 부모님이고 그 문장을 자녀가 읽는다.
+ * 숫자와 근거만 보여주고 해석은 보는 사람에게 맡긴다.
  */
-export const SAJU_GRADE_LABEL: Record<SajuGrade, string> = {
-  soulmate: '천생연분',
-  excellent: '아주 좋은 궁합',
-  good: '잘 맞는 궁합',
-  fair: '무난한 궁합',
-  mixed: '서로 맞춰가는 궁합',
-};
-
 export const SAJU_REASON_LABEL: Record<SajuReasonCode, string> = {
   stem_union: '두 분의 일간이 천간합입니다 — 서로 끌리는 자리예요',
   stem_generate: '두 분의 일간이 상생합니다 — 한쪽이 다른 쪽을 북돋아요',
@@ -63,6 +51,16 @@ export const SAJU_REASON_LABEL: Record<SajuReasonCode, string> = {
 /** '갑자' */
 export function pillarLabel(pillar: SajuPillar): string {
   return `${STEMS[pillar.stem] ?? ''}${BRANCHES[pillar.branch] ?? ''}`;
+}
+
+/**
+ * '을사일주' — 카드에 찍는 본인 표기.
+ *
+ * 네 기둥과 달리 일주 하나는 60일 주기라 생년월일이 특정되지 않는다.
+ * 그래서 사주를 비공개로 두신 분의 카드에도 이 줄은 나온다.
+ */
+export function dayPillarLabel(pillar: SajuPillar): string {
+  return `${pillarLabel(pillar)}일주`;
 }
 
 /** '을묘년 무인월 갑자일 (시 모름)' */

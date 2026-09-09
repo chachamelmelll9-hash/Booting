@@ -180,6 +180,7 @@ export default function PublicProfileScreen() {
           <SajuCompatibilityCard
             compatibility={profile.compatibility}
             pillars={profile.sajuPillars}
+            dayPillar={profile.dayPillar}
             partnerName={profile.nickname}
           />
         </Section>

@@ -51,8 +51,10 @@ export default function PreviewScreen() {
     primaryPhotoUrl: profile.photos.find((p) => p.isPrimary)?.url ?? profile.photos[0]?.url ?? '',
     introExcerpt: profile.introByChild ?? '',
     badges: profile.badges,
-    // 궁합은 '나와 상대' 사이의 값이라 내 프로필 미리보기에는 없다
+    // 궁합은 '나와 상대' 사이의 값이라 내 프로필 미리보기에는 없다.
+    // 일주는 본인 것이지만 이 미리보기는 카드 모양 확인용이라 비워 둔다.
     compatibility: null,
+    dayPillar: null,
   };
 
   const published = profile.status === 'published';

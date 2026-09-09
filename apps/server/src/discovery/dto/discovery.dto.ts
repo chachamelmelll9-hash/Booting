@@ -67,6 +67,9 @@ export type SajuCompatibilityDto = SajuCompatibility;
 /** 사주팔자 네 기둥. 각 기둥은 천간·지지 인덱스다 */
 export type SajuPillarsDto = FourPillars;
 
+/** 기둥 하나 — 천간·지지 인덱스 */
+export type SajuPillarDto = FourPillars['day'];
+
 export interface DiscoveryItemDto {
   profileId: string;
   /**
@@ -88,6 +91,16 @@ export interface DiscoveryItemDto {
    * (0점이 아니다 — 못 본 것과 나쁜 것은 다르다).
    */
   compatibility: SajuCompatibilityDto | null;
+  /**
+   * **이 프로필 본인의 일주(日柱).** 카드에 '을사일주'로 찍는다.
+   *
+   * 네 기둥과 달리 일주 하나는 60일 주기라 생년월일이 특정되지 않는다 —
+   * 그래서 `saju_infos.is_public` 과 무관하게 보낸다. 네 기둥 전체는 여전히
+   * 공개한 분에게만 나간다 (`PublicProfileDto.sajuPillars`).
+   *
+   * 내 사주 유무와도 무관하다. 궁합은 둘이 있어야 나지만 일주는 본인 것이다.
+   */
+  dayPillar: SajuPillarDto | null;
 }
 
 export interface PublicProfileDto extends DiscoveryItemDto {

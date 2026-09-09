@@ -2,9 +2,9 @@ import type { PublicProfile } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
 import {
   confidenceNote,
+  dayPillarLabel,
   pillarsLabel,
   SAJU_DISCLAIMER,
-  SAJU_GRADE_LABEL,
   SAJU_REASON_LABEL,
   zodiacLabel,
 } from '@shared/config/saju';
@@ -14,6 +14,12 @@ import { StyleSheet, Text, View } from 'react-native';
 interface Props {
   compatibility: PublicProfile['compatibility'];
   pillars: PublicProfile['sajuPillars'];
+  /**
+   * 이 분 본인의 일주. 카드에 쓰는 값과 같은 것이라 상세에서도 같은 자리에서
+   * 읽힌다 — 카드에서 '병인일주'를 보고 들어왔는데 상세에 없으면 다른 사람
+   * 화면처럼 느껴진다.
+   */
+  dayPillar: PublicProfile['dayPillar'];
   /** 상대 별명 — '상대' 대신 이름을 쓰면 두 줄을 헷갈리지 않는다 */
   partnerName: string;
 }
@@ -28,19 +34,30 @@ interface Props {
  * 상대 기둥은 **상대가 사주를 공개했을 때만** 온다. 없으면 그 줄만 빠지고
  * 점수와 근거는 그대로 남는다.
  */
-export function SajuCompatibilityCard({ compatibility, pillars, partnerName }: Props) {
+export function SajuCompatibilityCard({
+  compatibility,
+  pillars,
+  dayPillar,
+  partnerName,
+}: Props) {
   if (!compatibility || !pillars) return null;
 
   const note = confidenceNote(compatibility.confidence);
 
   return (
     <View style={styles.card} testID="saju-compatibility">
-      <View style={styles.scoreRow}>
-        <Text style={styles.score}>{compatibility.score}</Text>
-        <View style={styles.scoreMeta}>
-          <Text style={styles.unit}>점</Text>
-          <Text style={styles.grade}>{SAJU_GRADE_LABEL[compatibility.grade]}</Text>
-        </View>
+      {/*
+        일주와 점수를 한 줄에 나란히 둔다 — 카드에서 위아래로 보던 두 값이라
+        상세에서도 한눈에 같이 읽혀야 한다. 등급 문구는 붙이지 않는다.
+      */}
+      <View style={styles.headRow}>
+        {dayPillar ? (
+          <>
+            <Text style={styles.dayPillar}>{dayPillarLabel(dayPillar)}</Text>
+            <Text style={styles.separator}>·</Text>
+          </>
+        ) : null}
+        <Text style={styles.score}>궁합 {compatibility.score}점</Text>
       </View>
 
       <View style={styles.pillars}>
@@ -95,11 +112,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
   },
-  scoreRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.xs },
-  score: { fontSize: 40, lineHeight: 46, fontWeight: '800', color: theme.colors.primaryDark },
-  scoreMeta: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.xs },
-  unit: { ...typography.body, color: theme.colors.primaryDark },
-  grade: { ...typography.subheading, color: theme.colors.text },
+  headRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.xs },
+  dayPillar: { ...typography.heading, color: theme.colors.text },
+  separator: { ...typography.heading, color: theme.colors.textMuted },
+  score: { ...typography.heading, color: theme.colors.primaryDark },
 
   pillars: { gap: spacing.xxs },
   pillarRow: { flexDirection: 'row', gap: spacing.sm },

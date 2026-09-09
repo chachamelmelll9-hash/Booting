@@ -1,6 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import type { DiscoveryItem } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
+import { dayPillarLabel } from '@shared/config/saju';
 import { elevation, radius, spacing } from '@shared/config/tokens';
 import { useEffect, useRef } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -118,8 +119,8 @@ export function GemCard({
 
   const label = revealed
     ? `${profile.nickname} 님, ${profile.age}세.${
-        profile.compatibility ? ` 사주 궁합 ${profile.compatibility.score}점.` : ''
-      } 눌러서 프로필 펼치기`
+        profile.dayPillar ? ` ${dayPillarLabel(profile.dayPillar)}.` : ''
+      }${profile.compatibility ? ` 사주 궁합 ${profile.compatibility.score}점.` : ''} 눌러서 프로필 펼치기`
     : `${GEM_LABEL[kind]} 원석 카드. 눌러서 오늘의 추천 프로필 열기`;
 
   return (
@@ -251,20 +252,25 @@ function ProfileFace({
         />
       </Pressable>
 
+      {/*
+        읽는 순서가 곧 위계다: 누구인지 → 어떤 사주인지 → 우리와 얼마나 맞는지.
+        이름이 맨 위에 있어야 카드가 '사람'으로 읽힌다 — 점수를 위에 두면
+        여섯 장이 점수표가 된다.
+
+        일주는 **이 분 본인의** 것이다 (우리 부모님 것이 아니다). 네 기둥과 달리
+        일주 하나로는 생년월일이 특정되지 않아 비공개하신 분 카드에도 나온다.
+        사주를 안 적은 분은 그 줄만 빠지고 나머지는 그대로다.
+      */}
       <View style={styles.frontInfo}>
-        {/*
-          궁합은 이름 위에 둔다. 아래에 붙이면 나이·거리와 한 덩어리로 읽혀
-          어느 것이 상대의 정보이고 어느 것이 우리 부모님과의 관계인지 흐려진다.
-          사주를 안 적은 분 카드에는 이 줄이 통째로 없다.
-        */}
-        <CompatibilityBadge compatibility={profile.compatibility} variant="photo" />
         <Text style={styles.frontName} numberOfLines={1}>
-          {profile.nickname}
+          {profile.nickname} · {profile.age}세
         </Text>
-        <Text style={styles.frontMeta} numberOfLines={1}>
-          {profile.age}세
-          {profile.distanceKm != null ? ` · ${profile.distanceKm}km` : ''}
-        </Text>
+        {profile.dayPillar ? (
+          <Text style={styles.frontMeta} numberOfLines={1}>
+            {dayPillarLabel(profile.dayPillar)}
+          </Text>
+        ) : null}
+        <CompatibilityBadge compatibility={profile.compatibility} variant="photo" />
       </View>
     </View>
   );
