@@ -132,15 +132,14 @@ export function validateDetails(draft: ProfileDraft): DraftErrors {
 }
 
 /**
- * 사주 검증 — **선택 항목이라 비어 있는 것은 오류가 아니다.**
+ * 사주 검증 — **시각은 선택이라 비어 있는 것은 오류가 아니다.**
  *
- * 잡는 것은 하나뿐이다: 양·음력을 골라 놓고 시간을 '모름'으로도 두지 않은 채
- * 형식이 깨진 시각을 적은 경우. 그대로 보내면 서버가 400 을 주는데, 사용자는
- * 선택 항목에서 저장이 막힌 이유를 짐작할 수 없다.
+ * 잡는 것은 하나뿐이다: '모름'도 아닌데 형식이 깨진 시각을 적은 경우.
+ * 그대로 보내면 서버가 400 을 주는데, 사용자는 저장이 막힌 이유를 짐작할 수 없다.
  */
 export function validateSaju(draft: ProfileDraft): DraftErrors {
   const errors: DraftErrors = {};
-  if (!draft.sajuCalendar || draft.sajuTimeUnknown) return errors;
+  if (draft.sajuTimeUnknown) return errors;
 
   const time = draft.sajuBirthTime.trim();
   if (!time) return errors; // 비워 두면 '모름'과 같게 처리한다

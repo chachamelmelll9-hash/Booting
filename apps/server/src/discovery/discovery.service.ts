@@ -137,14 +137,15 @@ export class DiscoveryService {
     };
 
     /**
-     * 우리 부모님 사주가 없으면 궁합을 낼 수 없다 — 최근 활동 순으로 돌아간다.
+     * 팔자를 못 세우는 예외 경로 — 최근 활동 순으로 돌아간다.
      *
-     * 사주를 안 적은 것이 사람을 못 보는 이유가 되면 안 된다. 이 경로는 조건에
-     * 맞는 분을 평소와 같은 수로 돌려주고, 카드에 궁합 배지만 없다.
+     * 생년월일이 필수라 거의 오지 않는다 (날짜가 깨졌거나 음력 변환표 밖).
+     * 그래도 홈이 비면 안 되므로 조건에 맞는 분을 평소와 같은 수로 돌려주고,
+     * 카드에 궁합만 없다.
      */
     if (!mySaju) {
-      // 커서 뜻이 다르다 — 사주를 지운 직후라면 옛 위치 커서가 남아 있을 수
-      // 있고, 그걸 타임스탬프 자리에 넣으면 쿼리가 깨진다. 첫 페이지로 되돌린다.
+      // 커서 뜻이 다르다 — 옛 위치 커서를 타임스탬프 자리에 넣으면 쿼리가
+      // 깨진다. 첫 페이지로 되돌린다.
       const timeCursor = cursor?.startsWith(OFFSET_CURSOR_PREFIX) ? undefined : cursor;
       const rows = await this.repository.findCandidates({ ...base, cursor: timeCursor, limit });
       const hasMore = rows.length > limit;

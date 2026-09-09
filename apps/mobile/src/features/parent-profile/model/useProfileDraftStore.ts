@@ -32,15 +32,16 @@ export interface ProfileDraft {
   parentMessage: string;
 
   /**
-   * 사주 (선택) — PRD 5.3.
+   * 사주 보정값 — PRD 5.3.
    *
    * 날짜를 따로 받지 않는다. 위에서 적은 생년월일을 그대로 쓰고 그것이 양력인지
    * 음력인지만 고른다. 날짜 칸을 하나 더 두면 두 값이 언젠가 어긋나고, 어느
    * 쪽으로 사주를 세웠는지 아무도 설명하지 못하게 된다.
    *
-   * '' 는 **입력 안 함**이다 (사주 없이 등록 — 궁합만 안 보인다).
+   * **'입력 안 함'이 없다.** 생년월일이 필수라 사주는 어차피 세워지고, 여기서
+   * 정하는 건 그 날짜를 어떻게 읽을지(양·음력)와 시각을 아는지뿐이다.
    */
-  sajuCalendar: '' | 'solar' | 'lunar';
+  sajuCalendar: 'solar' | 'lunar';
   /** 'HH:mm' */
   sajuBirthTime: string;
   sajuTimeUnknown: boolean;
@@ -71,7 +72,7 @@ const EMPTY: ProfileDraft = {
   introByChild: '',
   desiredPartner: '',
   parentMessage: '',
-  sajuCalendar: '',
+  sajuCalendar: 'solar',
   sajuBirthTime: '',
   sajuTimeUnknown: false,
   sajuPublic: false,

@@ -118,7 +118,7 @@ export default function ProfileEditScreen() {
       introByChild: profile.introByChild ?? '',
       desiredPartner: profile.desiredPartner ?? '',
       parentMessage: profile.parentMessage ?? '',
-      sajuCalendar: profile.saju?.calendarType ?? '',
+      sajuCalendar: profile.saju?.calendarType ?? 'solar',
       // DB 는 'HH:mm:ss' 로 돌려준다 — 화면은 분까지만 다룬다
       sajuBirthTime: profile.saju?.birthTime?.slice(0, 5) ?? '',
       sajuTimeUnknown: profile.saju?.birthTimeUnknown ?? false,
@@ -548,20 +548,21 @@ export default function ProfileEditScreen() {
       </FormSection>
 
       {/*
-        사주는 선택 항목이다 (PRD 5.3). 필수 항목들과 섞어 두면 "이것도 채워야
-        하나" 하고 멈추게 되므로 소개 뒤에 따로 둔다.
+        사주 자체는 생년월일만 있으면 세워진다 (필수 항목이다). 여기서 받는 건
+        그 날짜를 어떻게 읽을지에 대한 **보정값**뿐이라 '입력 안 함'이 없다.
+        필수 항목들과 섞어 두면 "이것도 채워야 하나" 하고 멈추게 되므로
+        소개 뒤에 따로 둔다.
       */}
-      <Text style={styles.section}>사주 정보 (선택)</Text>
+      <Text style={styles.section}>사주 정보</Text>
       <Text style={styles.sectionNote}>
-        적어 두시면 상대 부모님과의 사주 궁합을 함께 보여드립니다. 생년월일은 위에
-        적으신 날짜를 그대로 씁니다.
+        위에 적으신 생년월일로 사주를 세워 상대 부모님과의 궁합을 보여드립니다.
+        태어난 시간까지 알려주시면 더 정확해집니다.
       </Text>
 
       <FormSection label="생년월일 기준" helper="위에 적으신 날짜가 양력인지 음력인지 골라주세요">
         <View style={styles.row}>
           {(
             [
-              { key: '' as const, label: '입력 안 함' },
               { key: 'solar' as const, label: '양력' },
               { key: 'lunar' as const, label: '음력' },
             ]
@@ -570,73 +571,69 @@ export default function ProfileEditScreen() {
               key={option.label}
               label={option.label}
               selected={draft.sajuCalendar === option.key}
-              testID={`saju-calendar-${option.key || 'none'}`}
+              testID={`saju-calendar-${option.key}`}
               onPress={() => set({ sajuCalendar: option.key })}
             />
           ))}
         </View>
       </FormSection>
 
-      {draft.sajuCalendar ? (
-        <>
-          <FormSection
-            label="태어난 시간"
-            helper="숫자만 누르시면 됩니다 (예: 0730 → 07:30). 모르시면 '모름'을 골라주세요"
-            error={errors.sajuBirthTime}
-          >
-            <TextField
-              testID="saju-time"
-              value={draft.sajuBirthTime}
-              onChangeText={(v) =>
-                set({ sajuBirthTime: formatBirthTime(v), sajuTimeUnknown: false })
-              }
-              placeholder="07:30"
-              keyboardType="number-pad"
-              maxLength={5}
-              invalid={!!errors.sajuBirthTime}
-            />
-            <View style={styles.row}>
-              <Chip
-                label="모름"
-                selected={draft.sajuTimeUnknown}
-                testID="saju-time-unknown"
-                onPress={() =>
-                  set({ sajuTimeUnknown: !draft.sajuTimeUnknown, sajuBirthTime: '' })
-                }
-              />
-            </View>
-            {/*
-              비워 둔 것도 '모름'으로 저장된다. 그 사실을 말해 주지 않으면
-              사용자는 시간을 안 적었을 뿐인데 무엇이 저장됐는지 모른 채 넘어간다.
-            */}
-            {draft.sajuTimeUnknown || !draft.sajuBirthTime.trim() ? (
-              <Text style={styles.sectionNote}>
-                시간을 모르시면 시주를 빼고 세 기둥으로 봅니다. 궁합은 그대로 나옵니다.
-              </Text>
-            ) : null}
-          </FormSection>
+      <FormSection
+        label="태어난 시간"
+        helper="숫자만 누르시면 됩니다 (예: 0730 → 07:30). 모르시면 '모름'을 골라주세요"
+        error={errors.sajuBirthTime}
+      >
+        <TextField
+          testID="saju-time"
+          value={draft.sajuBirthTime}
+          onChangeText={(v) =>
+            set({ sajuBirthTime: formatBirthTime(v), sajuTimeUnknown: false })
+          }
+          placeholder="07:30"
+          keyboardType="number-pad"
+          maxLength={5}
+          invalid={!!errors.sajuBirthTime}
+        />
+        <View style={styles.row}>
+          <Chip
+            label="모름"
+            selected={draft.sajuTimeUnknown}
+            testID="saju-time-unknown"
+            onPress={() =>
+              set({ sajuTimeUnknown: !draft.sajuTimeUnknown, sajuBirthTime: '' })
+            }
+          />
+        </View>
+        {/*
+          비워 둔 것도 '모름'으로 저장된다. 그 사실을 말해 주지 않으면
+          사용자는 시간을 안 적었을 뿐인데 무엇이 저장됐는지 모른 채 넘어간다.
+        */}
+        {draft.sajuTimeUnknown || !draft.sajuBirthTime.trim() ? (
+          <Text style={styles.sectionNote}>
+            시간을 모르시면 시주를 빼고 세 기둥으로 봅니다. 궁합은 그대로 나옵니다.
+          </Text>
+        ) : null}
+      </FormSection>
 
-          <FormSection
-            label="사주 공개"
-            helper="생년월일과 시간 자체를 상대에게 보일지에 대한 선택입니다. 비공개로 두셔도 궁합은 계산됩니다"
-          >
-            <View style={styles.row}>
-              <Chip
-                label="공개"
-                selected={draft.sajuPublic}
-                testID="saju-public"
-                onPress={() => set({ sajuPublic: true })}
-              />
-              <Chip
-                label="비공개"
-                selected={!draft.sajuPublic}
-                testID="saju-private"
-                onPress={() => set({ sajuPublic: false })}
-              />
-            </View>
-          </FormSection>
-        </>
-      ) : null}
+      <FormSection
+        label="사주 공개"
+        helper="생년월일과 시간 자체를 상대에게 보일지에 대한 선택입니다. 비공개로 두셔도 궁합과 일주는 나옵니다"
+      >
+        <View style={styles.row}>
+          <Chip
+            label="공개"
+            selected={draft.sajuPublic}
+            testID="saju-public"
+            onPress={() => set({ sajuPublic: true })}
+          />
+          <Chip
+            label="비공개"
+            selected={!draft.sajuPublic}
+            testID="saju-private"
+            onPress={() => set({ sajuPublic: false })}
+          />
+        </View>
+      </FormSection>
 
       <RegionPicker
         visible={regionOpen}
@@ -662,10 +659,13 @@ function formatBirthTime(input: string): string {
   return `${digits.slice(0, 2)}:${digits.slice(2)}`;
 }
 
-/** 저장할 사주 값. 기준을 '입력 안 함'으로 두면 null — 서버가 지운다 */
+/**
+ * 저장할 사주 보정값.
+ *
+ * 사주 자체는 생년월일만 있으면 서버가 세운다 — 여기서 보내는 건 그 날짜를
+ * 어떻게 읽을지(양·음력)와 시각·공개 여부뿐이라 **항상 값이 있다.**
+ */
 function sajuPayload(draft: ProfileDraft) {
-  if (!draft.sajuCalendar) return null;
-
   const time = draft.sajuBirthTime.trim();
   const unknown = draft.sajuTimeUnknown || !time;
 
