@@ -116,9 +116,10 @@ export class UpdateParentProfileDto {
   @IsIn(RELATIONSHIP_GOALS, { each: true })
   goals?: RelationshipGoal[];
 
+  /** null 을 보내면 사주를 지운다 — 선택 항목이라 되돌릴 수 있어야 한다 */
   @IsOptional()
   @Type(() => SajuInput)
-  saju?: SajuInput;
+  saju?: SajuInput | null;
 }
 
 export class AddPhotoDto {

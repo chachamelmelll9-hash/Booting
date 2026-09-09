@@ -41,6 +41,17 @@ interface DailyPicksState {
   refill: (date: string, candidates: DiscoveryItem[]) => void;
   reveal: (profileId: string) => void;
   markHearted: (profileId: string) => void;
+  /**
+   * 오늘 몫을 비워 다시 뽑게 한다.
+   *
+   * **추천의 뜻 자체가 바뀌었을 때만** 쓴다 (지금은 궁합 정렬·최소 궁합).
+   * '궁합 좋은 순'을 골랐는데 내일까지 어제 순서의 카드가 그대로 있으면,
+   * 사용자는 정렬이 고장났다고 판단한다.
+   *
+   * 거리·나이 같은 조건은 여기서 건드리지 않는다 — 하루 여섯 장이라는 제한이
+   * 조건을 계속 바꿔 다시 뽑는 길로 새는 걸 막기 위해서다.
+   */
+  clear: () => void;
 }
 
 export const useDailyPicksStore = create<DailyPicksState>()(
@@ -94,6 +105,8 @@ export const useDailyPicksStore = create<DailyPicksState>()(
             ? state
             : { hearted: [...state.hearted, profileId] }
         ),
+
+      clear: () => set({ date: null, items: [], revealed: [], hearted: [] }),
     }),
     {
       name: 'daily-picks',

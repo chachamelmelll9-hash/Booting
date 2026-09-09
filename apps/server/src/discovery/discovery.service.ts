@@ -6,6 +6,7 @@ import { calcAge, excerpt, maskName } from '../common/privacy';
 import { DEFAULT_RADIUS_KM, RelationshipGoal } from '../common/types';
 import { PhotosService } from '../parent-profile/photos.service';
 import { RegionsService } from '../regions/regions.service';
+import { SajuService } from '../saju/saju.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { DiscoveryRepository } from './discovery.repository';
 import {
@@ -14,13 +15,26 @@ import {
   PublicProfileDto,
 } from './dto/discovery.dto';
 
+/**
+ * 궁합으로 정렬·거를 때 한 번에 훑는 후보 수.
+ *
+ * 궁합은 DB 가 모르는 값이라 SQL 로 정렬할 수 없다 — 후보를 받아 와서 서버가
+ * 매긴다. 그래서 상한이 필요하다. 홈은 하루 여섯 장을 보여주므로 최근 활동
+ * 순 200명이면 충분히 깊고, 이보다 늘리면 매 요청의 계산량만 커진다.
+ */
+const COMPATIBILITY_POOL = 200;
+
+/** 궁합 정렬의 커서는 타임스탬프가 아니라 **정렬된 목록에서의 위치**다 */
+const OFFSET_CURSOR_PREFIX = 'o:';
+
 @Injectable()
 export class DiscoveryService {
   constructor(
     private readonly supabase: SupabaseService,
     private readonly repository: DiscoveryRepository,
     private readonly photos: PhotosService,
-    private readonly regions: RegionsService
+    private readonly regions: RegionsService,
+    private readonly saju: SajuService
   ) {}
 
   // --- 필터 -------------------------------------------------------------------
@@ -49,6 +63,7 @@ export class DiscoveryService {
         targetGender: me?.gender === 'male' ? 'female' : me?.gender === 'female' ? 'male' : undefined,
         radiusKm: DEFAULT_RADIUS_KM,
         goals: [],
+        sort: 'recent',
       };
     }
 
@@ -64,6 +79,8 @@ export class DiscoveryService {
       drinking: data.drinking ?? undefined,
       smoking: data.smoking ?? undefined,
       economicallyActive: data.economically_active ?? undefined,
+      sort: data.sort ?? 'recent',
+      minCompatibility: data.min_compatibility ?? undefined,
     };
   }
 
@@ -85,6 +102,8 @@ export class DiscoveryService {
           drinking: dto.drinking ?? null,
           smoking: dto.smoking ?? null,
           economically_active: dto.economicallyActive ?? null,
+          sort: dto.sort ?? 'recent',
+          min_compatibility: dto.minCompatibility ?? null,
         },
         { onConflict: 'user_id' }
       );
@@ -111,24 +130,67 @@ export class DiscoveryService {
     const myGoalsMap = await this.repository.goalsFor([myProfileId]);
 
     const filter = await this.getFilter(userId);
-    const rows = await this.repository.findCandidates({
+    const mySaju = await this.saju.pillarsOf(myProfileId);
+
+    /**
+     * 궁합은 우리 부모님 사주가 있어야 낼 수 있다.
+     *
+     * 없는데도 저장된 조건을 그대로 적용하면 홈이 통째로 빈다 — 사주를 안 적은
+     * 것이 사람을 못 보는 이유가 되면 안 된다. 그래서 조용히 최근 활동 순으로
+     * 돌아가고, 화면은 "사주를 적으면 궁합순으로 볼 수 있다"고 안내한다.
+     */
+    const scored =
+      !!mySaju && (filter.sort === 'compatibility' || filter.minCompatibility != null);
+
+    const base = {
       userId,
       myProfileId,
       myRegionCode: me?.region_code ?? '',
       myGender: (me?.gender as 'male' | 'female') ?? 'male',
       myGoals: myGoalsMap.get(myProfileId) ?? [],
       filter,
-      cursor,
-      limit,
-    });
+    };
 
-    const hasMore = rows.length > limit;
-    const page = hasMore ? rows.slice(0, limit) : rows;
-    const items = await this.toItems(page, me?.region_code ?? '');
+    if (!scored) {
+      // 정렬을 바꾸면 커서 뜻도 바뀐다 — 옛 커서를 그대로 쓰면 타임스탬프
+      // 자리에 위치 값이 들어가 쿼리가 깨진다. 첫 페이지로 되돌린다.
+      const timeCursor = cursor?.startsWith(OFFSET_CURSOR_PREFIX) ? undefined : cursor;
+      const rows = await this.repository.findCandidates({ ...base, cursor: timeCursor, limit });
+      const hasMore = rows.length > limit;
+      const page = hasMore ? rows.slice(0, limit) : rows;
+
+      return {
+        items: await this.toItems(page, me?.region_code ?? '', myProfileId),
+        nextCursor: hasMore && page.length ? page[page.length - 1].last_active_at : null,
+      };
+    }
+
+    // 궁합을 쓰는 경로 — 후보를 한 번에 받아 서버가 매기고 자른다
+    const pool = await this.repository.findCandidates({
+      ...base,
+      cursor: undefined,
+      limit: COMPATIBILITY_POOL,
+    });
+    const sajus = await this.saju.pillarsFor(pool.map((r) => r.id));
+
+    const ranked = pool
+      .map((row) => ({ row, score: this.saju.compare(mySaju, sajus.get(row.id) ?? null)?.score }))
+      // 사주를 안 적은 분은 점수가 없다 — 최소 궁합을 걸면 그분들도 함께 빠진다
+      .filter((c) => filter.minCompatibility == null || (c.score ?? -1) >= filter.minCompatibility);
+
+    // 최소 궁합만 걸고 정렬은 그대로 두는 경우가 있어, 정렬은 조건부다
+    if (filter.sort === 'compatibility') {
+      ranked.sort((a, b) => (b.score ?? -1) - (a.score ?? -1));
+    }
+
+    const offset = parseOffsetCursor(cursor);
+    const page = ranked.slice(offset, offset + limit).map((c) => c.row);
+    const nextOffset = offset + page.length;
 
     return {
-      items,
-      nextCursor: hasMore && page.length ? page[page.length - 1].last_active_at : null,
+      items: await this.toItems(page, me?.region_code ?? '', myProfileId),
+      nextCursor:
+        nextOffset < ranked.length ? `${OFFSET_CURSOR_PREFIX}${nextOffset}` : null,
     };
   }
 
@@ -138,15 +200,24 @@ export class DiscoveryService {
    */
   async toItems(
     rows: Record<string, any>[],
-    originRegionCode: string
+    originRegionCode: string,
+    /**
+     * 보는 사람의 부모님 프로필 id. 주면 카드마다 궁합이 함께 실린다.
+     *
+     * 인연 관리·부모님 화면에서는 주지 않는다 — 궁합은 "관심을 보낼까"를 정할
+     * 때 쓰는 정보이고, 이미 이어진 뒤에는 점수가 판단을 바꾸지 않는다.
+     */
+    viewerProfileId?: string
   ): Promise<DiscoveryItemDto[]> {
     if (!rows.length) return [];
 
     const ids = rows.map((r) => r.id);
-    const [goals, badges, photoUrls] = await Promise.all([
+    const [goals, badges, photoUrls, viewerSaju, sajus] = await Promise.all([
       this.repository.goalsFor(ids),
       this.repository.badgesFor(rows.map((r) => ({ id: r.id, user_id: r.user_id }))),
       this.photos.primaryUrls(ids),
+      viewerProfileId ? this.saju.pillarsOf(viewerProfileId) : Promise.resolve(null),
+      viewerProfileId ? this.saju.pillarsFor(ids) : Promise.resolve(null),
     ]);
 
     return Promise.all(
@@ -165,6 +236,7 @@ export class DiscoveryService {
         primaryPhotoUrl: photoUrls.get(r.id) ?? '',
         introExcerpt: excerpt(r.intro_by_child),
         badges: badges.get(r.id) ?? { consent: false, review: false },
+        compatibility: this.saju.compare(viewerSaju, sajus?.get(r.id) ?? null),
       }))
     );
   }
@@ -197,9 +269,11 @@ export class DiscoveryService {
       .maybeSingle();
     if (block) throw new ForbiddenException(domainError(ERROR_CODES.BLOCKED));
 
+    // 여기서는 toItems 에 viewerProfileId 를 주지 않는다 — 궁합에 쓸 사주를
+    // 아래에서 어차피 읽으므로, 넘기면 같은 조회가 두 번 돈다
     const [base] = await this.toItems([row], await this.myRegionCode(myProfileId));
 
-    const [photoRows, sajuRes, heartRes] = await Promise.all([
+    const [photoRows, sajuRes, heartRes, mySaju, theirSaju] = await Promise.all([
       client
         .from('parent_photos')
         .select('*')
@@ -217,12 +291,16 @@ export class DiscoveryService {
         .eq('sender_user_id', userId)
         .eq('target_parent_profile_id', profileId)
         .maybeSingle(),
+      this.saju.pillarsOf(myProfileId),
+      this.saju.pillarsOf(profileId),
     ]);
 
     const photos = await this.photos.toDtos(photoRows.data ?? []);
+    const compatibility = this.saju.compare(mySaju, theirSaju);
 
     return {
       ...base,
+      compatibility,
       photoUrls: photos.map((p) => p.url),
       maritalSince: row.marital_since,
       heightCm: row.height_cm,
@@ -247,6 +325,15 @@ export class DiscoveryService {
             birthTimeUnknown: sajuRes.data.birth_time_unknown,
           }
         : null,
+      // 궁합이 없으면 기둥도 보내지 않는다 — 내 기둥만 덩그러니 나오면
+      // 이 화면에서 아무 의미가 없다
+      sajuPillars: compatibility && mySaju
+        ? {
+            mine: mySaju.pillars,
+            // 상대가 사주를 공개했을 때만. 기둥 넷은 생년월일에 가깝다
+            theirs: theirSaju?.isPublic ? theirSaju.pillars : null,
+          }
+        : null,
       heartSent: !!heartRes.data,
     };
     // 실제 성명·생년월일·연락처·정확한 주소·family_doc_path 는 어느 필드에도 없다.
@@ -262,4 +349,11 @@ export class DiscoveryService {
       .maybeSingle();
     return data?.region_code ?? '';
   }
+}
+
+/** `o:20` → 20. 정렬을 바꿔 커서 모양이 안 맞으면 처음부터 본다 */
+function parseOffsetCursor(cursor?: string): number {
+  if (!cursor?.startsWith(OFFSET_CURSOR_PREFIX)) return 0;
+  const offset = Number(cursor.slice(OFFSET_CURSOR_PREFIX.length));
+  return Number.isInteger(offset) && offset >= 0 ? offset : 0;
 }

@@ -23,6 +23,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AppButton } from '../AppButton';
+import { CompatibilityBadge } from '../CompatibilityBadge';
 import { RelationshipGoalChips } from '../RelationshipGoalChips';
 import { VerificationBadgeRow } from '../VerificationBadgeRow';
 import { Gem, GEM_MINT, type GemKind } from './Gem';
@@ -279,6 +280,10 @@ function ProfileDetail({
           {profile.distanceKm != null ? ` · ${profile.distanceKm}km` : ''}
           {` · ${MARITAL_LABEL[profile.maritalStatus] ?? ''}`}
         </Text>
+
+        {/* 근거는 여기 늘어놓지 않는다 — 카드에서 정하는 건 "관심을 보낼까"
+            하나이고, 자세한 풀이는 전체 프로필에 있다 */}
+        <CompatibilityBadge compatibility={profile.compatibility} />
 
         {/*
           인사말이 관계 목적·소개글보다 위다.

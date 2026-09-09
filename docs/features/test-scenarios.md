@@ -1155,6 +1155,100 @@ Scenario: 비공개 사주는 타인 응답에 포함되지 않는다
   Then 응답에 saju 필드가 null 이거나 존재하지 않는다
 ```
 
+#### SEC.5: 비공개 사주의 네 기둥 미노출
+
+```gherkin
+Scenario: 궁합은 나와도 상대의 기둥은 나오지 않는다
+  Given 나와 상대 모두 사주를 입력했고, 상대의 is_public 이 false 이다
+  When GET /api/profiles/:id 를 호출한다
+  Then compatibility.score 는 채워져 있다
+  And sajuPillars.mine 은 채워져 있다
+  And sajuPillars.theirs 는 null 이다
+  # 기둥 넷이면 60갑자 안에서 생년월일이 거의 특정된다 —
+  # 이걸 내보내면 is_public=false 가 아무 의미가 없다
+```
+
+---
+
+### 사주 궁합 (`docs/features/saju-compatibility.md`)
+
+> 근거: PRD 8.4 / TODO-13
+
+#### SAJU.1: 양쪽 다 사주가 있어야 궁합이 나온다
+
+```gherkin
+Scenario: 한쪽이라도 사주가 없으면 궁합은 null 이다
+  Given 내 부모님은 사주를 입력했고 상대는 입력하지 않았다
+  When GET /api/discovery 를 호출한다
+  Then 그 상대의 compatibility 가 null 이다
+  And 카드에 궁합 배지가 그려지지 않는다   # 0점도, '측정 불가'도 아니다
+```
+
+#### SAJU.2: 출생시각을 몰라도 궁합이 나온다
+
+```gherkin
+Scenario: 시주 없이 세 기둥으로 보고 그 사실을 밝힌다
+  Given 상대가 출생시각을 '모름'으로 등록했다
+  When 상세 프로필을 연다
+  Then 궁합 점수가 표시된다
+  And confidence 가 medium 이고 "출생시각을 모르는 분이 있어 시주를 빼고 봤습니다" 가 보인다
+  And 시주가 있는 경우보다 점수가 체계적으로 낮지 않다   # 정규화로 만점·최저점이 함께 준다
+```
+
+#### SAJU.3: 궁합 좋은 순 정렬
+
+```gherkin
+Scenario: 정렬을 바꾸면 궁합이 높은 분부터 나온다
+  Given 내 부모님 사주가 등록돼 있다
+  When 추천 조건에서 "궁합 좋은 순" 을 적용한다
+  Then GET /api/discovery 응답의 items 가 compatibility.score 내림차순이다
+  And 사주가 없는 프로필은 점수가 있는 프로필 뒤에 온다
+  And 홈 상단 조건 칩에 "궁합순" 이 붙는다
+```
+
+#### SAJU.4: 내 부모님 사주가 없으면 궁합 조건을 무시한다
+
+```gherkin
+Scenario: 사주를 안 적었다고 홈이 비지 않는다
+  Given 내 부모님 사주가 없고 저장된 조건의 sort 가 compatibility 다
+  When GET /api/discovery 를 호출한다
+  Then 최근 활동 순 추천이 평소와 같은 수로 내려온다
+  And 추천 조건 화면은 정렬 칩 대신
+      "부모님 사주 정보를 등록하시면 궁합순으로 볼 수 있습니다" 를 보여준다
+```
+
+#### SAJU.5: 최소 궁합은 사주 미입력자도 제외한다
+
+```gherkin
+Scenario: 걸러지는 범위를 미리 알린다
+  Given 내 부모님 사주가 등록돼 있다
+  When 최소 궁합을 60점으로 적용한다
+  Then 60점 미만인 프로필과 사주를 적지 않은 프로필이 모두 추천에서 빠진다
+  And 조건 화면에 "사주를 등록하지 않으신 분은 궁합을 낼 수 없어 함께 제외됩니다" 가 보인다
+  And 빈 결과일 때 조건 요약에 "궁합 60점 이상" 이 포함된다
+```
+
+#### SAJU.6: 사주 입력과 삭제
+
+```gherkin
+Scenario: 선택 항목이라 되돌릴 수 있다
+  Given 부모님 프로필에 사주를 등록해 두었다
+  When 프로필 작성에서 생년월일 기준을 "입력 안 함" 으로 바꾸고 저장한다
+  Then PATCH /api/parent-profile 이 saju: null 을 보낸다
+  And saju_infos 행이 삭제된다
+  And 이후 내 카드에는 어떤 상대에게도 궁합이 표시되지 않는다
+```
+
+#### SAJU.7: 생년월일을 고치면 사주도 함께 따라간다
+
+```gherkin
+Scenario: 두 날짜가 어긋나지 않는다
+  Given 사주를 등록한 상태다
+  When 기본 정보의 생년월일만 고치고 저장한다
+  Then saju_infos.birth_date 가 같은 값으로 갱신된다
+  # 사주 칸을 건드렸을 때만 보내면 사주가 옛 날짜로 남아 궁합이 엉뚱하게 나온다
+```
+
 ---
 
 ### E2E: 부팅 전체 흐름

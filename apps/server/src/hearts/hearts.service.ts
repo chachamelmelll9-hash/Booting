@@ -289,7 +289,12 @@ export class HeartsService {
       .eq('id', myProfileId)
       .maybeSingle();
 
-    const items = await this.discovery.toItems(profiles ?? [], me?.region_code ?? '');
+    // 받은 관심에도 궁합을 실어 준다 — 답할지 정하는 자리라 판단의 입력이다
+    const items = await this.discovery.toItems(
+      profiles ?? [],
+      me?.region_code ?? '',
+      myProfileId
+    );
     const byUser = new Map(
       (profiles ?? []).map((p, i) => [p.user_id, items[i]])
     );

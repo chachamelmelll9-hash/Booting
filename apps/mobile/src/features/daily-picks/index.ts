@@ -1,2 +1,7 @@
-export { DAILY_PICK_COUNT, todayKey, useDailyPicks } from './model/useDailyPicks';
+export {
+  DAILY_PICK_COUNT,
+  todayKey,
+  useDailyPicks,
+  useDailyPicksStore,
+} from './model/useDailyPicks';
 export { DailyPicksGrid } from './ui/DailyPicksGrid';

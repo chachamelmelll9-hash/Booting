@@ -51,6 +51,8 @@ export default function PreviewScreen() {
     primaryPhotoUrl: profile.photos.find((p) => p.isPrimary)?.url ?? profile.photos[0]?.url ?? '',
     introExcerpt: profile.introByChild ?? '',
     badges: profile.badges,
+    // 궁합은 '나와 상대' 사이의 값이라 내 프로필 미리보기에는 없다
+    compatibility: null,
   };
 
   const published = profile.status === 'published';

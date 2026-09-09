@@ -7,6 +7,7 @@ import {
   EmptyState,
   HeartMessageSheet,
   RelationshipGoalChips,
+  SajuCompatibilityCard,
   Screen,
   SkeletonList,
   useToast,
@@ -166,6 +167,21 @@ export default function PublicProfileScreen() {
       {profile.parentMessage ? (
         <Section title="부모님이 전하는 말">
           <Text style={styles.paragraph}>{profile.parentMessage}</Text>
+        </Section>
+      ) : null}
+
+      {/*
+        궁합은 소개글 **뒤에** 둔다. 사진 바로 아래에 큼직한 점수를 두면 이 앱이
+        어떤 분인지보다 몇 점인지를 먼저 묻는 화면이 된다. 사람을 먼저 읽고,
+        그 다음에 참고로 본다.
+      */}
+      {profile.compatibility ? (
+        <Section title="사주 궁합">
+          <SajuCompatibilityCard
+            compatibility={profile.compatibility}
+            pillars={profile.sajuPillars}
+            partnerName={profile.nickname}
+          />
         </Section>
       ) : null}
 

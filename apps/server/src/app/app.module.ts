@@ -16,6 +16,7 @@ import { ParentModule } from '../parent/parent.module';
 import { ParentProfileModule } from '../parent-profile/parent-profile.module';
 import { RegionsModule } from '../regions/regions.module';
 import { SafetyModule } from '../safety/safety.module';
+import { SajuModule } from '../saju/saju.module';
 import { SupabaseModule } from '../supabase/supabase.module';
 import { VerificationModule } from '../verification/verification.module';
 import { AppController } from './app.controller';
@@ -44,6 +45,7 @@ import { validateEnv } from './env.validation';
     NotificationsModule,
     VerificationModule,
     ParentProfileModule,
+    SajuModule,
     DiscoveryModule,
     HeartsModule,
     ConnectionsModule,

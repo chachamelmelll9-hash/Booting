@@ -9,12 +9,12 @@
 | ParentProfile | 등록된 부모님 프로필 (자녀 1명당 1건) | id, user_id, display_name, gender, birth_date, region_code, marital_status(bereaved/divorced), marital_since, children_count, living_with, religion, occupation, retired_occupation, economically_active, drinking, smoking, hobbies[], motto, intro_by_child, desired_partner, parent_message, status(draft/consent_pending/review/published/hidden), published_at, last_active_at, created_at | parent-profile-consent, profile-discovery |
 | ParentPhoto | 부모님 사진 (**최소 3장**, 최대 5장, 대표 1장) | id, parent_profile_id, storage_path, is_primary, sort_order, created_at | parent-profile-consent, profile-discovery |
 | ParentConsent | 부모님의 등록·공개 동의와 철회 이력 | id, parent_profile_id, method(sms/in_person), parent_name, consented_at, revoked_at, created_at | parent-profile-consent |
-| SajuInfo | 사주 정보 (선택 입력, 공개 여부 선택) | id, parent_profile_id, birth_date, calendar_type(solar/lunar), birth_time, birth_time_unknown, is_public, created_at | parent-profile-consent, profile-discovery |
+| SajuInfo | 사주 정보 (선택 입력, 공개 여부 선택). `is_public` 은 **생년월일·시각 노출만** 가르고 궁합 계산은 그와 무관하게 돈다. 사주팔자는 저장하지 않고 매번 계산한다 (생년월일을 고쳤을 때 조용히 어긋나는 쪽이 더 비싸다) | id, parent_profile_id, birth_date, calendar_type(solar/lunar), birth_time, birth_time_unknown, is_public, created_at | parent-profile-consent, profile-discovery, saju-compatibility |
 | Heart.message | 관심과 함께 보낸 인사말 (1~200자 CHECK, 선택). 상호 하트 시 대화방 첫 메시지로 **복사**된다 — 원본은 hearts 에 남는다 | text | heart-conversation |
 | ParentProfile.height_cm | 부모님 키 (cm, 120~220 CHECK). 상세에서만 노출 | integer | parent-profile-consent, profile-discovery |
 | RelationshipGoal | 관계 목적 (프로필당 최대 2개) | id, parent_profile_id, goal(remarriage/serious/travel_hobby/same_sex_friend/meal_walk/undecided) | parent-profile-consent, profile-discovery |
 | ProfileReview | 운영 검수 결과 | id, parent_profile_id, status(pending/approved/rejected), reject_reason, reviewed_at, created_at | parent-profile-consent |
-| DiscoveryFilter | 자녀가 저장한 추천 조건 | id, user_id, target_gender, age_min, age_max, region_code, radius_km(10/30/50/null=전국), marital_filter(bereaved/divorced/any), goals[], religion, drinking, smoking, economically_active, updated_at | profile-discovery |
+| DiscoveryFilter | 자녀가 저장한 추천 조건 | id, user_id, target_gender, age_min, age_max, region_code, radius_km(10/30/50/null=전국), marital_filter(bereaved/divorced/any), goals[], religion, drinking, smoking, economically_active, **sort(recent/compatibility)**, **min_compatibility(null/50/60/70/80)**, updated_at | profile-discovery, saju-compatibility |
 | Heart | 하트 (관심 보내기) | id, sender_user_id, target_parent_profile_id, created_at | profile-discovery, heart-conversation |
 | Pass | 넘긴 프로필 (재추천 제외용) | id, user_id, target_parent_profile_id, created_at | profile-discovery |
 | Block | 차단 (양방향 제외) | id, user_id, blocked_user_id, created_at | profile-discovery, heart-conversation |

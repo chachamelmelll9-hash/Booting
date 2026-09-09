@@ -14,6 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
+import { CompatibilityBadge } from '../CompatibilityBadge';
 import { type CardRect } from './ExpandedGemCard';
 import { Gem, GEM_LABEL, GEM_MINT, type GemKind } from './Gem';
 
@@ -116,7 +117,9 @@ export function GemCard({
   }));
 
   const label = revealed
-    ? `${profile.nickname} 님, ${profile.age}세. 눌러서 프로필 펼치기`
+    ? `${profile.nickname} 님, ${profile.age}세.${
+        profile.compatibility ? ` 사주 궁합 ${profile.compatibility.score}점.` : ''
+      } 눌러서 프로필 펼치기`
     : `${GEM_LABEL[kind]} 원석 카드. 눌러서 오늘의 추천 프로필 열기`;
 
   return (
@@ -249,6 +252,12 @@ function ProfileFace({
       </Pressable>
 
       <View style={styles.frontInfo}>
+        {/*
+          궁합은 이름 위에 둔다. 아래에 붙이면 나이·거리와 한 덩어리로 읽혀
+          어느 것이 상대의 정보이고 어느 것이 우리 부모님과의 관계인지 흐려진다.
+          사주를 안 적은 분 카드에는 이 줄이 통째로 없다.
+        */}
+        <CompatibilityBadge compatibility={profile.compatibility} variant="photo" />
         <Text style={styles.frontName} numberOfLines={1}>
           {profile.nickname}
         </Text>
@@ -330,6 +339,7 @@ const styles = StyleSheet.create({
     left: spacing.xxs,
     right: spacing.xxs,
     bottom: spacing.xs,
+    gap: 3,
   },
   frontName: {
     fontSize: 13,

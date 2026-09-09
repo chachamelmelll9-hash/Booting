@@ -159,8 +159,31 @@ const PROFILES = [
     nickname: NICKNAMES[tag],
     // 키는 성별별로 현실적인 범위 안에서 흩어 놓는다 (필터·표기 확인용)
     heightCm: gender === 'male' ? 166 + (index % 9) : 152 + (index % 9),
+    saju: sajuFor(index, birthDate),
   })
 );
+
+/**
+ * 시드 사주 (궁합 확인용).
+ *
+ * 전원에게 넣지 않는다 — 사주를 적지 않은 분의 카드에는 궁합 배지가 없어야 하고,
+ * 최소 궁합 필터를 걸면 그분들이 빠지는 것까지가 확인 대상이다. 5명 중 1명은
+ * 비워 두고, 넣을 때도 양력/음력·시각 모름·공개 여부를 골고루 섞는다.
+ *
+ * 날짜는 프로필 생년월일을 그대로 쓴다 (앱도 같은 값 하나만 쓴다).
+ */
+function sajuFor(index, birthDate) {
+  if (index % 5 === 4) return null;
+
+  const timeUnknown = index % 3 === 2;
+  return {
+    birthDate,
+    calendarType: index % 4 === 3 ? 'lunar' : 'solar',
+    birthTime: timeUnknown ? undefined : ['05:20', '09:40', '13:10', '19:50'][index % 4],
+    birthTimeUnknown: timeUnknown,
+    isPublic: index % 2 === 0,
+  };
+}
 
 async function loadEnv() {
   const text = await readFile(path.join(ROOT, 'apps', 'server', '.env.development'), 'utf8');
@@ -700,6 +723,8 @@ async function main() {
         drinking: '가끔',
         smoking: '비흡연',
         economicallyActive: false,
+        // null 이면 서버가 지운다 — 시드 스펙에서 뺀 사람은 다시 돌려도 사주가 남지 않는다
+        saju: spec.saju,
       });
       console.log(`  갱신: ${spec.displayName} → "${spec.nickname}" (키 ${spec.heightCm}cm)`);
       continue;
@@ -738,6 +763,7 @@ async function main() {
       drinking: '가끔',
       smoking: '비흡연',
       economicallyActive: false,
+      saju: spec.saju,
     });
 
     await call(token, 'POST', '/parent-profile/consent', {

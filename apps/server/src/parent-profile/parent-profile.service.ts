@@ -137,7 +137,10 @@ export class ParentProfileService {
     }
 
     if (dto.goals) await this.replaceGoals(profile.id, dto.goals);
-    if (dto.saju) await this.upsertSaju(profile.id, dto.saju);
+    // null 은 '지워 달라'다 (사주는 선택 항목이라 되돌릴 수 있어야 한다).
+    // undefined 는 '이번 요청은 사주를 건드리지 않는다'로 그대로 둔다.
+    if (dto.saju === null) await this.deleteSaju(profile.id);
+    else if (dto.saju) await this.upsertSaju(profile.id, dto.saju);
 
     return (await this.findByUser(userId))!;
   }
@@ -302,6 +305,14 @@ export class ParentProfileService {
         },
         { onConflict: 'parent_profile_id' }
       );
+  }
+
+  private async deleteSaju(profileId: string) {
+    await this.supabase
+      .getClient()
+      .from('saju_infos')
+      .delete()
+      .eq('parent_profile_id', profileId);
   }
 
   private async toDto(row: Record<string, any>): Promise<ParentProfileDto> {
