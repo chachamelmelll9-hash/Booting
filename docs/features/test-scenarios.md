@@ -1155,17 +1155,17 @@ Scenario: 비공개 사주는 타인 응답에 포함되지 않는다
   Then 응답에 saju 필드가 null 이거나 존재하지 않는다
 ```
 
-#### SEC.5: 비공개 사주의 네 기둥 미노출
+#### SEC.5: 네 기둥은 어느 응답에도 없다
 
 ```gherkin
-Scenario: 궁합은 나와도 상대의 기둥은 나오지 않는다
-  Given 나와 상대 모두 사주를 입력했고, 상대의 is_public 이 false 이다
-  When GET /api/profiles/:id 를 호출한다
-  Then compatibility.score 는 채워져 있다
-  And sajuPillars.mine 은 채워져 있다
-  And sajuPillars.theirs 는 null 이다
-  # 기둥 넷이면 60갑자 안에서 생년월일이 거의 특정된다 —
-  # 이걸 내보내면 is_public=false 가 아무 의미가 없다
+Scenario: 나가는 사주 값은 일주 하나뿐이다
+  Given 나와 상대 모두 사주를 입력했다
+  When GET /api/discovery 와 GET /api/profiles/:id 를 호출한다
+  Then 두 응답 모두 sajuPillars 필드를 포함하지 않는다
+  And dayPillar 는 그 프로필 본인의 일주로 채워져 있다
+  # 기둥 넷이면 60갑자 안에서 생년월일이 거의 특정된다.
+  # 일주 하나는 60일 주기라 나이를 알아도 후보가 여럿 남는다 —
+  # 그래서 is_public 과 무관하게 내보낸다
 ```
 
 ---

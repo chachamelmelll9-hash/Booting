@@ -64,9 +64,6 @@ export class DiscoveryFilterDto {
  */
 export type SajuCompatibilityDto = SajuCompatibility;
 
-/** 사주팔자 네 기둥. 각 기둥은 천간·지지 인덱스다 */
-export type SajuPillarsDto = FourPillars;
-
 /** 기둥 하나 — 천간·지지 인덱스 */
 export type SajuPillarDto = FourPillars['day'];
 
@@ -128,14 +125,9 @@ export interface PublicProfileDto extends DiscoveryItemDto {
     birthTime: string | null;
     birthTimeUnknown: boolean;
   } | null;
-  /**
-   * 궁합의 근거가 된 네 기둥. `compatibility` 가 있을 때만 채워진다.
-   *
-   * 상대 기둥은 **상대가 사주를 공개했을 때만** 들어간다. 네 기둥이 다 보이면
-   * 60갑자 안에서 생년월일이 거의 특정되므로, 비공개인 분의 기둥을 보내면
-   * `saju` 를 숨긴 의미가 사라진다.
-   */
-  sajuPillars: { mine: SajuPillarsDto; theirs: SajuPillarsDto | null } | null;
+  // 네 기둥은 내보내지 않는다. 화면이 쓰는 사주 값은 일주(`dayPillar`) 하나뿐이고,
+  // 기둥 넷이 다 나가면 60갑자 안에서 생년월일이 거의 특정된다 — 아무도 안 그리는
+  // 값 때문에 그 위험을 질 이유가 없다.
   /** 내가 이미 관심을 보냈는가 — 버튼 상태 판정용 */
   heartSent: boolean;
 }

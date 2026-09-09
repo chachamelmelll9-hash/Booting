@@ -326,15 +326,6 @@ export class DiscoveryService {
             birthTimeUnknown: sajuRes.data.birth_time_unknown,
           }
         : null,
-      // 궁합이 없으면 기둥도 보내지 않는다 — 내 기둥만 덩그러니 나오면
-      // 이 화면에서 아무 의미가 없다
-      sajuPillars: compatibility && mySaju
-        ? {
-            mine: mySaju.pillars,
-            // 상대가 사주를 공개했을 때만. 기둥 넷은 생년월일에 가깝다
-            theirs: theirSaju?.isPublic ? theirSaju.pillars : null,
-          }
-        : null,
       heartSent: !!heartRes.data,
     };
     // 실제 성명·생년월일·연락처·정확한 주소·family_doc_path 는 어느 필드에도 없다.

@@ -20,7 +20,6 @@ export { PhotoUploader } from './PhotoUploader';
 export { ProfileDeck } from './ProfileDeck';
 export { RelationshipGoalChips } from './RelationshipGoalChips';
 export { SafetyNotice } from './SafetyNotice';
-export { SajuCompatibilityCard } from './SajuCompatibilityCard';
 export { Screen } from './Screen';
 export { Skeleton, SkeletonList } from './Skeleton';
 export { StepProgressBar } from './StepProgressBar';

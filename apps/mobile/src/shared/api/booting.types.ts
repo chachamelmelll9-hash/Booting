@@ -147,18 +147,10 @@ export interface SajuCompatibility {
   confidence: 'high' | 'medium';
 }
 
-/** 사주 한 기둥 — 천간(0~9)·지지(0~11) 인덱스 */
+/** 사주 한 기둥 — 천간(0~9)·지지(0~11) 인덱스. 화면에 쓰는 건 일주 하나뿐이다 */
 export interface SajuPillar {
   stem: number;
   branch: number;
-}
-
-export interface SajuPillars {
-  year: SajuPillar;
-  month: SajuPillar;
-  day: SajuPillar;
-  /** 출생시각을 모르면 null */
-  hour: SajuPillar | null;
 }
 
 /** 추천 카드. 실명은 오지 않고 공개용 별명만 온다 */
@@ -204,11 +196,6 @@ export interface PublicProfile extends DiscoveryItem {
     birthTime: string | null;
     birthTimeUnknown: boolean;
   } | null;
-  /**
-   * 궁합의 근거가 된 네 기둥. 궁합이 있을 때만 온다.
-   * 상대 기둥은 상대가 사주를 공개했을 때만 채워진다 (기둥 넷이면 생일이 드러난다).
-   */
-  sajuPillars: { mine: SajuPillars; theirs: SajuPillars | null } | null;
   heartSent: boolean;
 }
 

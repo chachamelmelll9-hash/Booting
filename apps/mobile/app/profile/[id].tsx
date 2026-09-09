@@ -1,13 +1,13 @@
 import { useHeartActions, usePublicProfile } from '@features/discovery';
 import { theme } from '@shared/config/colors';
 import { formatOccupation } from '@shared/config/profileOptions';
+import { dayPillarLabel } from '@shared/config/saju';
 import { radius, spacing, typography } from '@shared/config/tokens';
 import {
   AppButton,
   EmptyState,
   HeartMessageSheet,
   RelationshipGoalChips,
-  SajuCompatibilityCard,
   Screen,
   SkeletonList,
   useToast,
@@ -142,6 +142,27 @@ export default function PublicProfileScreen() {
         {` · ${MARITAL_LABEL[profile.maritalStatus] ?? ''}`}
       </Text>
 
+      {/*
+        일주와 궁합 점수, 딱 두 값만 맨 위에 둔다.
+        풀이·근거·기둥 나열은 두지 않는다 — 이 화면에서 정하는 건 "관심을
+        보낼까" 하나이고, 설명이 길어질수록 그 판단이 아니라 해석을 읽게 된다.
+      */}
+      {profile.dayPillar || profile.compatibility ? (
+        <View style={styles.sajuRow}>
+          {profile.dayPillar ? (
+            <Text style={styles.dayPillar}>{dayPillarLabel(profile.dayPillar)}</Text>
+          ) : null}
+          {profile.dayPillar && profile.compatibility ? (
+            <Text style={styles.sajuSeparator}>·</Text>
+          ) : null}
+          {profile.compatibility ? (
+            <Text style={styles.score} testID="saju-compatibility">
+              궁합 {profile.compatibility.score}점
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
       <View style={styles.badges}>
         <VerificationBadgeRow badges={profile.badges} />
       </View>
@@ -167,22 +188,6 @@ export default function PublicProfileScreen() {
       {profile.parentMessage ? (
         <Section title="부모님이 전하는 말">
           <Text style={styles.paragraph}>{profile.parentMessage}</Text>
-        </Section>
-      ) : null}
-
-      {/*
-        궁합은 소개글 **뒤에** 둔다. 사진 바로 아래에 큼직한 점수를 두면 이 앱이
-        어떤 분인지보다 몇 점인지를 먼저 묻는 화면이 된다. 사람을 먼저 읽고,
-        그 다음에 참고로 본다.
-      */}
-      {profile.compatibility ? (
-        <Section title="사주 궁합">
-          <SajuCompatibilityCard
-            compatibility={profile.compatibility}
-            pillars={profile.sajuPillars}
-            dayPillar={profile.dayPillar}
-            partnerName={profile.nickname}
-          />
         </Section>
       ) : null}
 
@@ -245,6 +250,15 @@ const styles = StyleSheet.create({
   photo: { width: 320, height: 320, borderRadius: radius.lg, marginRight: spacing.xs, marginLeft: spacing.md },
   name: { ...typography.title, color: theme.colors.text, marginTop: spacing.md },
   meta: { ...typography.body, color: theme.colors.textTertiary, marginTop: 2 },
+  sajuRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  dayPillar: { ...typography.subheading, color: theme.colors.text },
+  sajuSeparator: { ...typography.subheading, color: theme.colors.textMuted },
+  score: { ...typography.subheading, color: theme.colors.primaryDark },
   badges: { marginTop: spacing.sm },
   section: { marginTop: spacing.lg, gap: spacing.xs },
   sectionTitle: { ...typography.subheading, color: theme.colors.text },
