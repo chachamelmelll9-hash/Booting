@@ -71,8 +71,24 @@ booted() { [ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r'
 wake_up() {
   "$ADB" shell input keyevent KEYCODE_WAKEUP >/dev/null 2>&1
   "$ADB" shell wm dismiss-keyguard >/dev/null 2>&1 || "$ADB" shell input keyevent 82 >/dev/null 2>&1
-  "$ADB" shell settings put system screen_off_timeout 1800000 >/dev/null 2>&1
+
+  # 화면이 잠들면 screencap 이 통째로 검은 PNG 가 된다 (결함 2).
+  # 30분으로 뒀더니 검증 도중에 한 번씩 잠들었다 — 사실상 안 꺼지는 값으로 둔다
+  # (2147483647ms ≈ 24일).
+  "$ADB" shell settings put system screen_off_timeout 2147483647 >/dev/null 2>&1
   "$ADB" shell svc power stayon true >/dev/null 2>&1
+
+  # `svc power stayon true` 는 **충전 중일 때만** 듣는다. 에뮬레이터는 배터리가
+  # 방전 상태로 잡혀 있는 경우가 있어 그때는 아무 효과가 없다 — 충전 중으로 고정한다.
+  #
+  # 에뮬레이터에만 한다. 실기기에 붙었을 때 배터리 상태를 조작하면 화면이 계속
+  # 켜진 채로 남아 배터리를 태운다. (되돌리려면 `adb shell dumpsys battery reset`)
+  case "$(target_serial)" in
+    emulator-*)
+      "$ADB" shell dumpsys battery set ac 1 >/dev/null 2>&1
+      "$ADB" shell dumpsys battery set status 2 >/dev/null 2>&1
+      ;;
+  esac
 }
 
 set_reverse() { for p in $REVERSE_PORTS; do "$ADB" reverse "tcp:$p" "tcp:$p" >/dev/null 2>&1; done; }
