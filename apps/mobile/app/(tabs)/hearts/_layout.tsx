@@ -18,7 +18,8 @@ export default function HeartsLayout() {
         headerShadowVisible: false,
       }}
     >
-      <Stack.Screen name="index" options={{ title: '받은 관심' }} />
+      {/* 탭 첫 화면은 화면이 직접 머리를 그린다 (로고 + 제목, 뒤로가기 없음) */}
+      <Stack.Screen name="index" options={{ headerShown: false }} />
     </Stack>
   );
 }

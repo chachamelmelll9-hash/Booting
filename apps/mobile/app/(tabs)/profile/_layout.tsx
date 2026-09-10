@@ -10,7 +10,8 @@ const HEADER_OPTIONS = {
 export default function ProfileLayout() {
   return (
     <Stack screenOptions={HEADER_OPTIONS}>
-      <Stack.Screen name="index" options={{ title: '내 정보' }} />
+      {/* 탭 첫 화면은 화면이 직접 머리를 그린다 (로고 + 제목, 뒤로가기 없음) */}
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       {/* 부팅 화면 */}
       <Stack.Screen name="parent" options={{ title: '부모님 프로필' }} />
       <Stack.Screen name="reports" options={{ title: '신고 내역' }} />

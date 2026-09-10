@@ -23,6 +23,7 @@ export { SafetyNotice } from './SafetyNotice';
 export { Screen } from './Screen';
 export { Skeleton, SkeletonList } from './Skeleton';
 export { StepProgressBar } from './StepProgressBar';
+export { TabHeader } from './TabHeader';
 export * from './Themed';
 export { ToastProvider, useToast } from './Toast';
 export { VerificationBadgeRow } from './VerificationBadgeRow';

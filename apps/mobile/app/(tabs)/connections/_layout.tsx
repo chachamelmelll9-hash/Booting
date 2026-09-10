@@ -19,7 +19,11 @@ export default function ConnectionsLayout() {
         headerShadowVisible: false,
       }}
     >
-      <Stack.Screen name="index" options={{ title: '매칭' }} />
+      {/*
+        탭 첫 화면은 네이티브 헤더를 쓰지 않는다 — 돌아갈 곳이 없는데도
+        'Navigate up' 버튼이 그려졌다. 화면이 `TabHeader` 로 로고와 제목을 직접 그린다.
+      */}
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="[id]" options={{ headerShown: false }} />
     </Stack>
   );

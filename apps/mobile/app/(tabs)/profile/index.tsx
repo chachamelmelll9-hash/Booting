@@ -4,6 +4,7 @@ import { deleteAccountApi,logoutApi } from '@features/auth/api';
 import { KakaoLinkRow } from '@features/auth/ui/KakaoLinkRow';
 import { useParentProfile } from '@features/parent-profile';
 import { screenStyles } from '@shared/config/styles';
+import { TabHeader } from '@shared/ui';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import React from 'react';
@@ -90,7 +91,7 @@ export default function ProfileScreen() {
       style={screenStyles.paddedContainer}
       contentContainerStyle={styles.scrollContent}
     >
-      <Text style={screenStyles.title}>내 정보</Text>
+      <TabHeader title="내 정보" />
 
       {/*
         이메일이 없으면 이름으로 부른다 — 카카오는 이메일 동의가 없으면 안 준다.

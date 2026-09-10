@@ -13,6 +13,7 @@ import {
   HeartMessageSheet,
   Screen,
   SkeletonList,
+  TabHeader,
   useToast,
 } from '@shared/ui';
 import { useRouter } from 'expo-router';
@@ -135,10 +136,10 @@ export default function HeartsScreen() {
  * 실수로 지운 줄 알고, 그 다음부터는 답할 시간이 있어도 서둘러 결정한다.
  */
 function Header({ count }: { count: number }) {
-  // 제목('받은 관심')은 네비게이션 헤더가 이미 달고 있다 — 여기서 또 쓰면
-  // 같은 말이 화면 위에 두 번 겹친다
+  // 제목은 여기서 단다 — 네이티브 헤더를 껐다 (탭 첫 화면에 뒤로가기가 생겨서)
   return (
     <View style={styles.header}>
+      <TabHeader title="받은 관심" />
       {count > 0 ? <Text style={styles.count}>{count}명이 관심을 보냈습니다</Text> : null}
       <Text style={styles.hint}>모든 카드는 2주 뒤에 자동 삭제됩니다.</Text>
     </View>

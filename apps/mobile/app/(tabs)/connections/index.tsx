@@ -12,6 +12,7 @@ import {
   ParentProfileCard,
   Screen,
   SkeletonList,
+  TabHeader,
 } from '@shared/ui';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -36,6 +37,8 @@ export default function ConnectionsScreen() {
 
   return (
     <Screen>
+      <TabHeader title="매칭" />
+
       <View style={styles.chips}>
         {CONNECTION_FILTERS.map((chip) => {
           const selected = filter === chip.key;

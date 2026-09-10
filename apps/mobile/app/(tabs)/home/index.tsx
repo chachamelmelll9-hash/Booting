@@ -12,16 +12,16 @@ import type { DiscoveryItem } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import {
-  BootingLogo,
   EmptyState,
   HeartMessageSheet,
   Screen,
   SkeletonList,
+  TabHeader,
   useToast,
 } from '@shared/ui';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
 /**
  * 홈 — 오늘의 추천 프로필.
@@ -179,27 +179,17 @@ export default function HomeScreen() {
 }
 
 /**
- * 홈 헤더 — 워드마크만 둔다.
+ * 홈 헤더 — 워드마크만 둔다 (제목은 아래 '오늘의 추천 프로필'이 맡는다).
  *
  * 종 아이콘을 걷어냈다. 알림으로 오는 일(새 관심·새 대화)은 이미 관심·매칭
  * 탭 배지가 같은 자리에서 알려 준다. 같은 사실을 두 곳에서 빨갛게 알리면
  * 어느 쪽을 눌러야 하는지가 매번 질문이 된다.
  */
 function Header() {
-  return (
-    <View style={styles.header}>
-      <BootingLogo />
-    </View>
-  );
+  return <TabHeader />;
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: HIT_SIZE + 4,
-  },
   filterChip: {
     alignSelf: 'flex-start',
     flexDirection: 'row',
