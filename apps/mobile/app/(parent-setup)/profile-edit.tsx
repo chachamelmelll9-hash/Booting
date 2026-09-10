@@ -1,10 +1,10 @@
 import { useAuthStore } from '@features/auth';
 import {
   type DraftErrors,
-  type ProfileDraft,
   hasErrors,
   leaksRealName,
   pickImage,
+  type ProfileDraft,
   RegionPicker,
   uploadToStorage,
   useParentProfile,

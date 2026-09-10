@@ -25,8 +25,8 @@ import {
   useSegments,
 } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Linking,StyleSheet,View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { ActivityIndicator,StyleSheet,View } from 'react-native';
 import mobileAds from 'react-native-google-mobile-ads';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
