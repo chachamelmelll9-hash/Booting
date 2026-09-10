@@ -1,5 +1,6 @@
 import type { DiscoveryItem } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
+import { dayPillarLabel } from '@shared/config/saju';
 import { elevation, radius, spacing, typography } from '@shared/config/tokens';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -56,6 +57,22 @@ export function ParentProfileCard({ profile, variant = 'deck', onPress, testID }
           {profile.distanceKm !== null ? ` · ${profile.distanceKm}km` : ''}
           {profile.maritalStatus ? ` · ${MARITAL_LABEL[profile.maritalStatus] ?? ''}` : ''}
         </Text>
+
+        {/*
+          일주 · 궁합. 추천 카드와 같은 자리(이름·지역 바로 아래)에 같은 글자로 둔다 —
+          추천에서 보고 관심을 보낸 그 사람을 인연 목록에서 다시 볼 때
+          표기가 다르면 다른 사람처럼 읽힌다.
+        */}
+        {profile.dayPillar || profile.compatibility ? (
+          <Text style={styles.saju} numberOfLines={1}>
+            {[
+              profile.dayPillar ? dayPillarLabel(profile.dayPillar) : null,
+              profile.compatibility ? `궁합 ${profile.compatibility.score}점` : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
+        ) : null}
 
         {profile.goals.length ? (
           <View style={styles.goals}>
@@ -115,6 +132,7 @@ const styles = StyleSheet.create({
   nameRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   name: { ...typography.subheading, color: theme.colors.text },
   meta: { ...typography.caption, color: theme.colors.textTertiary },
+  saju: { ...typography.caption, color: theme.colors.primaryDark, fontWeight: '700' },
   goals: { marginTop: spacing.xxs },
   intro: { ...typography.body, color: theme.colors.textSecondary, marginTop: spacing.xxs },
   badges: { marginTop: spacing.xs },

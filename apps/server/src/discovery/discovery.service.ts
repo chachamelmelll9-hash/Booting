@@ -200,10 +200,11 @@ export class DiscoveryService {
     rows: Record<string, any>[],
     originRegionCode: string,
     /**
-     * 보는 사람의 부모님 프로필 id. 주면 카드마다 궁합이 함께 실린다.
+     * 보는 사람의 부모님 프로필 id. 주면 카드마다 일주와 궁합이 함께 실린다.
      *
-     * 인연 관리·부모님 화면에서는 주지 않는다 — 궁합은 "관심을 보낼까"를 정할
-     * 때 쓰는 정보이고, 이미 이어진 뒤에는 점수가 판단을 바꾸지 않는다.
+     * 자녀가 보는 화면(추천·받은 관심·인연)과 부모님이 보시는 화면 모두 준다 —
+     * 같은 카드가 화면마다 다르면 다른 사람처럼 읽힌다. 부모님 화면에서도
+     * 궁합은 '부모님 본인과 상대'의 값이라 자녀가 보는 숫자와 같다.
      */
     viewerProfileId?: string
   ): Promise<DiscoveryItemDto[]> {

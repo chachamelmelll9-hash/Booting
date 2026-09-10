@@ -193,6 +193,30 @@ const GOAL_LABEL: Record<string, string> = {
   undecided: '아직 모르겠음',
 };
 
+/**
+ * 사주 표기.
+ *
+ * 앱 카드와 **글자까지 같아야 한다.** 자녀는 앱에서 `병인일주 · 궁합 74점` 을
+ * 보고 부모님께 보내는데, 부모님 화면에 다른 말이 적혀 있으면 통화 한 번이 든다.
+ * 그래서 모바일 `shared/config/saju.ts` 와 같은 표를 여기에 둔다 — 서버는
+ * 인덱스만 다루므로 이 짧은 표가 HTML 쪽의 유일한 한글 소스다.
+ */
+const STEMS = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계'];
+const BRANCHES = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
+
+/** '병인일주 · 궁합 74점' — 둘 중 없는 값은 빠지고, 다 없으면 빈 문자열 */
+function sajuLine(p: {
+  dayPillar?: { stem: number; branch: number } | null;
+  compatibility?: { score: number } | null;
+}): string {
+  const parts: string[] = [];
+  if (p.dayPillar) {
+    parts.push(`${STEMS[p.dayPillar.stem] ?? ''}${BRANCHES[p.dayPillar.branch] ?? ''}일주`);
+  }
+  if (p.compatibility) parts.push(`궁합 ${p.compatibility.score}점`);
+  return parts.join(' · ');
+}
+
 function esc(s: string): string {
   return s.replace(
     /[&<>"]/g,
@@ -225,6 +249,9 @@ const STYLE = `
   .lead .from { color: #0D9488; font-weight: 700; margin: 0 0 6px; }
   h1 { font-size: 28px; line-height: 1.4; margin: 0; }
   .sub { color: #334155; margin: 6px 0 0; }
+  /* 일주 · 궁합 — 앱 카드와 같은 민트를 쓴다. 부모님 화면은 글자가 커서
+     앱보다 한 단계 크게 잡는다 */
+  .lead .saju { color: #0D9488; font-weight: 700; font-size: 19px; margin: 8px 0 0; }
 
   .photos { display: flex; gap: 8px; overflow-x: auto; padding: 4px 20px 8px; scroll-snap-type: x mandatory; }
   .photos img {
@@ -301,6 +328,7 @@ const STYLE = `
   .card-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .card-body strong { font-size: 20px; }
   .card-sub { color: #64748B; font-size: 17px; }
+  .card-body .saju { color: #0D9488; font-size: 17px; font-weight: 700; }
   .state { font-size: 16px; color: #0D9488; font-weight: 600; margin-top: 2px; }
   .state.new { color: #0F766E; }
   .state.matched { color: #B45309; }
@@ -356,11 +384,13 @@ function listPage(token: string, items: ParentInboxItemDto[]): string {
           : item.unseen
             ? '<span class="state new">새로 받으신 프로필</span>'
             : '';
+      const saju = sajuLine(p);
       return `<a class="card" href="/p/${esc(token)}/c/${esc(item.connectionId)}">
         <img src="${esc(p.primaryPhotoUrl ?? '')}" alt="">
         <div class="card-body">
           <strong>${esc(p.nickname)} · ${p.age}세</strong>
           <span class="card-sub">${esc([p.region, marital].filter(Boolean).join(' · '))}</span>
+          ${saju ? `<span class="saju">${esc(saju)}</span>` : ''}
           ${state}
         </div>
       </a>`;
@@ -483,6 +513,7 @@ function profilePage(
        <p class="from">자녀분이 보내드린 프로필</p>
        <h1>${esc(p.nickname)} 님 · ${p.age}세</h1>
        ${marital || p.region ? `<p class="sub">${esc([p.region, marital].filter(Boolean).join(' · '))}</p>` : ''}
+       ${sajuLine(p) ? `<p class="saju">${esc(sajuLine(p))}</p>` : ''}
      </div>
      ${blocks}
      ${decisionBlock(p, token, connectionId, state)}

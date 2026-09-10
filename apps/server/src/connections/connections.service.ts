@@ -404,9 +404,12 @@ export class ConnectionsService {
         .maybeSingle(),
     ]);
 
+    // 인연 카드에도 일주·궁합을 싣는다 — 부모님께 소개하고 만남을 잡는 내내
+    // 같은 카드를 보는데 여기서만 빠지면 다른 사람 화면처럼 읽힌다
     const [partner] = await this.discovery.toItems(
       partnerRes.data ? [partnerRes.data] : [],
-      meRes.data?.region_code ?? ''
+      meRes.data?.region_code ?? '',
+      myProfileId
     );
 
     let lastMessage: ConnectionDto['lastMessage'] = null;

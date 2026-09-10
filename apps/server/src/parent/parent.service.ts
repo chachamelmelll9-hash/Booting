@@ -114,7 +114,9 @@ export class ParentService {
       .eq('status', 'published');
     if (!profiles?.length) return [];
 
-    const items = await this.discovery.toItems(profiles, me.region_code ?? '');
+    // 부모님이 보시는 목록에도 일주·궁합을 싣는다. 여기서 궁합은 '부모님 본인과
+    // 상대'의 값이라 자녀가 보는 값과 같다 — 두 화면이 다른 숫자를 말하면 안 된다
+    const items = await this.discovery.toItems(profiles, me.region_code ?? '', parentProfileId);
     const itemById = new Map(profiles.map((p, i) => [p.id as string, items[i]]));
 
     // 양쪽 부모님의 결정 + 상대 연락처를 한 번에 모은다

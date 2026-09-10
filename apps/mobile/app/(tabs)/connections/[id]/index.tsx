@@ -11,6 +11,7 @@ import { bootingKeys } from '@shared/api/booting';
 import { theme } from '@shared/config/colors';
 import { statusDescription } from '@shared/config/connectionStatus';
 import { CHAT_REPORT_REASONS } from '@shared/config/safetyRules';
+import { dayPillarLabel } from '@shared/config/saju';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import {
   AppButton,
@@ -208,6 +209,21 @@ export default function ChatRoomScreen() {
           <Text style={styles.partner}>
             {connection.partner.nickname} 님 ({connection.partner.age}세) 자녀분
           </Text>
+          {/* 대화 중에도 어떤 분인지가 한 줄로 남아 있어야 한다 */}
+          {connection.partner.dayPillar || connection.partner.compatibility ? (
+            <Text style={styles.saju} numberOfLines={1}>
+              {[
+                connection.partner.dayPillar
+                  ? dayPillarLabel(connection.partner.dayPillar)
+                  : null,
+                connection.partner.compatibility
+                  ? `궁합 ${connection.partner.compatibility.score}점`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </Text>
+          ) : null}
           <ConnectionStatusBadge status={connection.status} />
         </View>
         <Pressable
@@ -360,6 +376,7 @@ const styles = StyleSheet.create({
   },
   headerText: { flex: 1, gap: 4 },
   partner: { ...typography.subheading, color: theme.colors.text },
+  saju: { ...typography.caption, color: theme.colors.primaryDark, fontWeight: '700' },
   menu: { width: HIT_SIZE, height: HIT_SIZE, alignItems: 'center', justifyContent: 'center' },
   menuRow: {
     flexDirection: 'row',
