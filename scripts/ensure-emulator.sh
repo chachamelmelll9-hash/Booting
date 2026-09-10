@@ -22,6 +22,11 @@
 #   bash scripts/ensure-emulator.sh --restart  # 강제 재기동
 #   bash scripts/ensure-emulator.sh --avd NAME
 #
+#   ANDROID_SERIAL=emulator-5556 bash scripts/ensure-emulator.sh
+#     여러 대를 띄워 놓고 그중 하나만 준비할 때. 지정하지 않으면 붙어 있는
+#     첫 기기를 맡는다. **여러 대일 때는 지정하는 편이 안전하다** —
+#     지정하지 않으면 `adb shell` 이 "more than one device" 로 실패한다.
+#
 # 성공 시 마지막 줄에 EMULATOR_READY=<serial>, 실패 시 EMULATOR_FAILED=<사유>
 # =============================================================================
 set -uo pipefail
@@ -44,6 +49,23 @@ done
 [ -x "$EMU" ] || { echo "EMULATOR_FAILED=no-emulator-binary ($EMU)"; exit 1; }
 [ -x "$ADB" ] || { echo "EMULATOR_FAILED=no-adb"; exit 1; }
 
+# --- 대상 기기 ---------------------------------------------------------------
+# 에뮬레이터를 여러 대 띄워 쓰는 경우가 있다 (자녀 앱 / 부모님 웹을 따로 본다).
+# 그때 "어느 기기를 준비하는가"를 `ANDROID_SERIAL` 로 지정한다 — adb 자체가 그
+# 변수를 따르므로 shell/reverse 는 알아서 맞는 기기로 가지만, `adb devices` 는
+# 붙어 있는 **전부**를 찍기 때문에 목록에서 하나를 고르는 자리마다 이걸 거쳐야 한다.
+attached() { "$ADB" devices | awk '$2 == "device" { print $1 }'; }
+
+target_serial() {
+  # ANDROID_SERIAL 이 실제로 붙어 있을 때만 그걸 쓴다. 오타나 이미 꺼진 기기를
+  # 그대로 되돌려 주면 준비는 됐는데 없는 기기 이름을 알려 주는 꼴이 된다.
+  if [ -n "${ANDROID_SERIAL:-}" ] && attached | grep -qx "${ANDROID_SERIAL}"; then
+    echo "$ANDROID_SERIAL"
+    return
+  fi
+  attached | head -1
+}
+
 booted() { [ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; }
 
 wake_up() {
@@ -59,7 +81,8 @@ finish_ok() {
   wake_up
   set_reverse
   local state; state=$("$ADB" shell dumpsys power 2>/dev/null | grep -m1 mWakefulness | tr -d '\r ')
-  local serial; serial=$("$ADB" devices | awk '/device$/{print $1; exit}')
+  # `adb devices` 첫 줄을 집으면 두 대일 때 준비한 것과 **다른 기기**를 알려 준다
+  local serial; serial=$(target_serial)
   echo "wakefulness: ${state:-unknown}"
   echo "reverse: $("$ADB" reverse --list 2>/dev/null | wc -l | tr -d ' ') mappings"
   echo "EMULATOR_READY=${serial:-emulator}"
@@ -73,18 +96,24 @@ if [ "$RESTART" = false ] && booted; then
 fi
 
 # --- 기존 인스턴스 종료 + 락 해제 대기 (결함 3) ---
-if "$ADB" devices | grep -q "device$"; then
-  echo "stopping existing emulator..."
-  "$ADB" emu kill >/dev/null 2>&1
+# **내가 맡은 기기만** 끈다. 두 대를 띄워 놓고 쓰는 경우가 있어서, 종료를
+# 프로세스 이름으로 싸잡아 하면 남의 에뮬레이터가 함께 꺼진다.
+TARGET="$(target_serial)"
+if [ -n "$TARGET" ]; then
+  echo "stopping $TARGET..."
+  ANDROID_SERIAL="$TARGET" "$ADB" emu kill >/dev/null 2>&1
+  for _ in $(seq 1 20); do
+    attached | grep -qx "$TARGET" || break
+    sleep 1
+  done
 fi
+
 # 프로세스 "이름"으로만 매칭한다. -f 로 전체 명령줄을 매칭하면 같은 문자열을 담은
 # 셸(예: 이 스크립트를 호출한 에이전트의 셸)까지 잡혀 엉뚱한 프로세스를 죽인다.
 emu_running() { pgrep -x qemu-system-aarch64 >/dev/null 2>&1 || pgrep -x qemu-system-x86_64 >/dev/null 2>&1; }
-for _ in $(seq 1 20); do
-  emu_running || break
-  sleep 1
-done
-if emu_running; then
+# 강제 종료는 **남아 있는 기기가 하나도 없을 때만** 한다. 붙어 있는 기기가
+# 있다는 건 내가 안 끈 남의 에뮬레이터라는 뜻이고, pkill 은 그것까지 죽인다.
+if [ -z "$(attached)" ] && emu_running; then
   pkill -x qemu-system-aarch64 >/dev/null 2>&1
   pkill -x qemu-system-x86_64  >/dev/null 2>&1
   sleep 5
