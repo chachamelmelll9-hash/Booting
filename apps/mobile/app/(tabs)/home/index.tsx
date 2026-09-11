@@ -53,8 +53,12 @@ export default function HomeScreen() {
     [feed.data]
   );
 
+  /**
+   * 직전에 뽑힌 여섯 명이 오늘 후보에서 빠지므로, 한 쪽(열 명)만으로는 새
+   * 얼굴이 모자랄 수 있다. 훅이 필요할 때 다음 쪽을 당겨 쓰도록 넘긴다.
+   */
   const { picks, revealedCount, isRevealed, isHearted, reveal, markHearted, hydrated } =
-    useDailyPicks(candidates);
+    useDailyPicks(candidates, feed.hasNextPage, feed.isFetchingNextPage, feed.fetchNextPage);
 
   /**
    * 관심 보내기 = 인사말 작성.

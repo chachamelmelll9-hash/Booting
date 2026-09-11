@@ -32,6 +32,19 @@ interface DailyPicksState {
    * 하루 동안 그 자리에 있어야 하므로 카드 내용을 통째로 들고 있는다.
    */
   items: DiscoveryItem[];
+  /**
+   * 직전에 뽑혔던 카드의 profileId.
+   *
+   * 후보 풀은 날이 바뀌어도 그대로다 — 하트도 패스도 하지 않은 사람은 내일도
+   * 같은 순위에 남아 있어서, 그냥 두면 '오늘의 추천'에 어제와 같은 여섯 명이
+   * 뜬다. 사용자는 그걸 새 추천이 아니라 고장으로 받아들인다. 그래서 직전
+   * 몫을 기억해 두고 오늘 후보에서 뺀다.
+   *
+   * 날짜가 아니라 '직전에 뽑힌 것' 이다 — 사흘 만에 앱을 열면 그 사흘 전
+   * 카드가 기준이 된다. 사용자가 마지막으로 본 여섯 명과 겹치지 않는 게
+   * 요점이지, 달력상 어제인지가 요점이 아니다.
+   */
+  previous: string[];
   /** 뒤집어 본 카드 — 뒤집힌 상태는 하루 동안 유지된다 */
   revealed: string[];
   /** 이미 관심을 보낸 카드 (버튼을 다시 누르지 못하게 한다) */
@@ -43,11 +56,23 @@ interface DailyPicksState {
   markHearted: (profileId: string) => void;
 }
 
+/**
+ * `date` 를 기준으로 본 '직전 몫'.
+ *
+ * 같은 날이면 이미 기록해 둔 값을, 날이 바뀌었으면 지금 들고 있는 카드가
+ * 곧 직전 몫이다. refill 과 훅이 같은 답을 내야 해서 한 곳에 둔다 — 어긋나면
+ * 훅은 "새 얼굴이 모자라다"며 다음 쪽을 계속 받고 refill 은 채워 버린다.
+ */
+function previousIdsFor(state: DailyPicksState, date: string): string[] {
+  return state.date === date ? (state.previous ?? []) : state.items.map((item) => item.profileId);
+}
+
 export const useDailyPicksStore = create<DailyPicksState>()(
   persist(
     (set) => ({
       date: null,
       items: [],
+      previous: [],
       revealed: [],
       hearted: [],
       hydrated: false,
@@ -66,14 +91,33 @@ export const useDailyPicksStore = create<DailyPicksState>()(
           const kept = sameDay ? state.items : [];
           if (kept.length >= DAILY_PICK_COUNT) return state;
 
+          // 날이 바뀌는 순간의 카드가 '직전 몫' 이 된다. 같은 날 보충일 때는
+          // 이미 기록해 둔 직전 몫을 그대로 쓴다 — 오늘 뽑은 카드가 스스로를
+          // 제외 목록에 넣어 버리면 안 된다.
+          const previous = previousIdsFor(state, date);
+
           const keptIds = new Set(kept.map((item) => item.profileId));
-          const added = candidates
-            .filter((item) => !keptIds.has(item.profileId))
-            .slice(0, DAILY_PICK_COUNT - kept.length);
+          const previousIds = new Set(previous);
+          const fresh = candidates.filter((item) => !keptIds.has(item.profileId));
+          const need = DAILY_PICK_COUNT - kept.length;
+
+          /**
+           * 직전 몫을 뺀 후보를 먼저 쓰고, 그것만으로 여섯 장이 안 되면 직전
+           * 카드로 뒤를 채운다. 빈 자리로 두면 홈에 '조건에 맞는 분이 더
+           * 없습니다' 가 뜨는데, 후보가 실제로 있는데도 없다고 알리는 꼴이다.
+           * 회원이 적은 초반에는 이 경우가 오히려 기본값이다.
+           */
+          const unseen = fresh.filter((item) => !previousIds.has(item.profileId));
+          const pool =
+            unseen.length >= need
+              ? unseen
+              : [...unseen, ...fresh.filter((item) => previousIds.has(item.profileId))];
+          const added = pool.slice(0, need);
           if (!added.length && sameDay) return state;
 
           return {
             date,
+            previous,
             items: [...kept, ...added],
             // 날이 바뀌면 뒤집힘·관심 표시도 함께 비운다
             revealed: sameDay ? state.revealed : [],
@@ -101,6 +145,7 @@ export const useDailyPicksStore = create<DailyPicksState>()(
       partialize: (state) => ({
         date: state.date,
         items: state.items,
+        previous: state.previous,
         revealed: state.revealed,
         hearted: state.hearted,
       }),
@@ -138,9 +183,20 @@ function useToday(): string {
  * 이 훅은 **하루치를 잘라 고정하는 일만** 한다.
  *
  * 카드의 수명은 그날 하루다. 날짜가 바뀌면 여섯 장이 통째로 사라지고 새로
- * 뽑히며, 뒤집어 둔 상태와 관심 표시도 함께 비워진다.
+ * 뽑히며, 뒤집어 둔 상태와 관심 표시도 함께 비워진다. 그때 **직전에 뽑혔던
+ * 여섯 명은 후보에서 빠진다** — 후보 풀은 날이 바뀌어도 그대로라, 빼지 않으면
+ * 같은 얼굴이 이틀 연속 '오늘의 추천' 에 올라온다.
+ *
+ * `hasMore`/`loadMore` 는 그 제외 때문에 필요하다. 피드 한 쪽이 열 명이라
+ * 직전 여섯을 빼면 새 얼굴이 넷뿐이다. 다음 쪽을 먼저 받아 보고, 더 받을 게
+ * 없을 때만 직전 카드로 뒤를 채운다.
  */
-export function useDailyPicks(candidates: DiscoveryItem[]) {
+export function useDailyPicks(
+  candidates: DiscoveryItem[],
+  hasMore = false,
+  isLoadingMore = false,
+  loadMore?: () => unknown
+) {
   const { date, items, revealed, hearted, hydrated, refill, reveal, markHearted } =
     useDailyPicksStore();
 
@@ -151,8 +207,22 @@ export function useDailyPicks(candidates: DiscoveryItem[]) {
     if (!needsRefill) return;
     // 피드가 아직 안 왔으면 기다린다 — 빈 배열로 뽑으면 오늘 몫이 0장으로 굳는다
     if (!candidates.length) return;
+
+    const state = useDailyPicksStore.getState();
+    const kept = state.date === today ? state.items : [];
+    const keptIds = new Set(kept.map((item) => item.profileId));
+    const previousIds = new Set(previousIdsFor(state, today));
+    const unseen = candidates.filter(
+      (item) => !keptIds.has(item.profileId) && !previousIds.has(item.profileId)
+    );
+
+    if (unseen.length < DAILY_PICK_COUNT - kept.length && hasMore && !isLoadingMore) {
+      void loadMore?.();
+      return;
+    }
+
     refill(today, candidates);
-  }, [needsRefill, candidates, today, refill]);
+  }, [needsRefill, candidates, today, refill, hasMore, isLoadingMore, loadMore]);
 
   const revealedSet = useMemo(() => new Set(revealed), [revealed]);
   const heartedSet = useMemo(() => new Set(hearted), [hearted]);
