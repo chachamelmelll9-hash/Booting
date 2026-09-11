@@ -125,3 +125,9 @@ assets/seed-photos/
 
 # 개발 서버 로그 (scripts/dev-up.ps1 이 남긴다 — 소스가 아니다)
 logs/
+
+# LLM 위키 — Obsidian 볼트 정션(scripts/link-wiki.ps1)과 Obsidian 개인 상태. 위키 본체는 docs/wiki 에 커밋된다
+apps/wiki
+docs/.obsidian/workspace*.json
+docs/.obsidian/cache
+docs/.obsidian/plugins

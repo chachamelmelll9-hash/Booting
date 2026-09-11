@@ -273,6 +273,19 @@ bash scripts/test-pipeline.sh
 직접 띄우면 Apple Silicon 기본 GPU 모드에서 스크린샷이 통째로 검게 나와,
 스모크 증거와 스토어 스크린샷이 무의미해진다.
 
+<!-- LLM-WIKI:START -->
+## 프로젝트 위키 (LLM Wiki)
+
+`docs/wiki/` 는 이 프로젝트의 지식 베이스다 — 제품 규칙, 결정과 그 이유, 코드 위치, 미결 사항. [Karpathy LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) 패턴 + [OKF v0.2](https://github.com/GoogleCloudPlatform/open-knowledge-format) frontmatter.
+
+- **세션을 시작하면 `docs/wiki/index.md` → `docs/wiki/open-questions.md` 를 먼저 읽는다.** 현재 상태와 막힌 것이 거기 있다.
+- 규약은 `docs/wiki/schema.md`. 페이지 사이는 상대 마크다운 링크, `type` frontmatter 필수, 비밀값·개인정보는 쓰지 않는다.
+- **동작을 바꾸는 커밋을 했으면 같은 세션에서 ingest 한다**: 영향받는 `docs/wiki/concepts/`·`entities/` 를 현재형으로 갱신 → 결정이면 `decisions/YYYY-MM-DD-slug.md` (뒤집은 결정엔 `superseded_by`) → `timeline.md` 한 줄 → `log.md` 한 줄 → `node scripts/wiki-lint.mjs` 가 0 에러.
+- 원본(`prd.md`, `docs/features/*`)끼리 어긋나면 원본을 고치지 말고 `docs/wiki/open-questions.md` "문서 간 모순" 에 적는다.
+- 세션 기록을 소스로 넣을 때는 `node scripts/wiki-extract-sessions.mjs` 로 텍스트만 뽑아 읽는다.
+- Obsidian: `apps/wiki` 정션이 `docs/` 를 가리킨다 (`scripts/link-wiki.ps1`).
+<!-- LLM-WIKI:END -->
+
 ## Beads Issue Tracker
 
 This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.

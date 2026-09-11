@@ -118,6 +118,12 @@ Verification status must explicitly distinguish:
 - If the user asks to "just build it", Codex should still enforce the required checkpoints and confirm before high-risk operations.
 - When a `.claude` asset is ported, prefer the Codex-native asset for Codex execution and keep the naming aligned where practical.
 
+<!-- LLM-WIKI:START -->
+## Project Wiki (LLM Wiki)
+
+`docs/wiki/` is the project's knowledge base (Karpathy LLM Wiki pattern, OKF v0.2 frontmatter). Read `docs/wiki/index.md` then `docs/wiki/open-questions.md` at session start. Conventions live in `docs/wiki/schema.md`. After any behavior-changing commit, ingest it: update the affected `concepts/`/`entities/` pages in present tense, add a `decisions/YYYY-MM-DD-slug.md` when a decision was made, append one line each to `timeline.md` and `log.md`, and keep `node scripts/wiki-lint.mjs` at zero errors. Never copy secrets or personal data into the wiki. Obsidian opens the `apps/wiki` junction (`scripts/link-wiki.ps1`) which points at `docs/`.
+<!-- LLM-WIKI:END -->
+
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
 ## Beads Issue Tracker
 
