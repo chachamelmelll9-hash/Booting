@@ -10,9 +10,18 @@ import { Pressable,StyleSheet, Text, View } from 'react-native';
 
 import { sendProfileCardToMyKakao,shareProfileToParent } from '../lib/shareToParent';
 
-/** 카카오 콜백이 도착할 때까지 목록을 다시 물어보는 간격·횟수 */
-const POLL_INTERVAL_MS = 3_000;
-const POLL_ATTEMPTS = 10;
+/**
+ * 카카오 콜백이 도착할 때까지 목록을 다시 물어보는 간격·횟수.
+ *
+ * 운영은 3초 × 10회(30초) — 콜백은 보통 몇 초 안에 오지만 카카오 쪽 지연을
+ * 넉넉히 본다. 개발 빌드는 2초 × 5회(10초)로 줄인다: 개발 터널 주소가 콘솔의
+ * 콜백 URL 과 어긋나 있으면 콜백은 영영 안 오고, 30초를 다 기다린 뒤에야
+ * 아래 `fallbackInDev` 가 돌아 시연이 매번 30초씩 멈췄다 (09-14 "너무 오래 걸림").
+ * 콜백이 살아 있을 때는 10초 안에도 충분히 도착하므로 규칙("보내야 완료")
+ * 검증에는 지장이 없다.
+ */
+const POLL_INTERVAL_MS = __DEV__ ? 2_000 : 3_000;
+const POLL_ATTEMPTS = __DEV__ ? 5 : 10;
 
 /**
  * 부모님께 공유 — 이 앱의 마지막 한 걸음.

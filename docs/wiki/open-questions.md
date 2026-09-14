@@ -35,6 +35,9 @@ status: stable
 
 ## 알려진 버그·기술 부채
 
+- **관심 탭 빈 상태가 새 하트를 못 본다** (09-14) — `useReceivedHearts` 는 `staleTime: 0` 이지만 빈 상태 화면에 재조회 트리거(당겨서 새로고침·탭 포커스)가 없다. 배지(`unreadCount`)는 12 로 바뀌는데 목록은 "아직 받은 관심이 없습니다" 그대로. 콜드 스타트하면 뜬다. 발표 시연 전에 앱을 한 번 껐다 켤 것
+- **등록 2/5(계정 확인) 진입 직후 카카오 로그인 탭이 열린 적이 있다** (09-14) — 소유자 탭인지 자동 실행인지 미확인. `verification.tsx` 의 `useEffect` 확인 필요
+
 - **Windows prefab LF 배치 버그** — AGP 가 LF 로 쓰는 `prefab_command.bat` 을 cmd 가 잘못 읽는다. 원인 규명은 됐고 해결은 없다. 우회: `configureCMakeDebug` up-to-date 유지, x86_64 만 빌드, Gradle 홈 ASCII — [lessons](lessons/windows-build-gotchas.md)
 - `apps/mobile/plugins/withKakaoLinkScheme.js` — 앱 부모님 화면 제거 후 아무도 안 쓰는 인텐트 필터. 지우려면 prebuild+네이티브 재빌드
 - `.claude/settings.json` 훅이 이 머신에서 전부 죽어 있다: `bd prime`(미설치, `CommandNotFoundException`), Stop auto-commit(bash), `/usr/bin/env python3` 라우터. **커밋은 수동**. CLAUDE.md 의 "bd 로 이슈 관리" 지시와 현실이 어긋난다

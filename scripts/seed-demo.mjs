@@ -10,6 +10,9 @@
  * 사용:
  *   node scripts/seed-demo.mjs                 # 시드 생성 + 계정 정보 출력
  *   node scripts/seed-demo.mjs --heart <email> # 시드 계정이 demo 프로필에 하트를 보낸다
+ *   node scripts/seed-demo.mjs --heart-me [email|latest]
+ *                                              # 이성 시드 전원이 하트 → [관심] 탭이 찬다
+ *                                              # (기본 demo, latest = 가장 최근 개발용 새 계정)
  *                                              # (앱에서 되보내면 상호 하트 → 대화)
  *   node scripts/seed-demo.mjs --clean         # seed/demo 계정 전부 삭제
  */
@@ -400,9 +403,28 @@ async function main() {
    * 하트 행만 직접 넣는다. 인연 생성은 demo 가 되보낼 때 서버가 정상 경로로 한다.
    */
   if (process.argv.includes('--heart-me')) {
+    /**
+     * 대상 계정 — 기본은 demo, 인자로 이메일을 주면 그 계정, `latest` 면
+     * 가장 최근에 만든 개발용 새 계정(dev.*@seed.booting.app).
+     *
+     * 발표 시연은 매번 '새 계정 가입 → 등록' 부터 밟는데, 그때마다 이메일을
+     * 찾아 적는 것이 번거로워 `latest` 를 둔다:
+     *   node scripts/seed-demo.mjs --heart-me latest
+     */
     const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    const demo = list.users.find((u) => u.email === `demo@${DOMAIN}`);
-    if (!demo) throw new Error('demo 계정이 없습니다');
+    const argAfter = process.argv[process.argv.indexOf('--heart-me') + 1];
+    const targetArg = argAfter && !argAfter.startsWith('--') ? argAfter : `demo@${DOMAIN}`;
+    let demo;
+    if (targetArg === 'latest') {
+      demo = list.users
+        .filter((u) => u.email?.startsWith('dev.') && u.email.endsWith(`@${DOMAIN}`))
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+      if (!demo) throw new Error('개발용 새 계정(dev.*)이 없습니다');
+      console.log(`대상: ${demo.email} (가장 최근 개발 계정)`);
+    } else {
+      demo = list.users.find((u) => u.email === targetArg);
+      if (!demo) throw new Error(`계정을 찾을 수 없습니다: ${targetArg}`);
+    }
 
     // gender 를 반드시 함께 읽는다 — 빠뜨리면 아래 성별 조건이 통째로 무력화된다
     const { data: demoProfile } = await admin
