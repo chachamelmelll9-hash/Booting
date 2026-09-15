@@ -119,8 +119,9 @@ public class EmuWin {
       $width = $r.Rt - $r.L; $height = $r.B - $r.T
       if ($width -lt 100) { continue }
       [EmuWin]::ShowWindow($w.h, 9) | Out-Null
-      [EmuWin]::MoveWindow($w.h, $x, 0, $width, $height, $true) | Out-Null
-      Write-Output "window: $($w.t) -> x=$x y=0"
+      # y=120: 0 이면 "조금 더 내려달라" 는 말이 나왔다 (09-15). 제목 표시줄이 잡히는 높이
+      [EmuWin]::MoveWindow($w.h, $x, 120, $width, $height, $true) | Out-Null
+      Write-Output "window: $($w.t) -> x=$x y=120"
       $x += $width + 30
     }
   } catch { Write-Output "window: move skipped ($($_.Exception.Message))" }
