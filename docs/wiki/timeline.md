@@ -113,3 +113,5 @@ status: stable
 - 00:10 "에뮬 두 개 돌려서 가입 화면 따로 보여줄까?" → 메모리 때문에 한 대 + 계정 전환을 권했으나 소유자 "발표할 때만 하고 빨리 끌게" → 두 대로. `ensure-emulator.ps1 -Port 5556 -Avd booting_signup` 옵션 추가(첫 대를 죽이지 않음)
 - demo 계정 발표용 세팅: `--heart-me` + `--scenarios` → 인연 3(매칭 성공·대화 중·부모님 확인 중). 받은 관심이 2건만 보여 원인 추적 → `hiddenSenderIds` 가 **끝난 인연·차단 상대**를 숨김. demo 의 ended 7·blocks 3 을 지워 9건 표시
 - 발표 구성: 5556 = 로그인 화면(개발용 새 계정으로 가입 라이브), 5554 = "개발용 바로 시작"(demo), PC 크롬 = `open-parent-web.mjs <demo 인연>`
+- 09:30 "손맛자랑 방금 공유한 그 계정으로 로그인해줘야지" → 5554 는 demo 가 아니라 어제 계정 `dev.mu0ycqb3`(손맛자랑 parent_intent, 색소폰5년 matched) 로 — 비밀번호는 `DEV_LOGIN_PASSWORD`(기본 BootingDemo123!). 크롬도 그 계정의 손맛자랑 인연 링크로 교체
+- 09:40 "안 보여!!! 아래로 내려달라고 맨날 말하는데" → 재기동한 창이 또 y=-659. `ensure-emulator.ps1` 에 `Move-EmulatorWindows` 추가 — 기동·reuse 끝에 창을 y=0 에 나란히

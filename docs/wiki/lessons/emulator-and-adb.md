@@ -24,7 +24,7 @@ status: stable
 |---|---|---|
 | 스크린샷이 전부 **검은 PNG**(바이트 수 동일) | host-GPU 렌더링 + `mWakefulness=Asleep`. 또는 앱이 그리는 중 | `ensure-emulator.sh` 로만 띄운다(swiftshader + 깨우기). **렌더 여부는 `adb shell uiautomator dump` 로 텍스트를 본다** — 스크린샷은 2차 증거 |
 | PowerShell 로 `adb exec-out screencap -p > f.png` 하면 깨진 PNG | 리다이렉트가 BOM/인코딩을 섞는다 | `adb shell screencap -p /sdcard/s.png` → `adb pull` |
-| 에뮬레이터 창이 **위쪽이 잘려** 보임 | 창이 `y=-661` 에 뜬다 (두 대면 정확히 겹친다). 재시작마다 재발 | Win32 `MoveWindow`(`Add-Type` P/Invoke) 로 y=0~220 에 나란히. 소유자 "내려줘" = **이것**, 종료가 아니다 |
+| 에뮬레이터 창이 **위쪽이 잘려** 보임 | 창이 `y=-661` 에 뜬다 (두 대면 정확히 겹친다). 재시작마다 재발 | **09-15 부터 `ensure-emulator.ps1` 이 기동 끝에 `Move-EmulatorWindows` 로 y=0 에 포트 순서대로 나란히 둔다** — 창 제목 `Android Emulator - <avd>:<port>` 로 찾는다. 다시 내려야 하면 `-Port <n>` 으로 스크립트를 한 번 더 돌리면 된다(reuse 경로도 옮긴다). 소유자 "내려줘" = **이것**, 종료가 아니다. 세 번째로 같은 말을 들었다("맨날 말하는데") — 손으로 하지 말고 스크립트에 둔 이유 |
 | `adb shell` → `more than one device` / 스크립트가 엉뚱한 기기 보고 / `--restart` 가 **다른 에뮬레이터까지** 죽임 | 첫 줄만 집던 `adb devices` 파싱, `pgrep qemu` 로 종료 판정 | `ANDROID_SERIAL=emulator-5556` 지정. `1c56708` 이 `target_serial()`·시리얼 기준 대기·"붙은 기기 0대일 때만 pkill" 로 수정 |
 | 몇 분 뒤 화면이 꺼져 screencap 이 잠금 화면 | `svc power stayon true` 는 **충전 중에만**. 에뮬레이터는 기본 방전 상태 | `settings put system screen_off_timeout 2147483647` + `dumpsys battery set ac 1` / `set status 2` — `emulator-*` 시리얼에만 (`4ec206e`) |
 | 입력란에 타자가 안 쳐짐 | AVD `hw.keyboard=no` | `config.ini` 에서 `yes`, 재시작 |

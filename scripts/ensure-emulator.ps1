@@ -87,9 +87,49 @@ function Set-Reverse {
   foreach ($p in $ReversePorts) { Adb reverse "tcp:$p" "tcp:$p" | Out-Null }
 }
 
+# 에뮬레이터 창은 항상 y=-659 에 떠서 위쪽이 잘린다 (재시작마다 재발, 두 대면 겹친다).
+# 소유자 "아래로 내려달라고 맨날 말하는데" — 띄울 때 창을 화면 안(y=0)으로 옮기고,
+# 여러 대면 포트 순서대로 나란히 둔다. 실패해도 기동 자체는 성공으로 본다.
+function Move-EmulatorWindows {
+  try {
+    if (-not ('EmuWin' -as [type])) {
+      Add-Type @"
+using System; using System.Text; using System.Runtime.InteropServices; using System.Collections.Generic;
+public class EmuWin {
+  public delegate bool EnumProc(IntPtr h, IntPtr l);
+  [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc p, IntPtr l);
+  [DllImport("user32.dll")] public static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
+  [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr h,int x,int y,int w,int ht,bool r);
+  [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out R rc);
+  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int n);
+  public struct R { public int L,T,Rt,B; }
+  public static List<string> Titles = new List<string>();
+  public static List<IntPtr> Find(string part) { var res = new List<IntPtr>(); Titles.Clear(); EnumWindows((h,l)=>{ var sb=new StringBuilder(256); GetWindowText(h,sb,256); if (sb.ToString().Contains(part)) { res.Add(h); Titles.Add(sb.ToString()); } return true; }, IntPtr.Zero); return res; }
+}
+"@
+    }
+    $handles = [EmuWin]::Find('Android Emulator')
+    $titles = [EmuWin]::Titles
+    $order = @()
+    for ($k = 0; $k -lt $handles.Count; $k++) { $order += [pscustomobject]@{ h = $handles[$k]; t = $titles[$k] } }
+    $x = 40
+    foreach ($w in ($order | Sort-Object t)) {
+      $r = New-Object EmuWin+R
+      [EmuWin]::GetWindowRect($w.h, [ref]$r) | Out-Null
+      $width = $r.Rt - $r.L; $height = $r.B - $r.T
+      if ($width -lt 100) { continue }
+      [EmuWin]::ShowWindow($w.h, 9) | Out-Null
+      [EmuWin]::MoveWindow($w.h, $x, 0, $width, $height, $true) | Out-Null
+      Write-Output "window: $($w.t) -> x=$x y=0"
+      $x += $width + 30
+    }
+  } catch { Write-Output "window: move skipped ($($_.Exception.Message))" }
+}
+
 function Complete-Ok {
   Invoke-WakeUp
   Set-Reverse
+  Move-EmulatorWindows
   $state = ((Adb shell dumpsys power) | Select-String -Pattern 'mWakefulness' | Select-Object -First 1)
   if ($state) { $state = $state.Line.Trim() } else { $state = 'unknown' }
   $serial = if ($Serial) { $Serial } else { ((& $adb devices 2>$null) | Where-Object { $_ -match '\sdevice$' } | Select-Object -First 1) -split '\s+' | Select-Object -First 1 }
