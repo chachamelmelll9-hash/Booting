@@ -11,6 +11,7 @@ import {
   saveTokens,
   type StoredUser,
 } from '../lib/tokenStorage';
+import { isTransientAuthError } from '../lib/transientAuthError';
 
 export interface AuthState {
   user: StoredUser | null;
@@ -48,8 +49,14 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
             set({ user, isAuthenticated: true, isInitialized: true });
             return;
           }
+          // 서버·네트워크가 잠깐 안 되는 것은 토큰 탓이 아니다 — 세션을 두고 들어간다.
+          // 다음 요청이 401(token_expired) 을 받으면 serverFetch 가 다시 갱신을 시도한다.
+          if (isTransientAuthError(result.error.code)) {
+            set({ user, isAuthenticated: true, isInitialized: true });
+            return;
+          }
         }
-        // 갱신 실패 시 로그아웃 상태로
+        // 토큰이 정말 무효(revoked/invalid)일 때만 로그아웃 상태로
         await clearAll();
         set({ user: null, isAuthenticated: false, isInitialized: true });
         return;

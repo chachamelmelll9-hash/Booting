@@ -55,6 +55,14 @@ export default function WelcomeScreen() {
   const { data: parentProfile, isLoading } = useParentProfile();
   const { data: verification, isLoading: verifying } = useVerification();
   const [ready, setReady] = useState(false);
+  /**
+   * 애니메이션 회차 — 개발 빌드의 '다시 보기'가 올린다.
+   *
+   * 시연에서 이 화면을 다시 보려면 계정을 새로 만들어야 했다 (등록을 마친 사람에게는
+   * 인사를 안 하니까). 발표 중에 그럴 수는 없어, 개발 빌드에서만 같은 화면에서
+   * 처음부터 다시 돌린다. 운영에는 없다 — 인사는 한 번이면 족하다.
+   */
+  const [run, setRun] = useState(0);
 
   /**
    * 다음에 갈 곳 — 프로필이 **있는지**가 아니라 등록이 **끝났는지**로 가른다.
@@ -85,6 +93,9 @@ export default function WelcomeScreen() {
 
   useEffect(() => {
     if (!ready) return;
+
+    // 다시 볼 때는 전부 0 으로 — 안 그러면 두 번째부터는 끝난 자리에서 시작한다
+    for (const v of [bottleIn, shake, cap, liquid, brim, copy, ...hearts]) v.setValue(0);
 
     const sequence = Animated.sequence([
       // 1. 부스터는 **제자리에서** 커지며 등장한다.
@@ -169,7 +180,7 @@ export default function WelcomeScreen() {
 
     sequence.start();
     return () => sequence.stop();
-  }, [ready, bottleIn, shake, cap, liquid, brim, copy, hearts]);
+  }, [ready, run, bottleIn, shake, cap, liquid, brim, copy, hearts]);
 
   if (!ready) return <View style={styles.container} />;
 
@@ -354,6 +365,18 @@ export default function WelcomeScreen() {
           <Text style={styles.nextText}>다음</Text>
         </Pressable>
       </Animated.View>
+
+      {/* 개발 빌드에만 — 시연에서 인사 애니메이션을 다시 돌린다. '개발:' 을 밝힌다 */}
+      {__DEV__ && (
+        <Pressable
+          accessibilityRole="button"
+          testID="welcome-replay"
+          style={styles.replay}
+          onPress={() => setRun((n) => n + 1)}
+        >
+          <Text style={styles.replayText}>개발: 애니메이션 다시 보기</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -466,4 +489,10 @@ const styles = StyleSheet.create({
   },
   nextPressed: { backgroundColor: theme.colors.primaryDark },
   nextText: { fontSize: 16, fontWeight: '700', color: theme.colors.surface },
+  replay: { position: 'absolute', bottom: 28, alignSelf: 'center', padding: 12 },
+  replayText: {
+    fontSize: 13,
+    color: theme.colors.textMuted,
+    textDecorationLine: 'underline',
+  },
 });

@@ -116,7 +116,6 @@ export async function refreshApi(
 ): Promise<ApiResult<RefreshResponse>> {
   return authFetch<RefreshResponse>('/auth/refresh', { refreshToken });
 }
-
 export async function logoutApi(): Promise<{ success: boolean }> {
   const { serverFetch } = await import('@/shared/api/server');
   return serverFetch<{ success: boolean }>('/auth/logout', {

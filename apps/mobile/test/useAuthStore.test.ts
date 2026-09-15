@@ -131,6 +131,25 @@ describe('useAuthStore.initialize', () => {
     expect(state.isInitialized).toBe(true);
   });
 
+  it('keeps the session when refresh fails for a transient reason (network / 503)', async () => {
+    mockGetTokens.mockResolvedValue(expiringTokens);
+    mockGetUser.mockResolvedValue(user);
+    mockGetRefreshToken.mockResolvedValue(expiringTokens.refreshToken);
+    mockRefreshApi.mockResolvedValue({
+      success: false,
+      error: { code: 'auth_provider_unavailable', message: 'gotrue down' },
+    });
+
+    await useAuthStore.getState().initialize();
+
+    // 서버가 잠깐 흔들린 것은 토큰 탓이 아니다 — 로그인 화면으로 튕기지 않는다
+    expect(clearAll).not.toHaveBeenCalled();
+    const state = useAuthStore.getState();
+    expect(state.isAuthenticated).toBe(true);
+    expect(state.user).toEqual(user);
+    expect(state.isInitialized).toBe(true);
+  });
+
   it('logs out when no refresh token is available for near-expiry tokens', async () => {
     mockGetTokens.mockResolvedValue(expiringTokens);
     mockGetUser.mockResolvedValue(user);

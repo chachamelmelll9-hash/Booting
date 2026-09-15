@@ -152,6 +152,23 @@ describe('serverFetch', () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps auth when refresh fails transiently after 401 token_expired', async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse(401, { code: 'token_expired', message: 'expired' })
+    );
+    mockGetRefreshToken.mockResolvedValue('refresh-token');
+    mockRefreshApi.mockResolvedValue({
+      success: false,
+      error: { code: 'network_error', message: '네트워크 오류' },
+    });
+
+    // 이번 요청은 실패하지만 세션은 남는다 — 다음 요청이 다시 갱신을 시도한다
+    await expect(serverFetch('/protected')).rejects.toBeInstanceOf(
+      AuthenticationError
+    );
+    expect(mockClearAuth).not.toHaveBeenCalled();
+  });
+
   it('throws a plain error with the server message for other failures', async () => {
     mockFetch.mockResolvedValue(
       jsonResponse(500, { message: 'internal boom' })

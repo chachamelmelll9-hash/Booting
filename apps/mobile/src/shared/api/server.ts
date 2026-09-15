@@ -10,6 +10,7 @@ import {
   getRefreshToken,
   saveTokens,
 } from '@/features/auth/lib/tokenStorage';
+import { isTransientAuthError } from '@/features/auth/lib/transientAuthError';
 import { useAuthStore } from '@/features/auth/model/useAuthStore';
 
 const SERVER_URL =
@@ -42,7 +43,11 @@ async function tryRefreshToken(): Promise<string | null> {
 
   const result = await refreshApi(refreshToken);
   if (!result.success) {
-    await useAuthStore.getState().clearAuth();
+    // 네트워크·서버 일시 오류면 세션을 지우지 않는다 — 이번 요청만 실패로 끝내고
+    // 다음 요청이 다시 갱신을 시도한다. 토큰이 무효할 때만 로그아웃.
+    if (!isTransientAuthError(result.error.code)) {
+      await useAuthStore.getState().clearAuth();
+    }
     return null;
   }
 

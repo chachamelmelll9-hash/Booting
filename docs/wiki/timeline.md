@@ -114,4 +114,6 @@ status: stable
 - demo 계정 발표용 세팅: `--heart-me` + `--scenarios` → 인연 3(매칭 성공·대화 중·부모님 확인 중). 받은 관심이 2건만 보여 원인 추적 → `hiddenSenderIds` 가 **끝난 인연·차단 상대**를 숨김. demo 의 ended 7·blocks 3 을 지워 9건 표시
 - 발표 구성: 5556 = 로그인 화면(개발용 새 계정으로 가입 라이브), 5554 = "개발용 바로 시작"(demo), PC 크롬 = `open-parent-web.mjs <demo 인연>`
 - 09:30 "손맛자랑 방금 공유한 그 계정으로 로그인해줘야지" → 5554 는 demo 가 아니라 어제 계정 `dev.mu0ycqb3`(손맛자랑 parent_intent, 색소폰5년 matched) 로 — 비밀번호는 `DEV_LOGIN_PASSWORD`(기본 BootingDemo123!). 크롬도 그 계정의 손맛자랑 인연 링크로 교체
-- 09:40 "안 보여!!! 아래로 내려달라고 맨날 말하는데" → 재기동한 창이 또 y=-659. `ensure-emulator.ps1` 에 `Move-EmulatorWindows` 추가 — 기동·reuse 끝에 창을 y=0 에 나란히
+- 09:40 "안 보여!!! 아래로 내려달라고 맨날 말하는데" → 재기동한 창이 또 y=-659. `ensure-emulator.ps1` 에 `Move-EmulatorWindows` 추가 — 기동·reuse 끝에 창을 y=0 에 나란히 (→ 이후 "조금 더" 로 y=120)
+- 15:2x "로그인 또 풀렸어" (두 번) → 앱이 토큰 갱신 실패를 **이유 불문** 로그아웃으로 처리. 서버 로그엔 같은 시각 Supabase `fetch failed`(→ 503 `auth_provider_unavailable`)만. `isTransientAuthError`(network_error·503·429) 면 세션 유지 — `useAuthStore.initialize`, `serverFetch.tryRefreshToken`
+- 15:4x "애니메이션 화면에 리플레이 버튼 만드는 거 어때" → 웰컴 화면에 개발 빌드 전용 "개발: 애니메이션 다시 보기" — `run` 카운터로 값 전부 0 리셋 후 재생. 등록 마친 계정은 인사를 안 하니 시연에서 다시 볼 길이 없었다
