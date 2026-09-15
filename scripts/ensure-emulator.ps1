@@ -32,11 +32,16 @@
 param(
   [switch]$Restart,
   [string]$Avd = '',
-  [string]$Gpu = 'swiftshader_indirect'
+  [string]$Gpu = 'swiftshader_indirect',
+  # 두 번째 에뮬레이터: -Port 5556 처럼 주면 그 시리얼(emulator-5556)만 다루고,
+  # 이미 떠 있는 다른 에뮬레이터는 건드리지 않는다 (발표: 가입용 + 시연용 두 대).
+  # 두 대는 메모리를 5GB 넘게 먹으니 발표 때만 띄우고 바로 내린다.
+  [int]$Port = 0
 )
 
 $ErrorActionPreference = 'Continue'
 $ReversePorts = @(8081, 3000, 4200, 54321)
+$Serial = if ($Port) { "emulator-$Port" } else { '' }
 
 function Fail($reason) { Write-Output "EMULATOR_FAILED=$reason"; exit 1 }
 
@@ -63,7 +68,7 @@ foreach ($pair in @(@{n='SDK'; v=$sdk}, @{n='ANDROID_AVD_HOME'; v=$env:ANDROID_A
   }
 }
 
-function Adb { & $adb @args 2>$null }
+function Adb { if ($Serial) { & $adb -s $Serial @args 2>$null } else { & $adb @args 2>$null } }
 
 function Test-Booted {
   $v = (Adb shell getprop sys.boot_completed) -join '' -replace '\s', ''
@@ -87,7 +92,7 @@ function Complete-Ok {
   Set-Reverse
   $state = ((Adb shell dumpsys power) | Select-String -Pattern 'mWakefulness' | Select-Object -First 1)
   if ($state) { $state = $state.Line.Trim() } else { $state = 'unknown' }
-  $serial = ((Adb devices) | Where-Object { $_ -match '\sdevice$' } | Select-Object -First 1) -split '\s+' | Select-Object -First 1
+  $serial = if ($Serial) { $Serial } else { ((& $adb devices 2>$null) | Where-Object { $_ -match '\sdevice$' } | Select-Object -First 1) -split '\s+' | Select-Object -First 1 }
   $maps = @(Adb reverse --list).Count
   Write-Output "wakefulness: $state"
   Write-Output "reverse: $maps mappings"
@@ -103,23 +108,26 @@ if (-not $Restart -and (Test-Booted)) {
 }
 
 # --- 기존 인스턴스 종료 + 락 해제 대기 (결함 3) ---
-if ((Adb devices) -match '\sdevice$') {
-  Write-Output 'stopping existing emulator...'
-  Adb emu kill | Out-Null
-}
-# 프로세스 "이름"으로만 매칭한다. 명령줄 전체를 매칭하면 같은 문자열을 담은
-# 셸(예: 이 스크립트를 호출한 에이전트의 셸)까지 잡혀 엉뚱한 프로세스를 죽인다.
-function Test-EmuRunning {
-  return [bool](Get-Process -Name 'qemu-system-x86_64', 'qemu-system-aarch64' -ErrorAction SilentlyContinue)
-}
-for ($i = 0; $i -lt 20; $i++) {
-  if (-not (Test-EmuRunning)) { break }
-  Start-Sleep -Seconds 1
-}
-if (Test-EmuRunning) {
-  Get-Process -Name 'qemu-system-x86_64', 'qemu-system-aarch64' -ErrorAction SilentlyContinue |
-    Stop-Process -Force -ErrorAction SilentlyContinue
-  Start-Sleep -Seconds 5
+# -Port 지정 시에는 다른 에뮬레이터를 죽이지 않는다 — 그 시리얼이 안 떠 있다는 것만 확인됐다.
+if (-not $Serial) {
+  if ((Adb devices) -match '\sdevice$') {
+    Write-Output 'stopping existing emulator...'
+    Adb emu kill | Out-Null
+  }
+  # 프로세스 "이름"으로만 매칭한다. 명령줄 전체를 매칭하면 같은 문자열을 담은
+  # 셸(예: 이 스크립트를 호출한 에이전트의 셸)까지 잡혀 엉뚱한 프로세스를 죽인다.
+  function Test-EmuRunning {
+    return [bool](Get-Process -Name 'qemu-system-x86_64', 'qemu-system-aarch64' -ErrorAction SilentlyContinue)
+  }
+  for ($i = 0; $i -lt 20; $i++) {
+    if (-not (Test-EmuRunning)) { break }
+    Start-Sleep -Seconds 1
+  }
+  if (Test-EmuRunning) {
+    Get-Process -Name 'qemu-system-x86_64', 'qemu-system-aarch64' -ErrorAction SilentlyContinue |
+      Stop-Process -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 5
+  }
 }
 
 # --- AVD 선택 ---
@@ -131,6 +139,7 @@ Write-Output "avd: $Avd"
 # --- 기동 (결함 1, 4) ---
 $log = Join-Path 'C:\Android' "ensure-emulator-$PID.log"
 $emuArgs = @('-avd', $Avd, '-gpu', $Gpu, '-no-boot-anim', '-no-snapshot-load', '-no-audio')
+if ($Port) { $emuArgs += @('-port', "$Port") }
 # cmd 로 감싸 리다이렉트하고 Win32_Process.Create 로 띄운다. Start-Process 로 만든
 # 자식은 에이전트 툴 호출이 끝날 때 job object 와 함께 죽는 환경이 있다 (결함 4).
 $cmdLine = 'cmd.exe /c ""{0}" {1} > "{2}" 2>&1"' -f $emu, ($emuArgs -join ' '), $log
@@ -152,7 +161,7 @@ for ($i = 1; $i -le 60; $i++) {
     Start-Sleep -Seconds 3
     Complete-Ok
   }
-  if ($i -eq 6 -and -not ((Adb devices) -match '\sdevice$')) {
+  if ($i -eq 6 -and -not $Serial -and -not ((Adb devices) -match '\sdevice$')) {
     Adb kill-server | Out-Null
     Adb start-server | Out-Null
   }
