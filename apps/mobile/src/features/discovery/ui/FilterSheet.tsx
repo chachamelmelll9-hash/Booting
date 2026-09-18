@@ -1,5 +1,6 @@
 import type { DiscoveryFilter } from '@shared/api/booting.types';
 import { theme } from '@shared/config/colors';
+import { SMOKING_OPTIONS, type SmokingOption } from '@shared/config/profileOptions';
 import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import { AppButton } from '@shared/ui/AppButton';
 import { FormSection, TextField } from '@shared/ui/FormSection';
@@ -26,6 +27,12 @@ interface Props {
 export function FilterSheet({ initial, onApply, onReset, saving = false }: Props) {
   const [filter, setFilter] = useState<DiscoveryFilter>(initial);
   const patch = (p: Partial<DiscoveryFilter>) => setFilter((f) => ({ ...f, ...p }));
+
+  /**
+   * 키 범위는 서버가 120~220 만 받는다. 범위 밖 값이나 최소>최대를 그대로
+   * 보내면 400 이 돌아오고 시트는 이유 없이 닫히지 않는다. 여기서 먼저 막는다.
+   */
+  const heightError = heightRangeError(filter);
 
   return (
     <View style={styles.container}>
@@ -106,6 +113,52 @@ export function FilterSheet({ initial, onApply, onReset, saving = false }: Props
           </View>
         </FormSection>
 
+        <FormSection label="흡연" helper="상대 부모님의 흡연 여부입니다">
+          <View style={styles.row}>
+            {(
+              [
+                { key: undefined, label: '상관없음' },
+                ...SMOKING_OPTIONS.map((option) => ({ key: option, label: option })),
+              ] as { key: SmokingOption | undefined; label: string }[]
+            ).map((option) => (
+              <Chip
+                key={option.label}
+                label={option.label}
+                selected={filter.smoking === option.key}
+                onPress={() => patch({ smoking: option.key })}
+              />
+            ))}
+          </View>
+        </FormSection>
+
+        {/* 키를 적지 않은 분은 범위를 걸면 빠진다 — helper 로 미리 알린다 */}
+        <View style={styles.ageRow}>
+          <View style={styles.ageField}>
+            <FormSection label="키 최소" helper="cm · 비우면 제한 없음">
+              <TextField
+                value={filter.heightMin ? String(filter.heightMin) : ''}
+                onChangeText={(v) => patch({ heightMin: v ? Number(v) : undefined })}
+                keyboardType="number-pad"
+                placeholder="150"
+                maxLength={3}
+                testID="filter-height-min"
+              />
+            </FormSection>
+          </View>
+          <View style={styles.ageField}>
+            <FormSection label="키 최대" helper="키를 적지 않은 분은 제외됩니다">
+              <TextField
+                value={filter.heightMax ? String(filter.heightMax) : ''}
+                onChangeText={(v) => patch({ heightMax: v ? Number(v) : undefined })}
+                keyboardType="number-pad"
+                placeholder="180"
+                maxLength={3}
+                testID="filter-height-max"
+              />
+            </FormSection>
+          </View>
+        </View>
+
         <FormSection label="관계 목적" helper="선택한 목적 중 하나라도 맞으면 보여드립니다">
           <RelationshipGoalChips
             goals={filter.goals ?? []}
@@ -118,6 +171,8 @@ export function FilterSheet({ initial, onApply, onReset, saving = false }: Props
             </Text>
           ) : null}
         </FormSection>
+
+        {heightError ? <Text style={styles.error}>{heightError}</Text> : null}
 
         <Text style={styles.note}>
           자녀 수와 동거 가족은 조건으로 고르지 않습니다. 프로필 상세에서 확인하실 수 있습니다.
@@ -133,11 +188,28 @@ export function FilterSheet({ initial, onApply, onReset, saving = false }: Props
           label="이 조건으로 보기"
           onPress={() => onApply(filter)}
           loading={saving}
+          disabled={!!heightError}
           testID="filter-apply"
         />
       </View>
     </View>
   );
+}
+
+const HEIGHT_MIN_CM = 120;
+const HEIGHT_MAX_CM = 220;
+
+function heightRangeError(filter: DiscoveryFilter): string | null {
+  const { heightMin, heightMax } = filter;
+  const outOfRange = (v: number | undefined) =>
+    v != null && (v < HEIGHT_MIN_CM || v > HEIGHT_MAX_CM);
+  if (outOfRange(heightMin) || outOfRange(heightMax)) {
+    return `키는 ${HEIGHT_MIN_CM}~${HEIGHT_MAX_CM}cm 사이로 적어주세요`;
+  }
+  if (heightMin != null && heightMax != null && heightMin > heightMax) {
+    return '키 최소가 최대보다 큽니다';
+  }
+  return null;
 }
 
 function Chip({
@@ -181,6 +253,7 @@ const styles = StyleSheet.create({
   ageRow: { flexDirection: 'row', gap: spacing.sm },
   ageField: { flex: 1 },
   note: { ...typography.caption, color: theme.colors.textTertiary, marginBottom: spacing.sm },
+  error: { ...typography.caption, color: theme.colors.error, marginBottom: spacing.sm },
   goalNotice: {
     ...typography.caption,
     color: theme.colors.primaryDark,

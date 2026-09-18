@@ -3,7 +3,7 @@ import {
   type DraftErrors,
   hasErrors,
   leaksRealName,
-  pickImage,
+  pickImages,
   type ProfileDraft,
   RegionPicker,
   uploadToStorage,
@@ -19,6 +19,7 @@ import { theme } from '@shared/config/colors';
 import {
   ECONOMIC_OPTIONS,
   LIVING_WITH_OPTIONS,
+  MAX_PROFILE_PHOTOS,
   MIN_PROFILE_PHOTOS,
   parseLivingWith,
   serializeLivingWith,
@@ -72,14 +73,35 @@ export default function ProfileEditScreen() {
       // 기본 정보가 유효하면 프로필을 먼저 만든다 (사진은 프로필에 딸린 자원)
       const target = await ensureProfile();
       if (!target) return;
-      const image = await pickImage();
+      const existing = target.photos?.length ?? 0;
+      // 남은 자리만큼만 고르게 한다 — 6장을 골라 놓고 1장만 올라가면 나머지가 사라진 것처럼 보인다
+      const images = await pickImages(MAX_PROFILE_PHOTOS - existing);
       // 앨범에서 취소하신 것 — 아무 일도 일어나지 않는다
-      if (!image) return;
-      const path = await uploadToStorage('parent-photos', user.id, image);
-      addPhoto.mutate({
-        storagePath: path,
-        isPrimary: (target.photos?.length ?? 0) === 0,
-      });
+      if (!images.length) return;
+      /**
+       * 한 장씩 순서대로 올린다. 병렬로 보내면 서버가 대표 사진 판정과 순서를
+       * 놓치고, 첫 장이 대표가 아니게 될 수 있다. 중간에 실패하면 거기서 멈추고
+       * 이미 올라간 장 수를 알려 준다 — 어디까지 됐는지 모르면 다시 고르게 된다.
+       */
+      let uploaded = 0;
+      try {
+        for (const image of images) {
+          const path = await uploadToStorage('parent-photos', user.id, image);
+          await addPhoto.mutateAsync({
+            storagePath: path,
+            isPrimary: existing + uploaded === 0,
+          });
+          uploaded += 1;
+        }
+      } catch (error) {
+        if (uploaded > 0) {
+          toast.show({
+            message: `${images.length}장 중 ${uploaded}장만 올라갔습니다. ${(error as Error).message}`,
+          });
+          return;
+        }
+        throw error;
+      }
     } catch (error) {
       toast.show({ message: (error as Error).message });
     } finally {

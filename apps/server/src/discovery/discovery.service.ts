@@ -78,6 +78,8 @@ export class DiscoveryService {
       drinking: data.drinking ?? undefined,
       smoking: data.smoking ?? undefined,
       economicallyActive: data.economically_active ?? undefined,
+      heightMin: data.height_min ?? undefined,
+      heightMax: data.height_max ?? undefined,
     };
   }
 
@@ -99,6 +101,8 @@ export class DiscoveryService {
           drinking: dto.drinking ?? null,
           smoking: dto.smoking ?? null,
           economically_active: dto.economicallyActive ?? null,
+          height_min: dto.heightMin ?? null,
+          height_max: dto.heightMax ?? null,
         },
         { onConflict: 'user_id' }
       );

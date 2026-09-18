@@ -68,6 +68,12 @@ export function filterSummary(filter: DiscoveryFilter): string {
   if (filter.maritalFilter) {
     parts.push(filter.maritalFilter === 'bereaved' ? '사별' : '이혼');
   }
+  if (filter.smoking) {
+    parts.push(filter.smoking);
+  }
+  if (filter.heightMin != null || filter.heightMax != null) {
+    parts.push(`${filter.heightMin ?? ''}~${filter.heightMax ?? ''}cm`);
+  }
   if (filter.goals?.length) {
     parts.push(`관계 목적 ${filter.goals.length}개`);
   }

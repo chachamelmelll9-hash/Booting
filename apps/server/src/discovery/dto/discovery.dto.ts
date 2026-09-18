@@ -52,6 +52,10 @@ export class DiscoveryFilterDto {
   @IsOptional() @IsString() smoking?: string;
   @IsOptional() @IsBoolean() economicallyActive?: boolean;
 
+  // 키 범위(cm). parent_profiles.height_cm 과 같은 120~220 범위만 받는다.
+  @IsOptional() @Type(() => Number) @IsInt() @Min(120) @Max(220) heightMin?: number;
+  @IsOptional() @Type(() => Number) @IsInt() @Min(120) @Max(220) heightMax?: number;
+
   // 자녀 수·동거 가족은 필터 항목이 없다 (PRD: 필터 금지, 상세에서만 표시).
   // DB 에도 컬럼이 없으므로 여기 추가하면 저장 단계에서 바로 깨진다.
 }

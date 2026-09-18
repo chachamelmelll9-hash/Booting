@@ -212,6 +212,9 @@ export interface DiscoveryFilter {
   drinking?: string;
   smoking?: string;
   economicallyActive?: boolean;
+  /** 키 범위(cm). 비우면 제한 없음 */
+  heightMin?: number;
+  heightMax?: number;
 }
 
 export interface Region {

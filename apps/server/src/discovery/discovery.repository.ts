@@ -95,6 +95,9 @@ export class DiscoveryRepository {
 
     if (f.ageMin != null) query = query.lte('birth_date', birthDateForAge(f.ageMin));
     if (f.ageMax != null) query = query.gte('birth_date', oldestBirthDateForAge(f.ageMax));
+    // 키를 적지 않은 프로필은 범위 조건에서 빠진다 — 모르는 값을 통과시키면 조건이 의미가 없다
+    if (f.heightMin != null) query = query.gte('height_cm', f.heightMin);
+    if (f.heightMax != null) query = query.lte('height_cm', f.heightMax);
 
     const originCode = f.regionCode || q.myRegionCode;
     const radius = f.radiusKm ?? 30;
