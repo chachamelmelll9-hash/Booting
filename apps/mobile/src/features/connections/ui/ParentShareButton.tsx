@@ -35,7 +35,17 @@ const POLL_ATTEMPTS = __DEV__ ? 5 : 10;
  * 서버만 한다 (`POST /api/kakao/share-callback`). 앱은 공유 화면으로 넘어간 뒤
  * 잠깐 목록을 다시 물어보며 그 결과를 기다린다.
  */
-export function ParentShareButton({ connection }: { connection: Connection }) {
+export function ParentShareButton({
+  connection,
+  /**
+   * 목록용 작은 알약. 행 하나에 큰 버튼과 개발 링크가 붙으면 목록이 버튼 더미가
+   * 된다 (09-18). 개발용 '내 카카오톡으로' 는 compact 에서는 길게 눌러 연다.
+   */
+  compact = false,
+}: {
+  connection: Connection;
+  compact?: boolean;
+}) {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -49,9 +59,9 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
 
   if (connection.sharedWithParent) {
     return (
-      <View style={styles.done} testID={`parent-share-done-${connection.id}`}>
+      <View style={compact ? styles.doneCompact : styles.done} testID={`parent-share-done-${connection.id}`}>
         <FontAwesome name="check" size={12} color={theme.colors.textTertiary} />
-        <Text style={styles.doneText}>부모님께 공유 완료</Text>
+        <Text style={styles.doneText}>{compact ? '공유함' : '부모님께 공유 완료'}</Text>
       </View>
     );
   }
@@ -145,9 +155,27 @@ export function ParentShareButton({ connection }: { connection: Connection }) {
 
   if (waiting) {
     return (
-      <View style={styles.waiting} testID={`parent-share-waiting-${connection.id}`}>
-        <Text style={styles.waitingText}>카카오톡 전송을 확인하는 중입니다…</Text>
+      <View style={compact ? styles.waitingCompact : styles.waiting} testID={`parent-share-waiting-${connection.id}`}>
+        <Text style={styles.waitingText}>{compact ? '전송 확인 중…' : '카카오톡 전송을 확인하는 중입니다…'}</Text>
       </View>
+    );
+  }
+
+  if (compact) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="부모님께 공유"
+        accessibilityHint={__DEV__ ? '길게 누르면 내 카카오톡으로 보내 봅니다' : undefined}
+        testID={`parent-share-${connection.id}`}
+        disabled={busy}
+        onPress={() => void handleShare()}
+        onLongPress={__DEV__ ? () => void sendToMyselfInDev() : undefined}
+        style={({ pressed }) => [styles.pill, (pressed || busy) && styles.pillPressed]}
+      >
+        <FontAwesome name="share" size={11} color={theme.colors.primaryDark} />
+        <Text style={styles.pillText}>{busy ? '여는 중' : '부모님께'}</Text>
+      </Pressable>
     );
   }
 
@@ -193,6 +221,21 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceSecondary,
   },
   doneText: { ...typography.caption, color: theme.colors.textTertiary },
+  doneCompact: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.xxs },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    minHeight: 30,
+    paddingHorizontal: spacing.xs,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.surface,
+  },
+  pillPressed: { opacity: 0.6 },
+  pillText: { ...typography.micro, color: theme.colors.primaryDark, fontWeight: '600' },
+  waitingCompact: { paddingHorizontal: spacing.xxs, maxWidth: 96 },
   waiting: {
     alignItems: 'center',
     justifyContent: 'center',

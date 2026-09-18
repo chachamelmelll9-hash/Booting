@@ -1,3 +1,4 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { ParentShareButton, useConnections } from '@features/connections';
 import { theme } from '@shared/config/colors';
 import {
@@ -9,14 +10,13 @@ import { HIT_SIZE, radius, spacing, typography } from '@shared/config/tokens';
 import {
   ConnectionStatusBadge,
   EmptyState,
-  ParentProfileCard,
   Screen,
   SkeletonList,
   TabHeader,
 } from '@shared/ui';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function ConnectionsScreen() {
   const router = useRouter();
@@ -92,13 +92,19 @@ export default function ConnectionsScreen() {
           data={connections}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
+          ItemSeparatorComponent={Separator}
           renderItem={({ item }) => (
             /**
-             * 공유 버튼은 카드를 여는 Pressable **밖**에 둔다. 안에 넣으면 버튼을
+             * 채팅 목록처럼 **한 행**이다 (2026-09-18 "채팅 스택 쌓인 게 너무 넓고 지저분해").
+             * 전에는 행마다 프로필 카드 전체(큰 사진·소개·배지)에 공유 버튼까지 붙어
+             * 한 건이 화면 절반을 차지했다. 여기서 볼 것은 누구와·어떤 상태·마지막 말
+             * 뿐이고, 나머지는 대화방과 상세에 있다.
+             *
+             * 공유 버튼은 행을 여는 Pressable **밖**에 둔다. 안에 넣으면 버튼을
              * 눌렀을 때 대화방까지 함께 열린다.
              */
             <View
-              style={[styles.rowWrap, item.unseen && styles.rowWrapUnseen]}
+              style={[styles.row, item.unseen && styles.rowUnseen]}
               testID={`connection-${item.id}`}
             >
               <Pressable
@@ -107,32 +113,49 @@ export default function ConnectionsScreen() {
                 onPress={() => router.push(`/(tabs)/connections/${item.id}`)}
                 style={({ pressed }) => [
                   styles.rowTap,
-                  // 부모님께 넘긴 카드는 한 톤 죽인다 — 내 손을 떠난 건이라
-                  // 아직 결정이 남은 카드들 사이에서 눈에 덜 걸려야 한다
+                  // 부모님께 넘긴 건은 한 톤 죽인다 — 내 손을 떠난 건이라
+                  // 아직 결정이 남은 건들 사이에서 눈에 덜 걸려야 한다
                   item.sharedWithParent && styles.rowShared,
                   pressed && styles.pressed,
                 ]}
               >
-                <ParentProfileCard profile={item.partner} variant="list" />
-                <View style={styles.meta}>
-                  <ConnectionStatusBadge status={item.status} />
-                  {item.lastMessage ? (
-                    <Text style={styles.preview} numberOfLines={1}>
-                      {item.lastMessage.mine ? '나: ' : ''}
-                      {item.lastMessage.body}
+                {item.partner.primaryPhotoUrl ? (
+                  <Image source={{ uri: item.partner.primaryPhotoUrl }} style={styles.avatar} />
+                ) : (
+                  <View style={[styles.avatar, styles.avatarFallback]}>
+                    <FontAwesome name="user" size={22} color={theme.colors.textMuted} />
+                  </View>
+                )}
+                <View style={styles.body}>
+                  <View style={styles.titleRow}>
+                    <Text style={[styles.name, item.unseen && styles.nameUnseen]} numberOfLines={1}>
+                      {item.partner.nickname} · {item.partner.age}세
                     </Text>
-                  ) : (
-                    <Text style={styles.previewMuted}>아직 대화가 없습니다</Text>
-                  )}
-                  {item.unreadCount > 0 ? (
-                    <View style={styles.unread}>
-                      <Text style={styles.unreadText}>{item.unreadCount}</Text>
-                    </View>
-                  ) : null}
+                    <ConnectionStatusBadge status={item.status} />
+                  </View>
+                  <View style={styles.previewRow}>
+                    {item.lastMessage ? (
+                      <Text style={styles.preview} numberOfLines={1}>
+                        {item.lastMessage.mine ? '나: ' : ''}
+                        {item.lastMessage.body}
+                      </Text>
+                    ) : (
+                      <Text style={styles.previewMuted} numberOfLines={1}>
+                        아직 대화가 없습니다
+                      </Text>
+                    )}
+                    {item.unreadCount > 0 ? (
+                      <View style={styles.unread}>
+                        <Text style={styles.unreadText}>{item.unreadCount}</Text>
+                      </View>
+                    ) : null}
+                  </View>
                 </View>
               </Pressable>
 
-              <ParentShareButton connection={item} />
+              <View style={styles.share}>
+                <ParentShareButton connection={item} compact />
+              </View>
             </View>
           )}
         />
@@ -140,6 +163,12 @@ export default function ConnectionsScreen() {
     </Screen>
   );
 }
+
+function Separator() {
+  return <View style={styles.separator} />;
+}
+
+const AVATAR = 52;
 
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xxs, paddingVertical: spacing.xs },
@@ -153,27 +182,33 @@ const styles = StyleSheet.create({
   chipSelected: { backgroundColor: theme.colors.primary },
   chipText: { ...typography.caption, color: theme.colors.textSecondary },
   chipTextSelected: { color: '#FFFFFF', fontWeight: '600' },
-  list: { gap: spacing.sm, paddingVertical: spacing.xs },
+  list: { paddingVertical: spacing.xs },
+  separator: { height: 1, backgroundColor: theme.colors.border, marginLeft: AVATAR + spacing.sm },
   /**
-   * 테두리를 평소에도 투명하게 깔아 둔다 — 확인하면 테두리가 사라지는데,
-   * 그때 두께가 바뀌면 목록 전체가 한 칸 밀린다.
+   * 행 하나 = 아바타 · 이름/상태 · 마지막 말 · 공유. 확인 안 한 행은 배경만
+   * 살짝 띄운다 — 테두리를 두르면 목록이 카드 더미로 돌아간다.
    */
-  rowWrap: {
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.xs,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    borderRadius: radius.lg,
-    padding: spacing.xxs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xxs,
+    borderRadius: radius.md,
   },
-  rowTap: { gap: spacing.xxs },
-  rowShared: { opacity: 0.5 },
-  rowWrapUnseen: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primarySurface,
-  },
-  meta: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingLeft: spacing.xxs },
+  rowUnseen: { backgroundColor: theme.colors.primarySurface },
+  rowTap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  rowShared: { opacity: 0.55 },
+  avatar: { width: AVATAR, height: AVATAR, borderRadius: AVATAR / 2, backgroundColor: theme.colors.surfaceSecondary },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center' },
+  body: { flex: 1, gap: 4 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  name: { ...typography.body, color: theme.colors.text, flexShrink: 1 },
+  nameUnseen: { fontWeight: '700' },
+  previewRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   preview: { ...typography.caption, color: theme.colors.textTertiary, flex: 1 },
   previewMuted: { ...typography.caption, color: theme.colors.textMuted, flex: 1 },
+  share: { alignItems: 'flex-end' },
   unread: {
     minWidth: 20,
     height: 20,
