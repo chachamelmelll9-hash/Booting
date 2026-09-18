@@ -123,4 +123,4 @@ status: stable
 - 09:3x 어제(09-17) 바탕화면 `claude-union.cmd` 로 붙여 둔 OpenRouter 무료 스텔스 모델 `stealth/union-alpha` 가 테스트 종료(400 → 정체는 `unbiased/pareto`, 유료 $2.5/$7.5 per M). 이 세션은 정상 Claude 계정으로 진행
 - 09:4x "부팅 켜줘" → 에뮬 2대 + dev-up. 5554/5556 상태가 발표 구성과 반대로 남아 있어 5554 는 `dev.mu0ycqb3` 로그인, 5556 은 `pm clear`. 새 터널 주소로 서버 재기동
 - 12:5x "부모님 사진 등록할 때 한 번에 여러 장" → `pickImages(limit)`: 남은 자리만큼 다중 선택, 한 장씩 순서대로 올려 첫 장이 대표. 자르기는 다중 선택과 배타적이라 뺀다 — `7c8445d`
-- 12:5x "추천 필터에 키랑 흡연여부" → 흡연 칩(컬럼은 초기부터 있었음) + 키 최소·최대(120~220 검증). `discovery_filters.height_min/max` 마이그레이션 `20260918100000` 은 **아직 미적용** — 관리 API 호출이 권한 게이트에 막혀 소유자가 적용해야 새 서버를 띄울 수 있다 — [open-questions](open-questions.md)
+- 12:5x "추천 필터에 키랑 흡연여부" → 흡연 칩(컬럼은 초기부터 있었음) + 키 최소·최대(120~220 검증). `discovery_filters.height_min/max` 마이그레이션 `20260918100000` 은 저장된 Supabase 토큰이 401 이라 소유자가 대시보드 SQL 편집기로 적용(13:2x) → 서버 재빌드·재기동, 5554 에서 비흡연·155~178 저장/복원 확인 후 원복 — [open-questions](open-questions.md)
