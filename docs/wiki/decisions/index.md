@@ -35,5 +35,5 @@
 | 09-10 | [사주를 상대가 보이는 모든 화면에](2026-09-10-saju-on-all-partner-screens.md) | 유효 |
 | 09-10 | [탭 첫 화면은 로고, 뒤로가기는 대화방만](2026-09-10-tab-header-logo-no-back.md) | 유효 |
 | 09-11 | [직전 6명은 오늘 후보에서 제외](2026-09-11-exclude-previous-daily-picks.md) | 유효 |
-| 09-18 | [사별/이혼 여부를 입력받지 않는다](2026-09-18-no-marital-status-input.md) | 유효 (마이그레이션 적용 대기) |
+| 09-18 | [사별/이혼 여부를 입력받지 않는다](2026-09-18-no-marital-status-input.md) | 유효 |
 | 09-18 | [가족관계증명서 재도입 — 올리면 통과, 적발되면 제한](2026-09-18-family-certificate-upload-pass.md) | 유효 |
