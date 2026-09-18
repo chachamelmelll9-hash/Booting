@@ -1,35 +1,14 @@
 /**
- * 혼인 상태 자격 판정 (PRD 자격 조건).
+ * 혼인 상태 자격 (PRD 원칙 4).
  *
- * 등록 가능한 상태는 사별·이혼 둘뿐이다. '별거'와 '혼인 중'은 명시적으로 막고,
- * **왜 막히는지**를 문장으로 돌려준다 — 그냥 비활성화된 버튼만 두면
- * 사용자는 앱이 고장난 줄 안다.
+ * 등록 가능한 부모님은 사별·이혼뿐이고, 별거·혼인 중은 안 된다. 2026-09-18 부터
+ * **어느 쪽인지 묻지 않는다** — 1단계(`onboarding`)에서 이 문장을 읽고
+ * "네, 해당됩니다" 로 확인만 받는다. 어느 쪽인지는 부모님의 가족사라 남에게
+ * 알리고 싶지 않은 값이고, 자격을 가르는 데는 "둘 중 하나" 라는 사실만 있으면 된다.
+ *
+ * 문장은 화면 여러 곳(온보딩·오류 문구)이 같은 말을 하도록 여기서 한 번만 정한다.
+ * 옛 선택형 화면은 브랜치 `이혼사별여부있음` 에 있다.
  */
-export type MaritalChoice = 'bereaved' | 'divorced' | 'separated' | 'married';
-
-export const MARITAL_CHOICES: { key: MaritalChoice; label: string }[] = [
-  { key: 'bereaved', label: '사별' },
-  { key: 'divorced', label: '이혼' },
-  { key: 'separated', label: '별거' },
-  { key: 'married', label: '혼인 중' },
-];
-
-export const MARITAL_LABEL: Record<string, string> = {
-  bereaved: '사별',
-  divorced: '이혼',
-};
-
-/** 타입 가드 — 통과하면 그대로 서버에 보낼 수 있는 값이 된다 */
-export function isEligible(choice: MaritalChoice): choice is 'bereaved' | 'divorced' {
-  return choice === 'bereaved' || choice === 'divorced';
-}
-
-export function ineligibleReason(choice: MaritalChoice): string | null {
-  if (choice === 'separated') {
-    return '별거 상태는 등록하실 수 없습니다. 법적으로 혼인 관계가 정리된 뒤에 이용해주세요.';
-  }
-  if (choice === 'married') {
-    return '혼인 중이신 분은 등록하실 수 없습니다.';
-  }
-  return null;
-}
+export const ELIGIBILITY_RULE = '등록하실 수 있는 부모님은 사별 또는 이혼하신 분입니다.';
+export const ELIGIBILITY_EXCLUDED =
+  '별거 중이시거나 혼인 관계가 유지되는 경우에는 등록하실 수 없습니다.';

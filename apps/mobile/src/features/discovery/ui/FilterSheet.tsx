@@ -22,7 +22,8 @@ interface Props {
  *
  * 자녀 수·동거 가족 필터는 **의도적으로 없다** (PRD). 그 조건으로 사람을
  * 걸러내는 순간 이 서비스는 부모님을 조건표로 만드는 앱이 된다.
- * 두 항목은 상세 화면에서만 보인다.
+ * 두 항목은 상세 화면에서만 보인다. 혼인 상태(사별/이혼)도 없다 — 2026-09-18 부터
+ * 어느 쪽인지 저장하지 않는다.
  */
 export function FilterSheet({ initial, onApply, onReset, saving = false }: Props) {
   const [filter, setFilter] = useState<DiscoveryFilter>(initial);
@@ -94,24 +95,7 @@ export function FilterSheet({ initial, onApply, onReset, saving = false }: Props
           </View>
         </View>
 
-        <FormSection label="혼인 상태">
-          <View style={styles.row}>
-            {(
-              [
-                { key: undefined, label: '상관없음' },
-                { key: 'bereaved' as const, label: '사별' },
-                { key: 'divorced' as const, label: '이혼' },
-              ]
-            ).map((option) => (
-              <Chip
-                key={option.label}
-                label={option.label}
-                selected={filter.maritalFilter === option.key}
-                onPress={() => patch({ maritalFilter: option.key })}
-              />
-            ))}
-          </View>
-        </FormSection>
+        {/* 혼인 상태(사별/이혼) 조건은 없다 — 어느 쪽인지 저장하지 않는다 (2026-09-18) */}
 
         <FormSection label="흡연" helper="상대 부모님의 흡연 여부입니다">
           <View style={styles.row}>

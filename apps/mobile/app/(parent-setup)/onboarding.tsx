@@ -1,10 +1,4 @@
-import {
-  ineligibleReason,
-  isEligible,
-  MARITAL_CHOICES,
-  type MaritalChoice,
-  useProfileDraftStore,
-} from '@features/parent-profile';
+import { useProfileDraftStore } from '@features/parent-profile';
 import { theme } from '@shared/config/colors';
 import { radius, spacing, typography } from '@shared/config/tokens';
 import {
@@ -15,8 +9,7 @@ import {
   StepProgressBar,
 } from '@shared/ui';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 const INTRO_POINTS = [
   '자녀분이 대신 등록하고 프로필을 고르며, 부모님은 최종 결정만 하시면 됩니다.',
@@ -27,30 +20,28 @@ const INTRO_POINTS = [
 /**
  * 1단계 — 서비스 안내 + 자격 확인.
  *
- * 혼인 상태를 여기서 먼저 묻는 이유: 별거·혼인 중이면 등록 자체가 불가능한데,
- * 프로필을 다 쓰고 나서 막히면 시간을 통째로 버리게 된다.
+ * 전에는 여기서 사별/이혼/별거/혼인 중 가운데 하나를 고르게 했다. 이제는
+ * **어느 쪽인지 묻지 않는다** (2026-09-18). 사별인지 이혼인지는 부모님의 가족사라
+ * 남에게 알리고 싶지 않은 값인데, 자격을 가르는 데는 "둘 중 하나" 라는 사실만
+ * 있으면 된다. 그래서 문장을 읽고 "네, 해당됩니다" 로 확인만 받는다.
+ *
+ * 팝업이 아니라 화면 안의 단계로 둔다 — 작은 팝업은 읽지 않고 반사적으로 닫힌다.
+ * 이 확인이 없으면 서버가 프로필 생성을 거부한다 (`eligibilityConfirmed`).
+ * 옛 버전은 브랜치 `이혼사별여부있음` 에 있다.
  */
 export default function OnboardingScreen() {
   const router = useRouter();
-  const { draft, set } = useProfileDraftStore();
-  const [choice, setChoice] = useState<MaritalChoice | null>(
-    (draft.maritalStatus as MaritalChoice) ?? null
-  );
-
-  const blocked = choice ? ineligibleReason(choice) : null;
-  const canProceed = !!choice && isEligible(choice);
+  const set = useProfileDraftStore((s) => s.set);
 
   return (
     <Screen
       scroll
       footer={
         <AppButton
-          label="다음"
-          disabled={!canProceed}
+          label="네, 해당됩니다"
           testID="onboarding-next"
           onPress={() => {
-            if (!choice || !isEligible(choice)) return;
-            set({ maritalStatus: choice });
+            set({ eligibilityConfirmed: true });
             router.push('/(parent-setup)/verification');
           }}
         />
@@ -72,38 +63,17 @@ export default function OnboardingScreen() {
         ))}
       </View>
 
-      <Text style={styles.question}>부모님의 현재 혼인 상태를 알려주세요</Text>
-      <View style={styles.choices}>
-        {MARITAL_CHOICES.map((option) => {
-          const on = choice === option.key;
-          return (
-            <Pressable
-              key={option.key}
-              testID={`marital-${option.key}`}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: on }}
-              accessibilityLabel={option.label}
-              onPress={() => setChoice(option.key)}
-              style={({ pressed }) => [
-                styles.choice,
-                on && styles.choiceSelected,
-                pressed && styles.pressed,
-              ]}
-            >
-              <Text style={[styles.choiceText, on && styles.choiceTextSelected]}>
-                {option.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {/* 막는 이유를 문장으로 보여준다 — 비활성 버튼만 두면 고장으로 오해한다 */}
-      {blocked ? (
-        <Text style={styles.blocked} testID="marital-blocked">
-          {blocked}
+      {/* 자격 확인 — 무엇을 묻는지, 왜 묻는지, 무엇은 안 묻는지를 한 자리에 */}
+      <View style={styles.eligibility} testID="eligibility-notice">
+        <Text style={styles.eligibilityTitle}>등록하시기 전에 확인해주세요</Text>
+        <Text style={styles.eligibilityBody}>
+          등록하실 수 있는 부모님은 <Text style={styles.strong}>사별 또는 이혼</Text>하신 분입니다.
+          {'\n'}별거 중이시거나 혼인 관계가 유지되는 경우에는 등록하실 수 없습니다.
         </Text>
-      ) : null}
+        <Text style={styles.eligibilityNote}>
+          사별인지 이혼인지는 여쭤보지 않으며, 어디에도 표시되지 않습니다.
+        </Text>
+      </View>
     </Screen>
   );
 }
@@ -114,28 +84,17 @@ const styles = StyleSheet.create({
   point: { flexDirection: 'row', gap: spacing.xs },
   bullet: { ...typography.body, color: theme.colors.primary },
   pointText: { ...typography.body, color: theme.colors.textSecondary, flex: 1 },
-  question: { ...typography.subheading, color: theme.colors.text, marginTop: spacing.xxl },
-  choices: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.sm },
-  choice: {
-    minWidth: 88,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+  eligibility: {
+    marginTop: spacing.xxl,
+    padding: spacing.md,
     borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: theme.colors.border,
-    backgroundColor: theme.colors.surface,
-    alignItems: 'center',
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primarySurface,
+    gap: spacing.xs,
   },
-  choiceSelected: { borderColor: theme.colors.primary, backgroundColor: theme.colors.primarySurface },
-  choiceText: { ...typography.body, color: theme.colors.textSecondary },
-  choiceTextSelected: { color: theme.colors.primaryDark, fontWeight: '600' },
-  blocked: {
-    ...typography.body,
-    color: theme.colors.error,
-    backgroundColor: theme.colors.errorBg,
-    padding: spacing.sm,
-    borderRadius: radius.md,
-    marginTop: spacing.md,
-  },
-  pressed: { opacity: 0.85 },
+  eligibilityTitle: { ...typography.subheading, color: theme.colors.text },
+  eligibilityBody: { ...typography.body, color: theme.colors.text, lineHeight: 24 },
+  strong: { fontWeight: '700', color: theme.colors.primaryDark },
+  eligibilityNote: { ...typography.caption, color: theme.colors.textTertiary },
 });

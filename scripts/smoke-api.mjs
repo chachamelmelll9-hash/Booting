@@ -169,7 +169,7 @@ async function main() {
       gender: 'male',
       birthDate: '1960-01-01',
       regionCode: '11680',
-      maritalStatus: 'bereaved',
+      eligibilityConfirmed: true,
       goals: ['serious'],
     });
     check('인증 없이 프로필 생성 시 403', res.status === 403, `status=${res.status}`);
@@ -192,8 +192,7 @@ async function main() {
       gender: 'male',
       birthDate: '1958-04-11',
       regionCode: '11680', // 서울 강남구
-      maritalStatus: 'bereaved',
-      maritalSince: '2019-03-01',
+      eligibilityConfirmed: true,
       goals: ['serious', 'meal_walk'],
     },
     'A create profile'
@@ -210,7 +209,7 @@ async function main() {
       gender: 'female',
       birthDate: '1961-09-22',
       regionCode: '11710', // 서울 송파구
-      maritalStatus: 'divorced',
+      eligibilityConfirmed: true,
       goals: ['serious'],
     },
     'B create profile'
@@ -218,6 +217,18 @@ async function main() {
 
   console.log('\n[4] 도메인 규칙 거부');
   {
+    // 자격 확인 없이는 프로필을 만들 수 없다 (사별/이혼 중 어느 쪽인지는 받지 않는다)
+    const unconfirmed = await a.call('POST', '/parent-profile', {
+      displayName: '김철수',
+      nickname: '바둑한판',
+      gender: 'male',
+      birthDate: '1958-04-11',
+      regionCode: '11680',
+      eligibilityConfirmed: false,
+      goals: ['serious'],
+    });
+    check('자격 미확인 프로필 생성 거부', unconfirmed.status === 400, `status=${unconfirmed.status}`);
+
     const tooYoung = await a.call('PATCH', '/parent-profile', { regionCode: '99999' });
     check('없는 지역 코드 거부', tooYoung.status === 400, `status=${tooYoung.status}`);
 

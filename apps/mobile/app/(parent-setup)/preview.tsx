@@ -46,7 +46,6 @@ export default function PreviewScreen() {
     age: profile.age,
     region: profile.region,
     distanceKm: null,
-    maritalStatus: profile.maritalStatus,
     goals: profile.goals,
     primaryPhotoUrl: profile.photos.find((p) => p.isPrimary)?.url ?? profile.photos[0]?.url ?? '',
     introExcerpt: profile.introByChild ?? '',

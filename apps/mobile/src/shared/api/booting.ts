@@ -59,8 +59,8 @@ export const parentProfileApi = {
     gender: 'male' | 'female';
     birthDate: string;
     regionCode: string;
-    maritalStatus: 'bereaved' | 'divorced';
-    maritalSince?: string;
+    /** "사별 또는 이혼(별거·혼인 중 아님)" 확인 — 어느 쪽인지는 보내지 않는다 */
+    eligibilityConfirmed: true;
     goals: string[];
   }) => serverFetch<ParentProfile>('/parent-profile', { method: 'POST', body }),
   update: (body: Record<string, unknown>) =>

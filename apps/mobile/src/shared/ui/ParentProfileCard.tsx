@@ -16,11 +16,6 @@ interface Props {
   testID?: string;
 }
 
-const MARITAL_LABEL: Record<string, string> = {
-  bereaved: '사별',
-  divorced: '이혼',
-};
-
 /**
  * 부모님 카드.
  *
@@ -55,7 +50,6 @@ export function ParentProfileCard({ profile, variant = 'deck', onPress, testID }
         <Text style={styles.meta}>
           {profile.region}
           {profile.distanceKm !== null ? ` · ${profile.distanceKm}km` : ''}
-          {profile.maritalStatus ? ` · ${MARITAL_LABEL[profile.maritalStatus] ?? ''}` : ''}
         </Text>
 
         {/*

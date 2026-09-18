@@ -65,9 +65,6 @@ export function filterSummary(filter: DiscoveryFilter): string {
 
   parts.push(radiusLabel(filter.radiusKm));
 
-  if (filter.maritalFilter) {
-    parts.push(filter.maritalFilter === 'bereaved' ? '사별' : '이혼');
-  }
   if (filter.smoking) {
     parts.push(filter.smoking);
   }

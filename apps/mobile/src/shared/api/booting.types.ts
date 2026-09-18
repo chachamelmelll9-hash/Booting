@@ -8,6 +8,10 @@
 import type { ConnectionStatus } from '@shared/config/connectionStatus';
 import type { RelationshipGoal } from '@shared/config/relationshipGoals';
 
+/**
+ * 혼인 상태 코드. 2026-09-18 부터 **입력받지도, 응답에 싣지도 않는다** —
+ * 자격 확인(사별 또는 이혼)만 하고 어느 쪽인지는 저장하지 않는다. DB 옛 데이터용 타입.
+ */
 export type MaritalStatus = 'bereaved' | 'divorced';
 
 export type ProfileStatus =
@@ -69,8 +73,6 @@ export interface ParentProfile {
   age: number;
   regionCode: string;
   region: string;
-  maritalStatus: MaritalStatus;
-  maritalSince: string | null;
   heightCm: number | null;
   childrenCount: string | null;
   livingWith: string | null;
@@ -159,7 +161,6 @@ export interface DiscoveryItem {
   age: number;
   region: string;
   distanceKm: number | null;
-  maritalStatus: MaritalStatus;
   goals: RelationshipGoal[];
   primaryPhotoUrl: string;
   introExcerpt: string;
@@ -172,7 +173,6 @@ export interface DiscoveryItem {
 
 export interface PublicProfile extends DiscoveryItem {
   photoUrls: string[];
-  maritalSince: string | null;
   /** 키(cm). 상세에서만 노출 */
   heightCm: number | null;
   introByChild: string;
@@ -206,7 +206,6 @@ export interface DiscoveryFilter {
   ageMax?: number;
   regionCode?: string;
   radiusKm: number;
-  maritalFilter?: MaritalStatus;
   goals?: RelationshipGoal[];
   religion?: string;
   drinking?: string;

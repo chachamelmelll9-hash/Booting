@@ -11,7 +11,7 @@ import {
   Min,
 } from 'class-validator';
 
-import type { MaritalStatus, RelationshipGoal } from '../../common/types';
+import type { RelationshipGoal } from '../../common/types';
 import { ALLOWED_RADIUS_KM, RELATIONSHIP_GOALS } from '../../common/types';
 import type { FourPillars, SajuCompatibility } from '../../saju/lib';
 
@@ -35,10 +35,7 @@ export class DiscoveryFilterDto {
   @IsIn(ALLOWED_RADIUS_KM as unknown as number[])
   radiusKm?: number;
 
-  @IsOptional()
-  @Type(() => String)
-  @IsIn(['bereaved', 'divorced'])
-  maritalFilter?: MaritalStatus;
+  // 혼인 상태(사별/이혼) 조건은 없다 (2026-09-18) — 어느 쪽인지 저장하지 않는다.
 
   @IsOptional()
   @IsArray()
@@ -82,7 +79,6 @@ export interface DiscoveryItemDto {
   age: number;
   region: string;
   distanceKm: number | null;
-  maritalStatus: MaritalStatus;
   goals: RelationshipGoal[];
   primaryPhotoUrl: string;
   introExcerpt: string;
@@ -106,7 +102,6 @@ export interface DiscoveryItemDto {
 
 export interface PublicProfileDto extends DiscoveryItemDto {
   photoUrls: string[];
-  maritalSince: string | null;
   /** 키(cm). 카드에는 넣지 않고 상세에서만 보여준다 */
   heightCm: number | null;
   introByChild: string;

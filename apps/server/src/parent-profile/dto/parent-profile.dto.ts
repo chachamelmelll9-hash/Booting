@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayMinSize,
+  Equals,
   IsArray,
   IsBoolean,
   IsDateString,
@@ -16,12 +17,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-import type {
-  ConsentMethod,
-  MaritalStatus,
-  ProfileStatus,
-  RelationshipGoal,
-} from '../../common/types';
+import type { ConsentMethod, ProfileStatus, RelationshipGoal } from '../../common/types';
 import { RELATIONSHIP_GOALS } from '../../common/types';
 
 export class CreateParentProfileDto {
@@ -46,15 +42,15 @@ export class CreateParentProfileDto {
   @IsString()
   regionCode!: string;
 
-  @Type(() => String)
-  @IsIn(['bereaved', 'divorced'], {
-    message: '사별 또는 이혼 상태만 등록할 수 있습니다',
-  })
-  maritalStatus!: MaritalStatus;
-
-  @IsOptional()
-  @IsDateString()
-  maritalSince?: string;
+  /**
+   * 자격 확인 — "부모님은 사별 또는 이혼 상태이며, 별거·혼인 중이 아니다".
+   *
+   * 사별인지 이혼인지는 **받지 않는다** (2026-09-18). 어느 쪽인지는 부모님의
+   * 가족사라 남에게 알리고 싶지 않은 값인데, 자격을 가르는 데는 "둘 중 하나" 라는
+   * 사실만 있으면 된다. `true` 가 아니면 등록 자체가 안 된다.
+   */
+  @Equals(true, { message: '사별 또는 이혼 상태만 등록할 수 있습니다' })
+  eligibilityConfirmed!: boolean;
 
   @IsArray()
   @ArrayMinSize(1)
@@ -83,7 +79,6 @@ export class UpdateParentProfileDto {
   @IsOptional() @IsString() @MinLength(2) @MaxLength(20) displayName?: string;
   @IsOptional() @IsString() @MinLength(2) @MaxLength(12) nickname?: string;
   @IsOptional() @IsString() regionCode?: string;
-  @IsOptional() @IsDateString() maritalSince?: string;
 
   /** 키(cm). 사람 키로 가능한 범위만 받는다 — DB CHECK 와 같은 범위다 */
   @IsOptional()
@@ -211,8 +206,6 @@ export interface ParentProfileDto {
   age: number;
   regionCode: string;
   region: string;
-  maritalStatus: MaritalStatus;
-  maritalSince: string | null;
   heightCm: number | null;
   childrenCount: string | null;
   livingWith: string | null;

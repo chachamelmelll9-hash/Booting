@@ -85,7 +85,7 @@ export class DiscoveryRepository {
       }
       if (f.targetGender) query = query.eq('gender', f.targetGender);
     }
-    if (f.maritalFilter) query = query.eq('marital_status', f.maritalFilter);
+    // 혼인 상태 조건은 없다 — 어느 쪽인지 저장하지 않으므로 (2026-09-18)
     if (f.religion) query = query.eq('religion', f.religion);
     if (f.drinking) query = query.eq('drinking', f.drinking);
     if (f.smoking) query = query.eq('smoking', f.smoking);

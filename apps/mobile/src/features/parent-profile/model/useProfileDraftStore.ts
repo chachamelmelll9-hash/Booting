@@ -10,8 +10,11 @@ export interface ProfileDraft {
   birthDate: string;
   regionCode: string;
   regionLabel: string;
-  maritalStatus: 'bereaved' | 'divorced' | null;
-  maritalSince: string;
+  /**
+   * "부모님은 사별 또는 이혼 상태(별거·혼인 중 아님)" 확인 — 1단계에서 받는다.
+   * 어느 쪽인지는 받지 않는다 (2026-09-18). 서버 생성 요청의 필수값이다.
+   */
+  eligibilityConfirmed: boolean;
   goals: RelationshipGoal[];
 
   /** 키(cm). 입력은 문자열로 받고 저장할 때 숫자로 바꾼다 */
@@ -56,8 +59,7 @@ const EMPTY: ProfileDraft = {
   birthDate: '',
   regionCode: '',
   regionLabel: '',
-  maritalStatus: null,
-  maritalSince: '',
+  eligibilityConfirmed: false,
   goals: [],
   heightCm: '',
   childrenCount: '',

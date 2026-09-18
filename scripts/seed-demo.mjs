@@ -759,7 +759,8 @@ async function main() {
         gender: spec.gender,
         birthDate: spec.birthDate,
         regionCode: spec.regionCode,
-        maritalStatus: spec.maritalStatus,
+        // 2026-09-18 부터 사별/이혼 중 어느 쪽인지 보내지 않는다 — 자격 확인만
+        eligibilityConfirmed: true,
         goals: spec.goals,
       });
     }

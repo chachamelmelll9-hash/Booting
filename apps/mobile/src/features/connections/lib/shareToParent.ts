@@ -3,8 +3,6 @@ import type * as KakaoShare from '@react-native-kakao/share';
 import type { DiscoveryItem } from '@shared/api/booting.types';
 import { goalLabel } from '@shared/config/relationshipGoals';
 
-const MARITAL_LABEL: Record<string, string> = { bereaved: '사별', divorced: '이혼' };
-
 /** 카카오 네이티브 키가 없으면 SDK 초기화 자체가 안 된다 (`app/_layout.tsx`) */
 const isKakaoConfigured = !!process.env.EXPO_PUBLIC_KAKAO_NATIVE_KEY;
 
@@ -30,9 +28,9 @@ function loadKakaoShare(): KakaoShareModule | null {
   return kakaoShare;
 }
 
+// 혼인 상태(사별/이혼)는 싣지 않는다 — 저장하지 않는 값이다 (2026-09-18)
 function subtitle(profile: DiscoveryItem): string {
-  const marital = MARITAL_LABEL[profile.maritalStatus] ?? '';
-  return marital ? `${profile.region} · ${marital}` : profile.region;
+  return profile.region;
 }
 
 /**

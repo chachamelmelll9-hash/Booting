@@ -182,7 +182,6 @@ export class ParentViewController {
 // 앱과 같은 말을 쓴다. 부모님과 자녀가 서로 다른 낱말로 같은 사람을 이야기하면
 // 통화 한 번이 더 든다.
 
-const MARITAL_LABEL: Record<string, string> = { bereaved: '사별', divorced: '이혼' };
 
 const GOAL_LABEL: Record<string, string> = {
   remarriage: '재혼',
@@ -376,7 +375,6 @@ function listPage(token: string, items: ParentInboxItemDto[]): string {
   const cards = items
     .map((item) => {
       const p = item.profile;
-      const marital = MARITAL_LABEL[p.maritalStatus] ?? '';
       const state = item.matched
         ? '<span class="state matched">연락처가 열렸습니다</span>'
         : item.interested
@@ -389,7 +387,7 @@ function listPage(token: string, items: ParentInboxItemDto[]): string {
         <img src="${esc(p.primaryPhotoUrl ?? '')}" alt="">
         <div class="card-body">
           <strong>${esc(p.nickname)} · ${p.age}세</strong>
-          <span class="card-sub">${esc([p.region, marital].filter(Boolean).join(' · '))}</span>
+          <span class="card-sub">${esc(p.region)}</span>
           ${saju ? `<span class="saju">${esc(saju)}</span>` : ''}
           ${state}
         </div>
@@ -452,7 +450,6 @@ function profilePage(
   totalShared: number,
   state: ParentInboxItemDto | null
 ): string {
-  const marital = MARITAL_LABEL[p.maritalStatus] ?? '';
   const goals = (p.goals ?? []).map((g) => GOAL_LABEL[g]).filter(Boolean);
 
   const photos = p.photoUrls?.length ? p.photoUrls : [p.primaryPhotoUrl].filter(Boolean);
@@ -468,7 +465,6 @@ function profilePage(
    */
   const facts: [string, string | null][] = [
     ['사는 곳', p.region || null],
-    ['혼인 상태', marital || null],
     ['키', p.heightCm ? `${p.heightCm}cm` : null],
     ['자녀', p.childrenCount],
     ['함께 사는 가족', p.livingWith],
@@ -512,7 +508,7 @@ function profilePage(
     `<div class="lead">
        <p class="from">자녀분이 보내드린 프로필</p>
        <h1>${esc(p.nickname)} 님 · ${p.age}세</h1>
-       ${marital || p.region ? `<p class="sub">${esc([p.region, marital].filter(Boolean).join(' · '))}</p>` : ''}
+       ${p.region ? `<p class="sub">${esc(p.region)}</p>` : ''}
        ${sajuLine(p) ? `<p class="saju">${esc(sajuLine(p))}</p>` : ''}
      </div>
      ${blocks}

@@ -475,7 +475,6 @@ export class ConnectionsService {
         age: 0,
         region: '',
         distanceKm: null,
-        maritalStatus: 'bereaved',
         goals: [],
         primaryPhotoUrl: '',
         introExcerpt: '',

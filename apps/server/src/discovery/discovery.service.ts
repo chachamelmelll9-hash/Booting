@@ -72,7 +72,6 @@ export class DiscoveryService {
       ageMax: data.age_max ?? undefined,
       regionCode: data.region_code ?? undefined,
       radiusKm: data.radius_km ?? DEFAULT_RADIUS_KM,
-      maritalFilter: data.marital_filter ?? undefined,
       goals: data.goals ?? [],
       religion: data.religion ?? undefined,
       drinking: data.drinking ?? undefined,
@@ -95,7 +94,7 @@ export class DiscoveryService {
           age_max: dto.ageMax ?? null,
           region_code: dto.regionCode ?? null,
           radius_km: dto.radiusKm ?? DEFAULT_RADIUS_KM,
-          marital_filter: dto.maritalFilter ?? null,
+          marital_filter: null,
           goals: dto.goals ?? [],
           religion: dto.religion ?? null,
           drinking: dto.drinking ?? null,
@@ -234,7 +233,6 @@ export class DiscoveryService {
         distanceKm: originRegionCode
           ? await this.regions.distanceKm(originRegionCode, r.region_code)
           : null,
-        maritalStatus: r.marital_status,
         goals: (goals.get(r.id) ?? []) as RelationshipGoal[],
         primaryPhotoUrl: photoUrls.get(r.id) ?? '',
         introExcerpt: excerpt(r.intro_by_child),
@@ -303,7 +301,6 @@ export class DiscoveryService {
       // base 는 viewerProfileId 없이 만들어서 둘 다 비어 있다 — 여기서 채운다
       dayPillar: theirSaju?.pillars.day ?? null,
       photoUrls: photos.map((p) => p.url),
-      maritalSince: row.marital_since,
       heightCm: row.height_cm,
       introByChild: row.intro_by_child ?? '',
       desiredPartner: row.desired_partner ?? '',

@@ -81,8 +81,8 @@ export class ParentProfileService {
         gender: dto.gender,
         birth_date: dto.birthDate,
         region_code: dto.regionCode,
-        marital_status: dto.maritalStatus,
-        marital_since: dto.maritalSince ?? null,
+        // 사별/이혼 중 어느 쪽인지는 받지 않는다 — 자격을 확인한 시각만 남긴다
+        eligibility_confirmed_at: new Date().toISOString(),
         status: 'draft',
       })
       .select(PROFILE_COLUMNS)
@@ -105,7 +105,6 @@ export class ParentProfileService {
       displayName: 'display_name',
       nickname: 'nickname',
       regionCode: 'region_code',
-      maritalSince: 'marital_since',
       heightCm: 'height_cm',
       childrenCount: 'children_count',
       livingWith: 'living_with',
@@ -381,8 +380,6 @@ export class ParentProfileService {
       age: calcAge(row.birth_date),
       regionCode: row.region_code,
       region,
-      maritalStatus: row.marital_status,
-      maritalSince: row.marital_since,
       heightCm: row.height_cm,
       childrenCount: row.children_count,
       livingWith: row.living_with,

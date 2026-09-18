@@ -17,7 +17,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-const MARITAL_LABEL: Record<string, string> = { bereaved: '사별', divorced: '이혼' };
 
 /**
  * 상대 부모님 상세.
@@ -139,7 +138,6 @@ export default function PublicProfileScreen() {
       <Text style={styles.meta}>
         {profile.region}
         {profile.distanceKm !== null ? ` · ${profile.distanceKm}km` : ''}
-        {` · ${MARITAL_LABEL[profile.maritalStatus] ?? ''}`}
       </Text>
 
       {/*

@@ -119,8 +119,8 @@ export default function ProfileEditScreen() {
       birthDate: profile.birthDate,
       regionCode: profile.regionCode,
       regionLabel: profile.region,
-      maritalStatus: profile.maritalStatus,
-      maritalSince: profile.maritalSince ?? '',
+      // 프로필이 이미 있다는 건 1단계 확인을 통과했다는 뜻이다
+      eligibilityConfirmed: true,
       goals: profile.goals,
       heightCm: profile.heightCm ? String(profile.heightCm) : '',
       childrenCount: profile.childrenCount ?? '',
@@ -173,8 +173,7 @@ export default function ProfileEditScreen() {
       gender: draft.gender as 'male' | 'female',
       birthDate: draft.birthDate,
       regionCode: draft.regionCode,
-      maritalStatus: draft.maritalStatus as 'bereaved' | 'divorced',
-      maritalSince: draft.maritalSince || undefined,
+      eligibilityConfirmed: true,
       goals: draft.goals,
     });
   };
@@ -254,8 +253,7 @@ export default function ProfileEditScreen() {
           gender: draft.gender as 'male' | 'female',
           birthDate: draft.birthDate,
           regionCode: draft.regionCode,
-          maritalStatus: draft.maritalStatus as 'bereaved' | 'divorced',
-          maritalSince: draft.maritalSince || undefined,
+          eligibilityConfirmed: true,
           goals: draft.goals,
         });
       }
@@ -263,7 +261,6 @@ export default function ProfileEditScreen() {
         displayName: draft.displayName.trim(),
         nickname: draft.nickname.trim(),
         regionCode: draft.regionCode,
-        maritalSince: draft.maritalSince || undefined,
         ...details,
       });
       router.push('/(parent-setup)/consent');

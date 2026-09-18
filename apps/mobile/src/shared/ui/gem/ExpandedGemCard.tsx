@@ -60,8 +60,6 @@ interface Props {
   heartedLabel?: string;
 }
 
-const MARITAL_LABEL: Record<string, string> = { bereaved: '사별', divorced: '이혼' };
-
 /**
  * 눌린 카드가 **그 자리에서** 커지며 뒤집혀 프로필을 펼친다.
  *
@@ -278,7 +276,6 @@ function ProfileDetail({
         <Text style={styles.meta}>
           {profile.region}
           {profile.distanceKm != null ? ` · ${profile.distanceKm}km` : ''}
-          {` · ${MARITAL_LABEL[profile.maritalStatus] ?? ''}`}
         </Text>
 
         {/*

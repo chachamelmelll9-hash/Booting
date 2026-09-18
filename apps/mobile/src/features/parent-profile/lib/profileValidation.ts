@@ -70,8 +70,8 @@ export function validateBasics(draft: ProfileDraft): DraftErrors {
   if (!draft.regionCode) {
     errors.regionCode = '거주 지역을 선택해주세요';
   }
-  if (!draft.maritalStatus) {
-    errors.maritalStatus = '혼인 상태를 선택해주세요';
+  if (!draft.eligibilityConfirmed) {
+    errors.eligibilityConfirmed = '등록 자격(사별 또는 이혼)을 먼저 확인해주세요';
   }
   if (draft.goals.length === 0) {
     errors.goals = '관계 목적을 1개 이상 선택해주세요';
