@@ -32,7 +32,8 @@ function HomeIcon({ color }: { color: string }) {
 }
 
 const HeartIcon = tabIcon('heart');
-const ConnectionsIcon = tabIcon('comments');
+// 말풍선 하나. 두 개 겹친 `comments` 는 배지까지 얹히면 덩어리로 보였다 ("너무 밤티야", 09-18)
+const ConnectionsIcon = tabIcon('comment');
 const ProfileIcon = tabIcon('user');
 
 /**
