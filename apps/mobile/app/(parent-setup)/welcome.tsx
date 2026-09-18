@@ -4,9 +4,10 @@ import { theme } from '@shared/config/colors';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import Svg, { ClipPath, Defs, G, Path, Rect } from 'react-native-svg';
 
 /**
- * 로그인 직후 인사 — 민트 부스터 뚜껑이 열리고 **하트가 흘러넘친다.**
+ * 로그인 직후 인사 — 민트 **하트병**에 마음이 차오르고 **하트가 흘러넘친다.**
  *
  * 왜 이 자리에 두나: 여기서 하는 말이 "부모님 프로필을 등록하세요"다. 그 말을
  * 빈 화면에 글자로만 두면 할 일 목록처럼 읽힌다. 자녀가 부모님을 대신 등록하는
@@ -18,10 +19,25 @@ import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-nativ
  * 이미 등록을 마친 사람에게는 보여 주지 않는다 — 켤 때마다 같은 인사를 다시
  * 보는 건 즐거움이 아니라 방해다.
  *
- * 애니메이션은 RN 내장 `Animated` 로만 만든다. 도형이 사각형·원과 아이콘뿐이라
- * SVG 나 Lottie 를 끌어올 이유가 없고, `useNativeDriver` 로 UI 스레드에서 돌아
- * 저사양 기기에서도 끊기지 않는다.
+ * 병 몸통은 **하트 모양**이다 (2026-09-18, "물병 말고 하트병"). 하트에 마음이
+ * 차올라 넘친다 — 담는 그릇까지 마음이라야 액체·하트·병이 한 이야기가 된다.
+ * 하트는 View 로 만들 수 없어 여기만 `react-native-svg` 를 쓴다: 하트 경로로
+ * 클리핑한 사각형의 y 를 올려 차오르게 한다. 나머지 동작(흔들림·쏟아지는
+ * 하트)은 RN 내장 `Animated` 그대로이고, 위치·회전은 `useNativeDriver` 로
+ * UI 스레드에서 돌아 저사양 기기에서도 끊기지 않는다.
  */
+
+/**
+ * 하트 경로 — 100×90 상자. 두 봉우리 사이 골 (50, 15) 이 입구라 하트가 거기서 쏟아진다.
+ */
+const HEART_PATH =
+  'M50 88 C20 65 0 48 0 28 C0 12 12 0 27 0 C37 0 46 6 50 15 C54 6 63 0 73 0 C88 0 100 12 100 28 C100 48 80 65 50 88 Z';
+const HEART_BOX_W = 100;
+const HEART_BOX_H = 90;
+/** 골의 깊이(상자 단위). 쏟아지는 하트의 출발점이다 */
+const HEART_DIP = 15;
+
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 
 /**
  * 입구에서 쏟아지는 하트.
@@ -48,6 +64,23 @@ const HEARTS = [
   { x: -38, delay: 730, size: 26, fall: 200, spin: 16, dark: false },
   { x: 38, delay: 775, size: 19, fall: 166, spin: -14, dark: true },
   { x: -4, delay: 820, size: 23, fall: 214, spin: 24, dark: false },
+  // 아래는 "더 많이 쏟아지게" (09-18) — 앞 하트들 사이사이에 끼워 넣는다
+  { x: 48, delay: 30, size: 17, fall: 160, spin: 12, dark: true },
+  { x: -52, delay: 95, size: 21, fall: 182, spin: -26, dark: true },
+  { x: 8, delay: 150, size: 16, fall: 222, spin: 6, dark: false },
+  { x: -30, delay: 205, size: 29, fall: 154, spin: -16, dark: false },
+  { x: 66, delay: 260, size: 20, fall: 198, spin: 22, dark: true },
+  { x: -68, delay: 305, size: 18, fall: 170, spin: -30, dark: false },
+  { x: 26, delay: 350, size: 24, fall: 208, spin: 10, dark: true },
+  { x: -12, delay: 400, size: 32, fall: 146, spin: -6, dark: false },
+  { x: 54, delay: 445, size: 19, fall: 190, spin: 28, dark: false },
+  { x: -42, delay: 490, size: 23, fall: 216, spin: -20, dark: true },
+  { x: 18, delay: 540, size: 27, fall: 162, spin: 16, dark: false },
+  { x: -78, delay: 580, size: 17, fall: 180, spin: 32, dark: true },
+  { x: 76, delay: 625, size: 21, fall: 174, spin: -24, dark: false },
+  { x: -22, delay: 670, size: 19, fall: 226, spin: 8, dark: true },
+  { x: 36, delay: 715, size: 25, fall: 152, spin: -10, dark: false },
+  { x: -58, delay: 760, size: 22, fall: 206, spin: 18, dark: false },
 ];
 
 export default function WelcomeScreen() {
@@ -85,7 +118,6 @@ export default function WelcomeScreen() {
 
   const bottleIn = useRef(new Animated.Value(0)).current;
   const shake = useRef(new Animated.Value(0)).current;
-  const cap = useRef(new Animated.Value(0)).current;
   const liquid = useRef(new Animated.Value(0)).current;
   const brim = useRef(new Animated.Value(0)).current;
   const copy = useRef(new Animated.Value(0)).current;
@@ -95,7 +127,7 @@ export default function WelcomeScreen() {
     if (!ready) return;
 
     // 다시 볼 때는 전부 0 으로 — 안 그러면 두 번째부터는 끝난 자리에서 시작한다
-    for (const v of [bottleIn, shake, cap, liquid, brim, copy, ...hearts]) v.setValue(0);
+    for (const v of [bottleIn, shake, liquid, brim, copy, ...hearts]) v.setValue(0);
 
     const sequence = Animated.sequence([
       // 1. 부스터는 **제자리에서** 커지며 등장한다.
@@ -106,7 +138,7 @@ export default function WelcomeScreen() {
         tension: 70,
         useNativeDriver: true,
       }),
-      // 2. 압력이 차오르는 흔들림 — 뚜껑이 왜 열리는지 몸짓으로 먼저 말한다
+      // 2. 두근거림 — 차오르기 전에 한 번 떨린다
       Animated.sequence(
         [1, -1, 1, -1, 0.5, 0].map((to) =>
           Animated.timing(shake, {
@@ -118,15 +150,8 @@ export default function WelcomeScreen() {
         )
       ),
       Animated.parallel([
-        // 3. 뚜껑이 날아간다
-        Animated.timing(cap, {
-          toValue: 1,
-          duration: 620,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-        // 4. 액체가 차오른다 (뚜껑보다 살짝 늦게 시작해 인과가 보이게).
-        //    차오르는 것은 감속한다 — 수면이 입구에 가까워질수록 느려진다
+        // 3. 마음이 차오른다 (뚜껑은 없다 — 하트병에 뚜껑을 달면 밤톨이 됐다).
+        //    차오르는 것은 감속한다 — 수면이 골에 가까워질수록 느려진다
         Animated.sequence([
           Animated.delay(90),
           Animated.timing(liquid, {
@@ -136,7 +161,7 @@ export default function WelcomeScreen() {
             useNativeDriver: false,
           }),
         ]),
-        // 5. 입구에 하트가 그득 차오른다 — 쏟아지기 직전을 한 박자 보여 준다.
+        // 4. 골에 하트가 그득 차오른다 — 쏟아지기 직전을 한 박자 보여 준다.
         //    바로 튀어나오면 어디서 나온 것인지 읽히지 않는다
         Animated.sequence([
           Animated.delay(300),
@@ -152,8 +177,16 @@ export default function WelcomeScreen() {
             easing: Easing.out(Easing.quad),
             useNativeDriver: true,
           }),
+          // 다 쏟아지면 골에 남은 하트도 사라진다 — 남겨 두면 끝난 뒤에 얼룩처럼 보인다
+          Animated.delay(500),
+          Animated.timing(brim, {
+            toValue: 0,
+            duration: 300,
+            easing: Easing.in(Easing.quad),
+            useNativeDriver: true,
+          }),
         ]),
-        // 6. 하트가 쏟아진다 — 솟을 때 감속하고 떨어질 때 가속한다 (포물선).
+        // 5. 하트가 쏟아진다 — 솟을 때 감속하고 떨어질 때 가속한다 (포물선).
         //    타이밍 자체는 linear 로 두고 곡선은 좌표에서 만든다
         ...hearts.map((h, i) =>
           Animated.sequence([
@@ -169,7 +202,7 @@ export default function WelcomeScreen() {
           ])
         ),
       ]),
-      // 5. 하고 싶은 말은 소란이 지난 뒤에
+      // 6. 하고 싶은 말은 소란이 지난 뒤에
       Animated.timing(copy, {
         toValue: 1,
         duration: 520,
@@ -180,7 +213,7 @@ export default function WelcomeScreen() {
 
     sequence.start();
     return () => sequence.stop();
-  }, [ready, run, bottleIn, shake, cap, liquid, brim, copy, hearts]);
+  }, [ready, run, bottleIn, shake, liquid, brim, copy, hearts]);
 
   if (!ready) return <View style={styles.container} />;
 
@@ -210,46 +243,40 @@ export default function WelcomeScreen() {
             ],
           }}
         >
-          {/*
-            뚜껑 — 넘치는 액체에 밀려 톡 튕겼다가 옆으로 굴러떨어진다.
-            위로 쭉 날려 보내면 로켓처럼 보인다. 액체가 밀어내는 힘은 그 정도가 아니다.
-          */}
-          <Animated.View
-            style={[
-              styles.cap,
-              {
-                opacity: cap.interpolate({ inputRange: [0, 0.75, 1], outputRange: [1, 1, 0] }),
-                transform: [
-                  {
-                    translateY: cap.interpolate({
-                      // 살짝 솟았다가(0.25) 곧장 떨어진다
-                      inputRange: [0, 0.25, 1],
-                      outputRange: [0, -40, 176],
-                    }),
-                  },
-                  { translateX: cap.interpolate({ inputRange: [0, 1], outputRange: [0, 118] }) },
-                  {
-                    rotate: cap.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '128deg'] }),
-                  },
-                ],
-              },
-            ]}
-          />
-          <View style={styles.neck} />
-
           <View style={styles.body}>
-            {/* 안에서 차오르는 액체 — 높이라 네이티브 드라이버를 못 쓴다 */}
-            <Animated.View
-              style={[
-                styles.liquid,
-                {
-                  height: liquid.interpolate({
+            <Svg
+              width={HEART_W}
+              height={HEART_H}
+              // 테두리가 상자에 잘리지 않게 여백을 둔다
+              viewBox={`-2 -2 ${HEART_BOX_W + 4} ${HEART_BOX_H + 4}`}
+            >
+              <Defs>
+                <ClipPath id="heart-bottle">
+                  <Path d={HEART_PATH} />
+                </ClipPath>
+              </Defs>
+              <Path d={HEART_PATH} fill={theme.colors.surface} />
+              <G clipPath="url(#heart-bottle)">
+                {/* 안에서 차오르는 액체 — 사각형의 y 를 올린다. 좌표라 네이티브 드라이버를 못 쓴다 */}
+                <AnimatedRect
+                  x={0}
+                  width={HEART_BOX_W}
+                  height={HEART_BOX_H}
+                  y={liquid.interpolate({
                     inputRange: [0, 1],
-                    outputRange: ['18%', '100%'],
-                  }),
-                },
-              ]}
-            />
+                    outputRange: [HEART_BOX_H * 0.82, 0],
+                  })}
+                  fill={theme.colors.primary}
+                />
+              </G>
+              <Path
+                d={HEART_PATH}
+                fill="none"
+                stroke={theme.colors.primary}
+                strokeWidth={2}
+                strokeLinejoin="round"
+              />
+            </Svg>
             {/* 상표는 액체가 차오르며 드러난다 */}
             <Animated.Text style={[styles.mark, { opacity: liquid }]}>B</Animated.Text>
           </View>
@@ -381,10 +408,12 @@ export default function WelcomeScreen() {
   );
 }
 
-const BODY_WIDTH = 132;
-const BODY_HEIGHT = 190;
-const CAP_H = 28;
-const NECK_H = 20;
+const HEART_SCALE = 1.8;
+const HEART_W = HEART_BOX_W * HEART_SCALE;
+const HEART_H = HEART_BOX_H * HEART_SCALE;
+const STAGE_H = 300;
+/** 골의 stage 기준 y — 하트가 여기서 쏟아진다 */
+const MOUTH_Y = STAGE_H - HEART_H + HEART_DIP * HEART_SCALE;
 
 const styles = StyleSheet.create({
   container: {
@@ -398,7 +427,7 @@ const styles = StyleSheet.create({
   stage: {
     alignItems: 'center',
     justifyContent: 'flex-end',
-    height: 300,
+    height: STAGE_H,
     marginBottom: 44,
   },
   ground: {
@@ -409,42 +438,23 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     backgroundColor: theme.colors.primaryLight,
   },
-  cap: {
-    alignSelf: 'center',
-    width: 56,
-    height: CAP_H,
-    borderRadius: 9,
-    backgroundColor: theme.colors.primaryDark,
-    marginBottom: 6,
-  },
-  neck: {
-    alignSelf: 'center',
-    width: 46,
-    height: NECK_H,
-    backgroundColor: theme.colors.primary,
-    borderTopLeftRadius: 6,
-    borderTopRightRadius: 6,
-  },
+  /**
+   * 병목도 뚜껑도 없다.
+   *
+   * 처음엔 하트 위에 병목과 뚜껑을 뒀는데, 다 찬 하트에 같은 색 꼭지가 붙어
+   * **밤톨**로 보였고 유리 목·코르크로 바꿔도 이상했다 ("목 없애줘",
+   * "뚜껑 날라가는 건 없애야지"). 하트 하나가 병이고, 골이 입구다.
+   */
   body: {
-    width: BODY_WIDTH,
-    height: BODY_HEIGHT,
-    borderRadius: 26,
-    backgroundColor: theme.colors.surface,
-    borderWidth: 3,
-    borderColor: theme.colors.primary,
-    overflow: 'hidden',
+    width: HEART_W,
+    height: HEART_H,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  liquid: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: theme.colors.primary,
-  },
-  /** 액체 위에 얹히는 상표. 흰 글자라 액체가 차오를수록 또렷해진다 */
+  /** 액체 위에 얹히는 상표. 흰 글자라 액체가 차오를수록 또렷해진다. 하트의 무게중심은 위쪽이라 살짝 올린다 */
   mark: {
+    position: 'absolute',
+    top: HEART_H * 0.3,
     fontSize: 58,
     fontWeight: '800',
     color: theme.colors.surface,
@@ -458,13 +468,14 @@ const styles = StyleSheet.create({
    */
   brim: {
     position: 'absolute',
-    top: CAP_H,
+    // 골에 걸쳐 고인다
+    top: 2,
     alignSelf: 'center',
   },
-  /** 쏟아지는 하트 — 부스터 입구 높이에서 시작한다 */
+  /** 쏟아지는 하트 — 병 입구 높이에서 시작한다 */
   heart: {
     position: 'absolute',
-    top: 88,
+    top: MOUTH_Y - 2,
   },
   copy: { alignItems: 'center', marginBottom: 36 },
   headline: {
