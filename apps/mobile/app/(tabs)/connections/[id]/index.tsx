@@ -30,6 +30,7 @@ import { useCallback, useMemo, useState } from 'react';
 import {
   BackHandler,
   FlatList,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -150,6 +151,10 @@ export default function ChatRoomScreen() {
     setReportReason(null);
   };
 
+  // 대화 중인 상대의 상세 — `connection` 을 넘겨 관심 보내기 버튼을 숨긴다 (이미 연결된 사이다)
+  const openProfile = () =>
+    router.push(`/profile/${connection.partner.profileId}?connection=${connection.id}`);
+
   /**
    * 대화방에서 안내하는 다음 한 걸음.
    *
@@ -205,27 +210,50 @@ export default function ChatRoomScreen() {
       }
     >
       <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.partner}>
-            {connection.partner.nickname} 님 ({connection.partner.age}세) 자녀분
-          </Text>
-          {/* 대화 중에도 어떤 분인지가 한 줄로 남아 있어야 한다 */}
-          {connection.partner.dayPillar || connection.partner.compatibility ? (
-            <Text style={styles.saju} numberOfLines={1}>
-              {[
-                connection.partner.dayPillar
-                  ? dayPillarLabel(connection.partner.dayPillar)
-                  : null,
-                connection.partner.compatibility
-                  ? `궁합 ${connection.partner.compatibility.score}점`
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
+        {/*
+          이름 자리를 누르면 프로필 상세 — 목록이 한 줄로 줄어든 뒤(09-18) 상대가
+          어떤 분인지 다시 볼 곳이 대화방밖에 없다. "프로필 자세히 보기" 를 글자로
+          적어 두어 눌러도 되는 자리라는 걸 알린다.
+        */}
+        <Pressable
+          testID="chat-partner-profile"
+          accessibilityRole="button"
+          accessibilityLabel={`${connection.partner.nickname} 님 프로필 자세히 보기`}
+          onPress={openProfile}
+          style={({ pressed }) => [styles.headerTap, pressed && styles.pressed]}
+        >
+          {connection.partner.primaryPhotoUrl ? (
+            <Image source={{ uri: connection.partner.primaryPhotoUrl }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, styles.avatarFallback]}>
+              <FontAwesome name="user" size={18} color={theme.colors.textMuted} />
+            </View>
+          )}
+          <View style={styles.headerText}>
+            <Text style={styles.partner}>
+              {connection.partner.nickname} 님 ({connection.partner.age}세) 자녀분
             </Text>
-          ) : null}
-          <ConnectionStatusBadge status={connection.status} />
-        </View>
+            {/* 대화 중에도 어떤 분인지가 한 줄로 남아 있어야 한다 */}
+            {connection.partner.dayPillar || connection.partner.compatibility ? (
+              <Text style={styles.saju} numberOfLines={1}>
+                {[
+                  connection.partner.dayPillar
+                    ? dayPillarLabel(connection.partner.dayPillar)
+                    : null,
+                  connection.partner.compatibility
+                    ? `궁합 ${connection.partner.compatibility.score}점`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Text>
+            ) : null}
+            <View style={styles.headerMeta}>
+              <ConnectionStatusBadge status={connection.status} />
+              <Text style={styles.profileLink}>프로필 자세히 보기 ›</Text>
+            </View>
+          </View>
+        </Pressable>
         <Pressable
           testID="chat-menu"
           accessibilityRole="button"
@@ -325,6 +353,16 @@ export default function ChatRoomScreen() {
         ) : (
           <>
             <MenuRow
+              icon="user-o"
+              label="프로필 자세히 보기"
+              description="사진·소개·가족 정보를 다시 봅니다."
+              testID="chat-menu-profile"
+              onPress={() => {
+                setSheet(null);
+                openProfile();
+              }}
+            />
+            <MenuRow
               icon="sign-out"
               label="대화방 나가기"
               description="대화가 종료되고 되돌릴 수 없습니다."
@@ -374,7 +412,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.xs,
   },
+  headerTap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  avatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.colors.surfaceSecondary },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center' },
   headerText: { flex: 1, gap: 4 },
+  headerMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  profileLink: { ...typography.caption, color: theme.colors.primaryDark, fontWeight: '600' },
   partner: { ...typography.subheading, color: theme.colors.text },
   saju: { ...typography.caption, color: theme.colors.primaryDark, fontWeight: '700' },
   menu: { width: HIT_SIZE, height: HIT_SIZE, alignItems: 'center', justifyContent: 'center' },

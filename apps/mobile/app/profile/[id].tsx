@@ -25,7 +25,12 @@ import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
  * 주소는 응답 자체에 없다. 자녀 수·동거 가족은 이 화면에서만 보이며 필터로는 쓰이지 않는다.
  */
 export default function PublicProfileScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  /**
+   * `connection` 이 있으면 대화방에서 열린 상세다 (09-18). 이미 연결된 사이라
+   * '관심 보내기' 는 뜻이 없고 눌러도 서버가 거부한다 — 버튼을 숨기고 신고만 남긴다.
+   */
+  const { id, connection } = useLocalSearchParams<{ id: string; connection?: string }>();
+  const fromConnection = !!connection;
   const router = useRouter();
   const toast = useToast();
 
@@ -101,13 +106,15 @@ export default function PublicProfileScreen() {
             하면, 사용자는 이득 없이 위험만 진다 (PRD: 넘기기는 취소 불가).
             받은 관심 화면의 넘기기는 상대가 기다리고 있어 성격이 다르므로 그대로 둔다.
           */}
-          <AppButton
-            label={profile.heartSent ? '관심을 보냈습니다' : '관심 보내기'}
-            disabled={profile.heartSent}
-            loading={sendHeart.isPending}
-            testID="profile-heart"
-            onPress={() => setComposeOpen(true)}
-          />
+          {fromConnection ? null : (
+            <AppButton
+              label={profile.heartSent ? '관심을 보냈습니다' : '관심 보내기'}
+              disabled={profile.heartSent}
+              loading={sendHeart.isPending}
+              testID="profile-heart"
+              onPress={() => setComposeOpen(true)}
+            />
+          )}
           <HeartMessageSheet
             visible={composeOpen}
             toName={profile.nickname}
