@@ -42,7 +42,8 @@ status: stable
 | 지역·반경 | `region_code`(없으면 내 부모님 지역) + `radius_km` 10/30/50/null(전국), 기본 **30km**. `RegionsService.codesWithin` — 시·군·구 229개 대표 좌표 하버사인 `region_distance_km` |
 | 혼인 | bereaved / divorced / any |
 | 관계 목적 | `goals[]` 교집합 |
-| 종교·음주·흡연·경제활동 | eq |
+| 종교·음주·흡연·경제활동 | eq. 흡연은 컬럼만 있다가 `7c8445d`(09-18)에 시트에 칩(상관없음/비흡연/흡연)이 생겼다 |
+| 키 | `height_min`/`height_max` → `height_cm` 범위(120~220cm, `7c8445d`). 키를 적지 않은 프로필은 범위를 걸면 빠진다 — 시트 helper 로 미리 알린다 |
 
 **없는 것**: 자녀 수·동거 가족(PRD 8.2, 상세에서만), **정렬·최소 궁합**(아래).
 

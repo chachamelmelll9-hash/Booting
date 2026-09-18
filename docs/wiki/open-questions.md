@@ -35,6 +35,7 @@ status: stable
 
 ## 알려진 버그·기술 부채
 
+- **`discovery_filters.height_min/max` 마이그레이션 미적용** (09-18) — `supabase/migrations/20260918100000_discovery_filter_height.sql` 은 커밋됐지만 운영 DB 에는 안 들어갔다 (관리 API 호출이 권한 게이트에 막힘, CLI 는 `supabase link` 안 됨). 서버 `7c8445d` 는 upsert 에 두 컬럼을 항상 보내므로 **적용 전에 새 서버를 띄우면 필터 저장이 전부 깨진다**. 지금 도는 서버는 이전 dist 라 안전하고, 앱에서 키 칸을 채우면 구 서버가 400 을 돌려준다. 적용: `pnpm dlx supabase link --project-ref ifkazhqwjbtxkmppsedi` 후 `db push`, 또는 대시보드 SQL 편집기에 파일 내용 실행 → 서버 재빌드·재기동
 - **관심 탭 빈 상태가 새 하트를 못 본다** (09-14) — `useReceivedHearts` 는 `staleTime: 0` 이지만 빈 상태 화면에 재조회 트리거(당겨서 새로고침·탭 포커스)가 없다. 배지(`unreadCount`)는 12 로 바뀌는데 목록은 "아직 받은 관심이 없습니다" 그대로. 콜드 스타트하면 뜬다. 발표 시연 전에 앱을 한 번 껐다 켤 것
 - **등록 2/5(계정 확인) 진입 직후 카카오 로그인 탭이 열린 적이 있다** (09-14) — 소유자 탭인지 자동 실행인지 미확인. `verification.tsx` 의 `useEffect` 확인 필요
 
