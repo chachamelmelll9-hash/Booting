@@ -20,7 +20,7 @@
 | 09-03 | [부모님 동의는 링크로 직접](2026-09-03-parent-consent-by-link.md) | 유효 |
 | 09-03 | [로그인 직후 부스터 인사 화면](2026-09-03-welcome-booster-animation.md) | 유효 |
 | 09-04 | [부모님 코드 숫자 8자리](2026-09-04-numeric-8-digit-parent-code.md) | 앱 화면 삭제로 사실상 폐기 (서버엔 남음) |
-| 09-04 | [가족관계증명서 폐지, 배지 하나](2026-09-04-drop-family-certificate.md) | 유효 |
+| 09-04 | [가족관계증명서 폐지, 배지 하나](2026-09-04-drop-family-certificate.md) | **09-18 증명서 재도입으로 대체** (배지 하나는 유효) |
 | 09-04 | [개발용 우회의 원칙](2026-09-04-dev-only-bypasses.md) | 유효 |
 | 09-06 | [하루 6장 원석 카드, 보관함 폐지](2026-09-06-daily-6-gem-cards-remove-saved.md) | 유효 |
 | 09-07 | [실제 앨범 (expo-image-picker)](2026-09-07-real-image-picker.md) | 유효 |
@@ -35,3 +35,5 @@
 | 09-10 | [사주를 상대가 보이는 모든 화면에](2026-09-10-saju-on-all-partner-screens.md) | 유효 |
 | 09-10 | [탭 첫 화면은 로고, 뒤로가기는 대화방만](2026-09-10-tab-header-logo-no-back.md) | 유효 |
 | 09-11 | [직전 6명은 오늘 후보에서 제외](2026-09-11-exclude-previous-daily-picks.md) | 유효 |
+| 09-18 | [사별/이혼 여부를 입력받지 않는다](2026-09-18-no-marital-status-input.md) | 유효 (마이그레이션 적용 대기) |
+| 09-18 | [가족관계증명서 재도입 — 올리면 통과, 적발되면 제한](2026-09-18-family-certificate-upload-pass.md) | 유효 |

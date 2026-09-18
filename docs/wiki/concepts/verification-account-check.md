@@ -51,6 +51,7 @@ status: stable
 | 09-08 | 유니크 인덱스는 **배포 직전으로 미룸** — 스텁 시절 `01000000000` 에 계정 14개가 붙어 인덱스 생성이 실패했다. 그때 '스텁 인증 전부 비우기' SQL 을 마이그레이션 파일 안에 주석으로 남겼다 | `e944130` |
 | 09-08 | **카카오 연결도 확인으로 인정.** 사업자 계약이 없어 문자를 못 보내는데 스텁으로 되돌리면 아무도 확인하지 않는 상태로 돌아간다 | `46a5735` |
 | 09-08 | 문자 사업자 없으면 항목을 감춘다. 사업자가 붙으면 `SMS_PROVIDER` 만 채우면 화면이 저절로 살아난다 | `45900cf` |
+| 09-18 | **가족관계증명서 재도입 — 올리면 통과, 적발되면 제한.** 3단계에 자녀 성함 + 증명서 사진(비공개 버킷 보관). 접수 즉시 승인, 신고 시 운영자가 사진을 보고 제한. `ANTHROPIC_API_KEY` 가 있으면 Claude 가 표를 읽고 코드가 대조(선택). `missing.familyDoc` — 이미 공개된 프로필은 소급 안 함 | `52988e2` |
 
 ## 배포 직전에 할 것
 
@@ -62,4 +63,4 @@ PRD 4.2·4.4·14장은 여전히 가족관계증명서를 말한다 — [open-qu
 
 ## 관련
 
-[결정 증명서 폐지](../decisions/2026-09-04-drop-family-certificate.md) · [결정 문자→카카오](../decisions/2026-09-08-real-phone-verification-then-kakao-check.md) · [kakao-developers](../entities/kakao-developers.md)
+[결정 증명서 폐지 (09-04, 대체됨)](../decisions/2026-09-04-drop-family-certificate.md) · [결정 증명서 재도입 (09-18)](../decisions/2026-09-18-family-certificate-upload-pass.md) · [결정 문자→카카오](../decisions/2026-09-08-real-phone-verification-then-kakao-check.md) · [kakao-developers](../entities/kakao-developers.md)

@@ -17,3 +17,4 @@ append-only. 형식: `## [YYYY-MM-DD] operation | description`. 최근 것을 �
 ## [2026-09-11] lint | wiki-lint 90 페이지, 깨진 링크 0, type 누락 0, 고아 0. CLAUDE.md·AGENTS.md 에 LLM-WIKI 포인터 블록 추가
 ## [2026-09-14] ingest | 세션 (옵시디언 볼트 복구, 처음부터 시뮬레이션, 받은 관심 채우기) — seed-demo `--heart-me latest`, entities/scripts-and-tooling, timeline 09-14
 ## [2026-09-18] ingest | 세션 53a351c6 (사진 다중 선택, 필터 흡연·키) — concepts/discovery-ranking 필터 표, timeline 09-18. 마이그레이션 미적용 상태를 open-questions 에 기록
+## [2026-09-18] ingest | 세션 53a351c6 계속 — 결정 2건(사별/이혼 입력 폐지, 증명서 재도입), 09-04 증명서 폐지 결정에 superseded_by, concepts 4개 갱신, timeline 09-18

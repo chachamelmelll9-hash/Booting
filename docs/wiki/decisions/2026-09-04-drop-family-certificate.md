@@ -9,8 +9,11 @@ sources:
 generated:
   by: claude-code/claude-fable-5-1
   at: 2026-09-11T14:30:00+09:00
-status: stable
+status: superseded
+superseded_by: 2026-09-18-family-certificate-upload-pass
 ---
+
+> **2026-09-18 에 뒤집힘** — 증명서를 다시 받는다(올리면 통과, 적발되면 제한). [후속 결정](2026-09-18-family-certificate-upload-pass.md). 배지 '부모님 동의' 하나는 그대로다.
 
 # 증명서 폐지
 

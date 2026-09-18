@@ -27,7 +27,8 @@ status: stable
 ## 정해지지 않은 제품 규칙
 
 - **문자 사업자** 없음 → 문자 인증은 운영에서 fail-closed, 화면에서도 감춤. 지금 계정 확인의 유일한 문은 카카오 연결이다. 사업자 계약 시 `SMS_PROVIDER` 만 채우면 살아난다 — [verification-account-check](concepts/verification-account-check.md)
-- **가족관계 인증(TODO-05)** — 증명서 제출을 폐지했다(`2a78a18`). PRD 4.2·4.4·14장은 여전히 "가족관계증명서 인증" 을 말한다. PRD 를 현실에 맞출지, 실심사를 붙일지 미결
+- **가족관계 인증(TODO-05)** — 09-04 폐지 → 09-18 재도입(`52988e2`, 올리면 통과·적발되면 제한). 남은 것: (1) 운영자 제한 조치 화면 없음(대시보드 직접), (2) 증명서 보관에 따른 스토어 데이터 안전 선언·주민번호 뒷자리 가림 안내, (3) 진짜 해법인 PASS 본인인증은 사업자 이후 — [결정](decisions/2026-09-18-family-certificate-upload-pass.md)
+- **혼인 상태를 더 이상 받지 않는다**(09-18, `264bbae`) — `prd.md` 5·8장, `docs/features/profile-discovery.md`·`wireframe-*.md` 의 "사별/이혼" 표기·필터 서술이 옛 것이다. 원본은 고치지 않는다 — [결정](decisions/2026-09-18-no-marital-status-input.md)
 - **부모님 웹 링크 30일 만료** 뒤 재발급 경로가 없다 — 자녀가 다시 공유해야 한다
 - **카카오 콜백 유실**(운영) — 카카오가 3초 안에 2XX 를 못 받으면 실패로 보고, 재시도 경로가 없다. 개발 빌드만 대안 경로가 있다
 - **오늘의 추천 상태가 기기 로컬**(AsyncStorage) — 앱 재설치·기기 시간 변경·기기 2대에서 각각 다르게 뽑힌다. 서버 발급으로 옮길지 미결 — [daily-picks](concepts/daily-picks.md)
