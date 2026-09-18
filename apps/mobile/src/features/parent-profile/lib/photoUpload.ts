@@ -83,7 +83,8 @@ export async function pickImages(limit: number): Promise<PickedImage[]> {
  * @returns 버킷 내 오브젝트 경로
  */
 export async function uploadToStorage(
-  bucket: 'parent-photos',
+  /** `family-docs` 는 비공개 버킷 — 서버가 읽어 심사한 뒤 바로 지운다 */
+  bucket: 'parent-photos' | 'family-docs',
   userId: string,
   image: PickedImage
 ): Promise<string> {

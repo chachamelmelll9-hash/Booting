@@ -327,7 +327,7 @@ export class ParentProfileService {
 
     // 인증 상태는 더 이상 배지에 쓰지 않는다 — 프로필을 만들 수 있었다는 것이
     // 이미 본인인증을 마쳤다는 뜻이라 늘 같은 값이었다
-    const [goalsRes, photoRows, sajuRes, regionRes, consent, review] =
+    const [goalsRes, photoRows, sajuRes, regionRes, consent, review, verificationRes] =
       await Promise.all([
         client.from('relationship_goals').select('goal').eq('parent_profile_id', row.id),
         client
@@ -339,7 +339,14 @@ export class ParentProfileService {
         client.from('regions').select('sido, sigungu').eq('code', row.region_code).maybeSingle(),
         this.consent.getActive(row.id),
         this.review.getLatest(row.id),
+        // 가족관계 자동 심사 결과 — 승인돼야 제출할 수 있다 (2026-09-18)
+        client
+          .from('child_verifications')
+          .select('family_doc_status')
+          .eq('user_id', row.user_id)
+          .maybeSingle(),
       ]);
+    const familyDocApproved = verificationRes.data?.family_doc_status === 'approved';
 
     const goals = (goalsRes.data ?? []).map((g: { goal: RelationshipGoal }) => g.goal);
     const photos = await this.photos.toDtos(photoRows.data ?? []);
@@ -369,6 +376,10 @@ export class ParentProfileService {
     if (!row.drinking) missing.push('drinking');
     if (!row.smoking) missing.push('smoking');
     if (!row.hobbies?.length) missing.push('hobbies');
+    // 이미 공개된 프로필은 소급하지 않는다 — 심사가 없던 때 등록한 분들을 갑자기 막지 않는다
+    if (!familyDocApproved && row.status !== 'published' && row.status !== 'hidden') {
+      missing.push('familyDoc');
+    }
     if (!badges.consent) missing.push('consent');
 
     return {

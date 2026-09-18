@@ -1,4 +1,4 @@
-import { Matches } from 'class-validator';
+import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
 /**
  * 휴대폰 번호.
@@ -23,6 +23,24 @@ export class SubmitPhoneDto {
   token!: string;
 }
 
+/**
+ * 가족관계증명서 제출.
+ *
+ * 앱이 비공개 버킷(`family-docs/{userId}/…`)에 먼저 올리고 경로만 보낸다 —
+ * 사진 바이트가 API 서버를 지날 이유가 없다 (프로필 사진과 같은 규칙).
+ */
+export class SubmitFamilyDocDto {
+  @IsString()
+  @MinLength(1)
+  storagePath!: string;
+
+  /** 증명서 '본인' 란과 맞춰 볼 자녀 본인 성함 */
+  @IsString()
+  @MinLength(2)
+  @MaxLength(20)
+  childName!: string;
+}
+
 /** 인증번호를 보냈다 — 언제 다시 보낼 수 있는지까지 알려준다 */
 export interface PhoneCodeSentDto {
   /** 재발송이 가능해지기까지 남은 초 */
@@ -34,12 +52,18 @@ export interface PhoneCodeSentDto {
 /**
  * 인증 상태.
  *
- * 가족관계증명서는 더 이상 받지 않는다 — 남의 부모님을 막는 실제 장치는
- * **부모님 본인의 동의**이고, 증명서는 그 위에 서류 한 장을 더 얹어 등록하려는
- * 자녀 모두를 주민센터로 보냈다. 컬럼은 남겨 두되(과거 기록) 읽지 않는다.
+ * 가족관계증명서는 2026-09-04 에 뺐다가 09-18 에 되살렸다 — **올리면 통과,
+ * 적발되면 제한**. 사람이 보는 심사는 없고, 증명서는 비공개 버킷에 보관해
+ * 신고 시 운영자가 확인한다. 서버에 Claude 키가 있으면 대조까지 한다 (선택).
  */
 export interface VerificationStatusDto {
   phoneVerified: boolean;
+  /** 가족관계 자동 심사 결과 — approved 라야 프로필을 제출할 수 있다 */
+  familyDocStatus: 'none' | 'pending' | 'approved' | 'rejected';
+  /** rejected 일 때 무엇이 안 맞았는지 — 사용자가 읽고 다시 찍을 수 있는 말 */
+  familyDocRejectReason: string | null;
+  /** 증명서 제출을 받을 수 있는가 — 지금은 항상 true (AI 대조는 켜져 있을 때만 얹힌다) */
+  familyDocAvailable: boolean;
   /**
    * 카카오 계정이 붙어 있는가.
    *

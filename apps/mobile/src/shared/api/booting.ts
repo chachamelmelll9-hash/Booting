@@ -48,7 +48,12 @@ export const verificationApi = {
       method: 'POST',
       body: { phone, token },
     }),
-  // submitFamilyDoc 은 없앴다 — 가족관계증명서는 더 이상 받지 않는다
+  /** 가족관계증명서 자동 심사 — 비공개 버킷에 올린 경로와 자녀 성함을 보낸다 */
+  submitFamilyDoc: (storagePath: string, childName: string) =>
+    serverFetch<VerificationStatus>('/me/verification/family-doc', {
+      method: 'POST',
+      body: { storagePath, childName },
+    }),
 };
 
 export const parentProfileApi = {

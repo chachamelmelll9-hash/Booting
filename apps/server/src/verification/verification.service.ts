@@ -6,9 +6,11 @@ import { SupabaseService } from '../supabase/supabase.service';
 import {
   PhoneCodeSentDto,
   RequestPhoneCodeDto,
+  SubmitFamilyDocDto,
   SubmitPhoneDto,
   VerificationStatusDto,
 } from './dto/verification.dto';
+import { FamilyDocService, type FamilyDocStatus } from './family-doc.service';
 import { SmsService } from './sms.service';
 
 /** 입력 제한 시간. 짧으면 어르신 곁에서 대신 넣어드리는 경우에 촉박하고, 길면 문자를 주운 사람에게 시간을 준다 */
@@ -24,7 +26,8 @@ export class VerificationService {
 
   constructor(
     private readonly supabase: SupabaseService,
-    private readonly sms: SmsService
+    private readonly sms: SmsService,
+    private readonly familyDoc: FamilyDocService
   ) {}
 
   async getStatus(userId: string): Promise<VerificationStatusDto> {
@@ -33,14 +36,19 @@ export class VerificationService {
     const [{ data }, kakaoLinked] = await Promise.all([
       client
         .from('child_verifications')
-        // 가족관계 컬럼은 더 이상 읽지 않는다 (과거 기록으로만 남는다)
-        .select('phone, phone_verified_at')
+        .select('phone, phone_verified_at, family_doc_status, reject_reason')
         .eq('user_id', userId)
         .maybeSingle(),
       this.kakaoLinked(userId),
     ]);
 
     return this.toDto(data, kakaoLinked);
+  }
+
+  /** 가족관계증명서 자동 심사 — 결과를 반영한 전체 상태를 돌려준다 */
+  async submitFamilyDoc(userId: string, dto: SubmitFamilyDocDto): Promise<VerificationStatusDto> {
+    await this.familyDoc.submit(userId, dto);
+    return this.getStatus(userId);
   }
 
   /**
@@ -150,7 +158,7 @@ export class VerificationService {
 
     const { data: row } = await client
       .from('child_verifications')
-      .select('phone, phone_verified_at, code_hash, code_expires_at, code_attempts')
+      .select('phone, phone_verified_at, code_hash, code_expires_at, code_attempts, family_doc_status, reject_reason')
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -193,7 +201,7 @@ export class VerificationService {
         updated_at: new Date().toISOString(),
       })
       .eq('user_id', userId)
-      .select('phone, phone_verified_at')
+      .select('phone, phone_verified_at, family_doc_status, reject_reason')
       .single();
 
     if (error) throw new BadRequestException({ code: 'phone_verify_failed', message: error.message });
@@ -210,9 +218,14 @@ export class VerificationService {
     kakaoLinked = false
   ): VerificationStatusDto {
     const phoneVerified = !!row?.phone_verified_at;
+    const familyDocStatus = ((row?.family_doc_status as FamilyDocStatus | undefined) ?? 'none');
 
     return {
       phoneVerified,
+      familyDocStatus,
+      familyDocRejectReason:
+        familyDocStatus === 'rejected' ? ((row?.reject_reason as string | null) ?? null) : null,
+      familyDocAvailable: this.familyDoc.available,
       kakaoLinked,
       // 이미 인증하신 분께는 계속 보여드린다 — 사업자가 빠졌다고 지난 인증이
       // 화면에서 사라지면 무슨 일이 있었는지 알 수 없다

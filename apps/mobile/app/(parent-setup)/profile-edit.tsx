@@ -10,6 +10,8 @@ import {
   useParentProfile,
   useParentProfileMutations,
   useProfileDraftStore,
+  useVerification,
+  useVerificationMutations,
   validateBasics,
   validateDetails,
   validateIntro,
@@ -59,6 +61,47 @@ export default function ProfileEditScreen() {
   const [errors, setErrors] = useState<DraftErrors>({});
   const [regionOpen, setRegionOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  /**
+   * 가족관계증명서 — 올리면 통과, 적발되면 제한 (2026-09-18).
+   *
+   * 자녀 본인 성함은 증명서의 '본인' 란과 맞춰 볼 값이라 여기서 받는다. 계정에는
+   * 실명이 없다 (카카오 연결로도 이름은 안 온다). draft 가 아니라 화면 state 인
+   * 이유: 증명서와 함께 한 번 보내고 나면 다시 쓸 일이 없다.
+   */
+  const { data: verification } = useVerification();
+  const { submitFamilyDoc } = useVerificationMutations();
+  const [childName, setChildName] = useState('');
+  const [docUploading, setDocUploading] = useState(false);
+  const familyDocApproved = verification?.familyDocStatus === 'approved';
+
+  const handleFamilyDoc = async () => {
+    if (!user?.id) return;
+    if (childName.trim().length < 2) {
+      toast.show({ message: '자녀 본인 성함을 먼저 적어주세요' });
+      return;
+    }
+    try {
+      setDocUploading(true);
+      // 증명서는 부모님 성함·생년월일과 대조되므로 기본 정보가 먼저 있어야 한다
+      const target = await ensureProfile();
+      if (!target) return;
+      const [image] = await pickImages(1);
+      if (!image) return;
+      const path = await uploadToStorage('family-docs', user.id, image);
+      const result = await submitFamilyDoc.mutateAsync({ storagePath: path, childName: childName.trim() });
+      toast.show({
+        message:
+          result.familyDocStatus === 'approved'
+            ? '가족관계가 확인되었습니다'
+            : (result.familyDocRejectReason ?? '증명서를 확인하지 못했습니다'),
+      });
+    } catch (error) {
+      toast.show({ message: (error as Error).message });
+    } finally {
+      setDocUploading(false);
+    }
+  };
 
   /**
    * 앨범을 열기 **전에** 기본 정보를 확인한다.
@@ -211,6 +254,11 @@ export default function ProfileEditScreen() {
     }
     if ((profile?.photos.length ?? 0) < MIN_PROFILE_PHOTOS) {
       toast.show({ message: `사진을 최소 ${MIN_PROFILE_PHOTOS}장 등록해주세요` });
+      return;
+    }
+    // 서버 `missing` 에도 같은 항목이 있다 — 여기서 먼저 막아 다음 화면에서 되돌아오지 않게 한다
+    if (!familyDocApproved && profile?.status !== 'published' && profile?.status !== 'hidden') {
+      toast.show({ message: '가족관계증명서를 올려주세요' });
       return;
     }
     if (leaksRealName(draft.nickname, draft.displayName)) {
@@ -478,6 +526,49 @@ export default function ProfileEditScreen() {
         onRemove={(photoId) => removePhoto.mutate(photoId)}
       />
 
+      {/*
+        가족관계증명서 — 올리면 통과, 적발되면 제한.
+        이미 공개된 프로필(심사가 없던 때 등록)은 다시 요구하지 않는다.
+      */}
+      {profile?.status !== 'published' && profile?.status !== 'hidden' ? (
+        <>
+          <Text style={styles.section}>가족관계 확인 (필수)</Text>
+          {familyDocApproved ? (
+            <View style={styles.familyDone} testID="family-doc-done">
+              <Text style={styles.familyDoneText}>가족관계증명서가 접수되었습니다</Text>
+            </View>
+          ) : (
+            <>
+              <Text style={styles.sectionNote}>
+                자녀 본인 기준으로 발급한 가족관계증명서 사진을 올려주세요. 올리시면 바로
+                다음 단계로 진행됩니다. 사실과 다른 것으로 확인되면 이용이 제한됩니다.
+              </Text>
+              <FormSection label="자녀 본인 성함" required helper="증명서의 본인 란과 같아야 합니다">
+                <TextField
+                  testID="family-child-name"
+                  value={childName}
+                  onChangeText={setChildName}
+                  placeholder="예: 김민수"
+                  maxLength={20}
+                />
+              </FormSection>
+              {verification?.familyDocStatus === 'rejected' && verification.familyDocRejectReason ? (
+                <Text style={styles.requiredNote} testID="family-doc-rejected">
+                  {verification.familyDocRejectReason}
+                </Text>
+              ) : null}
+              <AppButton
+                label="증명서 사진 올리기"
+                variant="secondary"
+                loading={docUploading || submitFamilyDoc.isPending}
+                testID="family-doc-upload"
+                onPress={() => void handleFamilyDoc()}
+              />
+            </>
+          )}
+        </>
+      ) : null}
+
       <Text style={styles.section}>가족·생활</Text>
       <Text style={styles.sectionNote}>
         모두 필수 항목입니다. 자녀 수와 동거 가족은 검색 조건으로 쓰이지 않고 상세
@@ -733,6 +824,12 @@ const styles = StyleSheet.create({
     color: theme.colors.error,
     marginBottom: spacing.xs,
   },
+  familyDone: {
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: theme.colors.primarySurface,
+  },
+  familyDoneText: { ...typography.body, color: theme.colors.primaryDark, fontWeight: '600' },
   goalNotice: {
     ...typography.caption,
     color: theme.colors.primaryDark,

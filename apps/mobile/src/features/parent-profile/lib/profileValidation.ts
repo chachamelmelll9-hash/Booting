@@ -176,6 +176,7 @@ export const MISSING_LABEL: Record<string, string> = {
   drinking: '음주',
   smoking: '흡연',
   hobbies: '취미',
+  familyDoc: '가족관계 확인',
   consent: '부모님 동의',
 };
 

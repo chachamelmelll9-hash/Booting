@@ -2,7 +2,11 @@ import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 
 import { AuthGuard } from '../auth/auth.guard';
 import { User } from '../auth/user.decorator';
-import { RequestPhoneCodeDto, SubmitPhoneDto } from './dto/verification.dto';
+import {
+  RequestPhoneCodeDto,
+  SubmitFamilyDocDto,
+  SubmitPhoneDto,
+} from './dto/verification.dto';
 import { VerificationService } from './verification.service';
 
 @Controller('me/verification')
@@ -26,5 +30,12 @@ export class VerificationController {
     return this.verification.submitPhone(userId, dto);
   }
 
-  // `POST family` 는 없앴다 — 가족관계증명서는 더 이상 받지 않는다
+  /**
+   * 가족관계증명서 자동 심사 — 올린 사진을 읽어 프로필과 대조하고 결과를 돌려준다.
+   * 사진은 심사 직후 삭제된다. 부모님 기본 정보(성함·생년월일)가 먼저 있어야 한다.
+   */
+  @Post('family-doc')
+  submitFamilyDoc(@User('id') userId: string, @Body() dto: SubmitFamilyDocDto) {
+    return this.verification.submitFamilyDoc(userId, dto);
+  }
 }

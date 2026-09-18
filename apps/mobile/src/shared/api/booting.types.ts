@@ -44,8 +44,16 @@ export interface Badges {
   review: boolean;
 }
 
+export type FamilyDocStatus = 'none' | 'pending' | 'approved' | 'rejected';
+
 export interface VerificationStatus {
   phoneVerified: boolean;
+  /** 가족관계 자동 심사 결과 — approved 라야 프로필을 제출할 수 있다 */
+  familyDocStatus: FamilyDocStatus;
+  /** rejected 일 때 무엇이 안 맞았는지 */
+  familyDocRejectReason: string | null;
+  /** 증명서 제출을 받을 수 있는가 (지금은 항상 true) */
+  familyDocAvailable: boolean;
   /** 카카오 계정이 붙어 있는가 — 카카오 하나는 부팅 계정 하나에만 붙는다 */
   kakaoLinked: boolean;
   /** 문자 사업자가 꽂혀 있는가 — false 면 화면에서 휴대폰 항목을 감춘다 */

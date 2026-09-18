@@ -114,7 +114,17 @@ export function useVerificationMutations() {
         verificationApi.submitPhone(phone, token),
       onSuccess: invalidate,
     }),
-    // submitFamilyDoc 은 없앴다 — 가족관계증명서는 더 이상 받지 않는다
+    /** 가족관계 자동 심사 — 결과가 프로필의 `missing` 에도 반영되므로 둘 다 새로 읽는다 */
+    submitFamilyDoc: useMutation({
+      mutationFn: ({ storagePath, childName }: { storagePath: string; childName: string }) =>
+        verificationApi.submitFamilyDoc(storagePath, childName),
+      onSuccess: async () => {
+        await Promise.all([
+          invalidate(),
+          queryClient.invalidateQueries({ queryKey: bootingKeys.parentProfile }),
+        ]);
+      },
+    }),
   };
 }
 
