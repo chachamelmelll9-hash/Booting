@@ -15,6 +15,7 @@ status: stable
 
 | # | 항목 | 상태 | 근거 |
 |---|---|---|---|
+| 0 | **개발 Supabase `ifkazhqwjbtxkmppsedi` 가 응답하지 않음** (09-30) | 호스트가 DNS 에서 사라짐(NXDOMAIN, Cloudflare DoH 로도 동일) — 무료 플랜 비활성 일시중지(마지막 활동 09-18)로 추정. 운영 `vyiauclgelpuxitsoeii` 도 같은 상태. 서버는 `GoTrue request failed: fetch failed`, 앱은 로그인·개발용 바로 시작 모두 불가. `SUPABASE_ACCESS_TOKEN` 이 401 이라 API 로 복구 불가 → **소유자가 대시보드에서 Restore** 해야 한다 | [supabase-projects](entities/supabase-projects.md) |
 | 1 | **도메인** | 없음. 소유자 "고민좀해볼게" (09-11). 없으면 HTTPS 불가 → 부모님 카톡 링크·안드로이드 통신·Let's Encrypt 전부 막힘. EC2 기본 주소로는 인증서를 못 받는다 | [deploy-infra](entities/deploy-infra.md), `infra/EC2_GUIDE.md` 4장 |
 | 2 | **EC2 미생성** | 의도적으로 보류 — 도메인·`.env.production` 준비 전에 켜면 크레딧만 축난다. 계정은 **크레딧 $100 / 182일** 방식(12개월 무료가 아니다). 리전은 **서울**로, `t4g.micro`(ARM, 월 ~$6) 권고 → 워크플로 `platforms: linux/arm64` 한 줄 변경 필요. 공인 IPv4 도 과금(월 ~$3.6) | [session beebb230](sources/session-2026-09-07-release-prep-parent-web.md) |
 | 3 | **운영 Supabase `booting-prod`** | 프로젝트는 생성됨(`vyiauclgelpuxitsoeii`). **마이그레이션 적용 여부 미확인** — 소유자에게 `SUPABASE_PROJECT_REF=vyiauclgelpuxitsoeii node scripts/db-migrate.mjs` 를 부탁한 뒤 대화가 사주로 넘어갔다. Auth 설정(이메일 확인 on/off, Redirect URL `booting-mobile://reset-password`) 미이전. **DB 비밀번호가 세션 기록에 평문으로 찍혔다 → 대시보드에서 재설정할 것** | [supabase-projects](entities/supabase-projects.md) |
