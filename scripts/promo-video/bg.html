@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Booting 16:9 backdrop</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1920px;height:1080px;overflow:hidden}
+  body{font-family:Pretendard,'Malgun Gothic',sans-serif;background:#F8FAFC;position:relative}
+  .blob{position:absolute;border-radius:50%;filter:blur(120px)}
+  .b1{width:900px;height:900px;background:#CCFBF1;opacity:.55;left:-260px;top:-300px}
+  .b2{width:760px;height:760px;background:#F0FDFA;opacity:.9;right:-200px;bottom:-280px}
+  /* the portrait video is overlaid centred at 562x1000 - this is its drop shadow plate */
+  .slot{
+    position:absolute;left:679px;top:40px;width:562px;height:1000px;border-radius:26px;
+    background:transparent;
+    box-shadow:0 50px 110px -26px rgba(15,23,42,.40), 0 0 0 1px rgba(15,23,42,.06);
+  }
+  .brand{
+    position:absolute;left:96px;top:50%;transform:translateY(-50%);
+    width:480px;
+  }
+  .brand .mark{font-size:86px;font-weight:800;letter-spacing:-.05em;color:#0F766E}
+  .brand .rule{width:96px;height:8px;border-radius:99px;background:#14B8A6;margin:30px 0 30px}
+  .brand .tag{font-size:34px;line-height:1.55;color:#334155;font-weight:600}
+  .brand .sub{margin-top:22px;font-size:26px;line-height:1.6;color:#94A3B8;font-weight:500}
+  .side{
+    position:absolute;right:96px;top:50%;transform:translateY(-50%);width:420px;text-align:right;
+  }
+  .side .item{margin-bottom:46px}
+  .side .n{font-size:24px;font-weight:700;letter-spacing:.1em;color:#14B8A6;margin-bottom:10px}
+  .side .t{font-size:32px;font-weight:700;color:#0F172A;line-height:1.4}
+</style>
+</head>
+<body>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="slot"></div>
+  <div class="brand">
+    <div class="mark">Booting</div>
+    <div class="rule"></div>
+    <div class="tag">부모님의 다음 인연을,<br>자녀의 손으로.</div>
+    <div class="sub">사별·이혼하신 부모님을 위한<br>자녀 주도 매칭 서비스</div>
+  </div>
+  <div class="side">
+    <div class="item"><div class="n">01</div><div class="t">매일 6장,<br>사주 궁합까지</div></div>
+    <div class="item"><div class="n">02</div><div class="t">자녀끼리<br>먼저 대화</div></div>
+    <div class="item"><div class="n">03</div><div class="t">부모님은<br>카톡으로 결정</div></div>
+  </div>
+</body>
+</html>

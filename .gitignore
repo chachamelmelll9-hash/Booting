@@ -131,3 +131,6 @@ apps/wiki
 docs/.obsidian/workspace*.json
 docs/.obsidian/cache
 docs/.obsidian/plugins
+
+# 홍보영상 원본 (scripts/promo-video 로 재생성 가능 — 20MB 바이너리는 커밋하지 않는다)
+assets/marketing/*.mp4
