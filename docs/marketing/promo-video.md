@@ -91,6 +91,7 @@ node mix.mjs --layout wide
 - **"부모님께" 를 누르면 1초 안에 카카오톡 로그인 화면으로 넘어간다** (에뮬레이터의 카카오톡은 로그아웃 상태). s7 은 탭 0.45초 뒤에서 멈추고, 곧바로 앱을 강제 종료한다 — 10초 뒤 개발 빌드 fallback 이 "공유함" 으로 기록해 버리기 때문.
 - **Chrome 번역 막대**: 한국어 페이지에 "Translate page?" 가 뜬다. ⋮ → "Never translate pages in Korean" 을 한 번 눌러 둔다.
 - **LogBox 막대**: 개발 빌드는 리로드 뒤 탭바 위에 "Open debugger to view warnings" 를 띄운다. `record.mjs` 의 `{ app: true }` 가 닫는다.
+- **마지막 대사가 잘렸다.** 목소리 버스의 `loudnorm` 을 최종 필터 그래프 안에 두면, 미리보기로 쥐고 있던 끝 3초가 스트림 종료 때 나오지 않는다 ("자녀의 손으로. 부팅." 이 -38dB 로 묻혔다). `mix.mjs` 는 목소리를 먼저 전체 길이 wav 로 뽑고(무음 패딩 후 정규화) 그걸 음악과 섞는다. 고치고 나면 끝 구간 음량을 `volumedetect` 로 재 본다.
 - **Metro 가 죽는다.** `clips/`·`frames/` 에 JPEG 수천 장이 생기면 Metro 의 파일 감시가 네이티브 크래시한다 (`logs\metro.err.log`). 캡처 뒤 앱이 검은 화면이면 `dev-up.ps1` 을 다시 돌린다.
 - **`dev-up.ps1` 출력을 파이프로 받지 않는다.** 분리 실행한 자식이 파이프를 잡아 명령이 끝나지 않는다.
 - PowerShell 5.1 은 BOM 없는 UTF-8 `.ps1` 을 ANSI 로 읽는다 — 그래서 새 스크립트는 전부 `.mjs` 다.
