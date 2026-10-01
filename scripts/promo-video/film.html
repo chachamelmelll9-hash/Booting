@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Booting promo film</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
+<style>
+  :root{
+    --teal:#14B8A6; --teal-d:#0D9488; --teal-dd:#0F766E; --teal-l:#CCFBF1; --teal-s:#F0FDFA;
+    --ink:#0F172A; --ink2:#334155; --ink3:#64748B; --ink4:#94A3B8; --bg:#F8FAFC;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:Pretendard,'Malgun Gothic',sans-serif; background:var(--bg); color:var(--ink);
+    -webkit-font-smoothing:antialiased; overflow:hidden;
+  }
+  #root{position:relative;overflow:hidden;background:var(--bg)}
+  .scene{position:absolute;inset:0;opacity:0;will-change:opacity,transform}
+  .blob{position:absolute;border-radius:50%;filter:blur(110px);pointer-events:none}
+
+  .txt{position:absolute;will-change:transform,opacity}
+  .eyebrow{font-weight:700;letter-spacing:.09em;color:var(--teal-d)}
+  .head{font-weight:800;letter-spacing:-.035em;line-height:1.25}
+  .head .hl{color:var(--teal-d)}
+  .head .dim{color:var(--ink4)}
+  .sub{color:var(--ink3);font-weight:500;line-height:1.55}
+  .step{font-weight:700;letter-spacing:.12em;color:var(--teal)}
+  .mark{font-weight:800;letter-spacing:-.05em;color:var(--teal-dd)}
+  .rule{height:10px;border-radius:99px;background:var(--teal)}
+  .chip{
+    display:inline-block;font-weight:600;color:var(--ink4);border:3px solid #E2E8F0;
+    border-radius:999px;background:#fff;white-space:nowrap;
+  }
+
+  .phone{position:absolute;background:#0B1220;will-change:transform,opacity}
+  .screen{position:absolute;overflow:hidden;background:#fff}
+  .screen img{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// film.html - the promo as a function of time.
+//
+// capture.mjs calls init(data) once, then `await seek(t)` for every frame.
+// Text scenes are laid out and animated here. Phone scenes do NOT animate the
+// app: the phone screen shows frame floor(t*fps) of the take record.mjs made
+// by driving the real app, so every scroll, transition and touch dot in the
+// film is what the app actually did.
+const Q = new URLSearchParams(location.search);
+const WIDE = Q.get('layout') === 'wide';
+const W = WIDE ? 1920 : 1080, H = WIDE ? 1080 : 1920;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const eOut = p => 1 - Math.pow(1 - p, 3);
+const eInOut = p => p < .5 ? 4*p*p*p : 1 - Math.pow(-2*p+2, 3)/2;
+const ramp = (t, s, d, ease = eOut) => ease(clamp((t - s) / d, 0, 1));
+
+// The take is 1080x2400 (9:20). The whole screen is shown - cropping it would
+// cut the tab bar or the status bar, and then it stops looking like the app.
+const PANEL = { x: 1150, w: W - 1150 };
+const PH = WIDE ? { sh: 976, pad: 12, r: 50, sr: 40 } : { sh: 1334, pad: 12, r: 60, sr: 50 };
+PH.sw = Math.round(PH.sh * 1080 / 2400);
+PH.w = PH.sw + PH.pad * 2;
+PH.h = PH.sh + PH.pad * 2;
+PH.x = WIDE ? PANEL.x + (PANEL.w - PH.w) / 2 : (W - PH.w) / 2;
+PH.y = WIDE ? (H - PH.h) / 2 : 506;
+
+const COL = WIDE ? { x: 112, w: 950 } : { x: 104, w: 872 };
+const FS = WIDE
+  ? { eyebrow: 36, head: 100, headSm: 86, sub: 42, step: 30, cap: 84, capSub: 38, mark: 112, chip: 34 }
+  : { eyebrow: 38, head: 106, headSm: 88, sub: 43, step: 29, cap: 68, capSub: 36, mark: 118, chip: 35 };
+const XF = 0.5;
+
+let SC = [];
+const nodes = {};
+
+function build() {
+  const root = document.getElementById('root');
+  root.style.width = W + 'px';
+  root.style.height = H + 'px';
+  document.body.style.width = W + 'px';
+  document.body.style.height = H + 'px';
+
+  SC.forEach((s, idx) => {
+    const el = document.createElement('div');
+    el.className = 'scene';
+    const n = { el, chips: [], stack: [] };
+
+    const blobs = s.kind === 'type'
+      ? [{ w: 900, h: 900, c: '#CCFBF1', o: .5, x: idx % 2 ? W - 620 : -240, y: idx % 2 ? H - 640 : -220 }]
+      : [];
+    for (const b of blobs) {
+      const d = document.createElement('div');
+      d.className = 'blob';
+      d.style.cssText = `width:${b.w}px;height:${b.h}px;background:${b.c};opacity:${b.o};left:${b.x}px;top:${b.y}px`;
+      el.appendChild(d);
+    }
+
+    const mk = (cls, html, css) => {
+      const d = document.createElement('div');
+      d.className = 'txt ' + cls;
+      d.innerHTML = html;
+      d.style.cssText += css;
+      el.appendChild(d);
+      n.stack.push(d);
+      return d;
+    };
+
+    if (s.kind === 'type') {
+      const align = WIDE ? 'center' : s.align;
+      const cx = align === 'center' ? `left:0;width:${W}px;text-align:center` : `left:${COL.x}px;width:${COL.w}px`;
+      if (s.logo) {
+        mk('mark', 'Booting', `${cx};font-size:${FS.mark}px`);
+        mk('rule', '', `left:${(W - 128) / 2}px;width:128px`);
+      }
+      if (s.eyebrow) mk('eyebrow', s.eyebrow, `${cx};font-size:${FS.eyebrow}px`);
+      mk('head', s.head, `${cx};font-size:${s.headSm ? FS.headSm : (s.cta ? FS.head * .78 : FS.head)}px`);
+      if (s.chips) {
+        const d = mk('chips', '', cx);
+        for (const c of s.chips) {
+          const c1 = document.createElement('span');
+          c1.className = 'chip';
+          c1.textContent = c;
+          c1.style.cssText = `font-size:${FS.chip}px;padding:${FS.chip * .55}px ${FS.chip}px;margin:0 ${FS.chip * .28}px ${FS.chip * .45}px 0`;
+          d.appendChild(c1);
+          n.chips.push(c1);
+        }
+      }
+      if (s.sub) mk('sub', s.sub, `${cx};font-size:${FS.sub}px`);
+    } else {
+      const capX = WIDE ? `left:${COL.x}px;width:${COL.w}px` : `left:0;width:${W}px;text-align:center`;
+      if (WIDE) {
+        const pn = document.createElement('div');
+        pn.style.cssText = `position:absolute;left:${PANEL.x}px;top:0;width:${PANEL.w}px;height:${H}px;` +
+          `background:linear-gradient(160deg,#F0FDFA 0%,#CCFBF1 100%)`;
+        el.appendChild(pn);
+        const wm = document.createElement('div');
+        wm.className = 'txt mark';
+        wm.textContent = 'Booting';
+        wm.style.cssText += `left:${COL.x}px;top:${H - 128}px;font-size:46px;opacity:.9`;
+        el.appendChild(wm);
+      }
+      mk('step', s.step, `${capX};font-size:${FS.step}px`);
+      mk('head', s.cap, `${capX};font-size:${FS.cap}px`);
+      mk('sub', s.capSub, `${capX};font-size:${FS.capSub}px`);
+
+      const ph = document.createElement('div');
+      ph.className = 'phone';
+      ph.style.cssText = `left:${PH.x}px;top:${PH.y}px;width:${PH.w}px;height:${PH.h}px;border-radius:${PH.r}px;` +
+        `box-shadow:0 64px 130px -34px rgba(15,23,42,.45),0 0 0 1px rgba(15,23,42,.05)`;
+      const sc = document.createElement('div');
+      sc.className = 'screen';
+      sc.style.cssText = `left:${PH.pad}px;top:${PH.pad}px;width:${PH.sw}px;height:${PH.sh}px;border-radius:${PH.sr}px`;
+      const im = document.createElement('img');
+      sc.appendChild(im);
+      ph.appendChild(sc);
+      el.appendChild(ph);
+      n.phone = ph; n.img = im; n.frame = 0;
+    }
+    root.appendChild(el);
+    nodes[s.id] = n;
+  });
+}
+
+function layoutStacks() {
+  for (const s of SC) {
+    const n = nodes[s.id];
+    const gapFor = (el) => el.classList.contains('rule') ? 46
+      : el.classList.contains('mark') ? 40
+      : el.classList.contains('eyebrow') ? 34
+      : el.classList.contains('step') ? 22
+      : el.classList.contains('head') ? (s.kind === 'type' ? 42 : 20)
+      : el.classList.contains('chips') ? 40 : 0;
+    const hs = n.stack.map(e => e.offsetHeight);
+    let h = 0;
+    hs.forEach((v, i) => { h += v + (i < n.stack.length - 1 ? gapFor(n.stack[i]) : 0); });
+    // tall phone scenes: centre the caption in the band above the phone
+    let y = s.kind === 'type' || WIDE ? (H - h) / 2 : Math.max((PH.y - h) / 2, 40);
+    n.stack.forEach((e, i) => { e.style.top = y + 'px'; y += hs[i] + gapFor(e); });
+  }
+}
+
+const frameUrl = (s, i) => `clips/${s.id}/${String(i).padStart(5, '0')}.jpg`;
+
+async function seek(t) {
+  const loads = [];
+  for (const s of SC) {
+    const n = nodes[s.id];
+    const lt = t - s.start;
+    const end = s.dur;
+    let o = 0;
+    if (lt > -XF && lt < end + XF) {
+      // the outgoing scene fades out ACROSS the incoming one's fade-in
+      const fadeIn = s.start === 0 ? 1 : ramp(lt, 0, XF, eInOut);
+      o = clamp(Math.min(fadeIn, 1 - ramp(lt, end, XF, eInOut)), 0, 1);
+    }
+    n.el.style.opacity = o;
+    n.el.style.display = o <= 0.001 ? 'none' : 'block';
+    if (o <= 0.001) continue;
+
+    const st0 = s.start === 0 ? -0.38 : 0.10;
+    n.stack.forEach((e, i) => {
+      const p = ramp(lt, st0 + i * 0.13, 0.75);
+      e.style.opacity = p;
+      e.style.transform = `translateY(${(1 - p) * 46}px)`;
+    });
+    n.chips.forEach((c, i) => {
+      const p = ramp(lt, 0.75 + i * 0.09, 0.45);
+      c.style.opacity = p;
+      c.style.transform = `scale(${0.88 + 0.12 * p})`;
+    });
+    if (s.kind !== 'phone') {
+      n.el.style.transform = `translateY(${(lt / end - .5) * 16}px)`;
+      continue;
+    }
+
+    // the phone itself stays put - the motion belongs to the app inside it
+    const pe = ramp(lt, 0.0, 0.7);
+    n.phone.style.opacity = pe;
+    n.phone.style.transform = `translateY(${(1 - pe) * 40}px)`;
+
+    const want = clamp(Math.floor((lt + (s.skip || 0)) * s.fps) + 1, 1, s.frames);
+    if (want !== n.frame) {
+      n.frame = want;
+      n.img.src = frameUrl(s, want);
+      loads.push(n.img.decode().catch(() => {}));
+    }
+  }
+  await Promise.all(loads);
+}
+
+async function init(data) {
+  SC = data;
+  build();
+  await document.fonts.ready;
+  layoutStacks();
+  await seek(0);
+}
+
+window.init = init;
+window.seek = seek;
+</script>
+</body>
+</html>
